@@ -1,0 +1,85 @@
+{
+  "app": {
+    "title": "Davis AI ペットグルーミングアドバイザー",
+    "subtitle": "写真を撮って、プロのグルーミングアドバイスを即座に取得"
+  },
+  "nav": {
+    "home": "ホーム",
+    "analyze": "AI 分析",
+    "products": "製品ガイド",
+    "groomers": "認定トリマー",
+    "certify": "認定申請",
+    "admin": "管理画面"
+  },
+  "hero": {
+    "tagline": "AI ペットグルーミングアドバイザー",
+    "description": "写真を撮って、プロのグルーミングアドバイスを即座に取得",
+    "cta_photo": "📷 分析開始",
+    "cta_breed": "⚡ 犬種クイック選択"
+  },
+  "brand": {
+    "title": "なぜ Davis？",
+    "cfa": "CFA 公式推薦",
+    "history": "40年の歴史",
+    "formula": "プロ仕様の処方開発"
+  },
+  "analyze": {
+    "upload_title": "ペットの写真をアップロード",
+    "upload_hint": "撮影またはドラッグ＆ドロップ",
+    "or_breed": "または犬種で検索",
+    "search_placeholder": "犬種名を入力...",
+    "common_breeds": "よくある犬種",
+    "start_analysis": "🤖 AI 分析開始",
+    "analyzing_breed": "犬種特徴を識別中...",
+    "analyzing_coat": "被毛タイプを分析中...",
+    "analyzing_products": "Davis製品データベースと照合中...",
+    "analyzing_season": "季節要因を考慮中...",
+    "analyzing_plan": "パーソナライズされたプランを生成中...",
+    "result_title": "3段階グルーミングプラン",
+    "no_pet": "ペットが検出されませんでした",
+    "no_pet_hint": "犬猫が写った鮮明な写真をアップロードするか、犬種検索をご利用ください",
+    "retry": "再分析",
+    "share": "結果を共有"
+  },
+  "tiers": {
+    "basic": "🔵 ベーシック",
+    "advanced": "💎 アドバンス",
+    "signature": "✨ シグネチャーSPA"
+  },
+  "step": {
+    "first_wash": "第1シャンプー",
+    "second_wash": "第2シャンプー",
+    "spa_wash": "SPA第3シャンプー",
+    "conditioner": "コンディショナー",
+    "conditioner_2": "コンディショナー(2回目)",
+    "dilution": "希釈",
+    "dwell_time": "放置時間"
+  },
+  "embed": {
+    "confirm": "✅ このプランを確認",
+    "confirmed": "選択済み、システムに同期しました"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "back": "戻る",
+    "close": "閉じる",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "search": "検索",
+    "dog": "犬",
+    "cat": "猫"
+  },
+  "season": {
+    "spring": "春 — 換毛期、下毛ケアを強化",
+    "summer": "夏 — 高温多湿、洗浄・消臭を重視",
+    "autumn": "秋 — 乾燥気候、保湿・潤い補給",
+    "winter": "冬 — 寒冷乾燥、深層栄養ケア"
+  },
+  "footer": {
+    "brand": "davistaiwan.com",
+    "powered": "Powered by Davis Manufacturing"
+  }
+}

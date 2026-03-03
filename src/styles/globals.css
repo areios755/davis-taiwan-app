@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Noto Sans TC', 'Noto Sans JP', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Davis brand button */
+  .btn-davis {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl
+           bg-davis-blue text-white font-medium
+           hover:bg-davis-accent active:scale-95
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-davis-outline {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl
+           border-2 border-davis-blue text-davis-blue font-medium
+           hover:bg-davis-light active:scale-95
+           transition-all duration-200;
+  }
+
+  .btn-davis-gold {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-xl
+           bg-davis-gold text-white font-medium
+           hover:brightness-110 active:scale-95
+           transition-all duration-200;
+  }
+
+  /* Card component */
+  .card-davis {
+    @apply bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden;
+  }
+
+  /* Analysis step card */
+  .step-card {
+    @apply bg-davis-light rounded-xl p-4 border border-blue-100;
+  }
+
+  /* Tier tab */
+  .tier-tab {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer;
+  }
+
+  .tier-tab-active {
+    @apply bg-davis-blue text-white shadow-md;
+  }
+
+  .tier-tab-inactive {
+    @apply bg-gray-100 text-gray-600 hover:bg-gray-200;
+  }
+
+  /* Scanning animation */
+  .scan-line {
+    @apply absolute left-0 right-0 h-0.5 bg-davis-accent;
+    animation: scan 2s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0%, 100% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* Pulse dot for analyzing steps */
+  .pulse-dot {
+    @apply w-2 h-2 rounded-full bg-davis-accent;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+}

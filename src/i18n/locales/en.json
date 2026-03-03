@@ -1,0 +1,132 @@
+{
+  "app": {
+    "title": "Davis AI Pet Grooming Consultant",
+    "subtitle": "Take a photo, get professional grooming advice instantly"
+  },
+  "nav": {
+    "home": "Home",
+    "analyze": "AI Analysis",
+    "products": "Products",
+    "groomers": "Certified Groomers",
+    "certify": "Get Certified",
+    "admin": "Admin"
+  },
+  "hero": {
+    "tagline": "AI Pet Grooming Consultant",
+    "description": "Take a photo, get professional grooming advice instantly",
+    "cta_photo": "📷 Start Analysis",
+    "cta_breed": "⚡ Quick Breed Select"
+  },
+  "brand": {
+    "title": "Why Davis?",
+    "cfa": "CFA Official Recommendation",
+    "history": "40 Years of Heritage",
+    "formula": "Professional Formula R&D"
+  },
+  "cert": {
+    "title": "Davis Certified Groomers",
+    "description": "Find certified professional groomers near you",
+    "view_groomers": "View Certified Groomers",
+    "apply": "I'm a groomer, apply for certification →"
+  },
+  "product_section": {
+    "title": "Product Guide",
+    "description": "Explore the full range of Davis grooming products",
+    "browse": "Browse Products →"
+  },
+  "analyze": {
+    "upload_title": "Upload Pet Photo",
+    "upload_hint": "Take or drag & drop a photo",
+    "or_breed": "Or search by breed",
+    "search_placeholder": "Enter breed name...",
+    "common_breeds": "Common Breeds",
+    "start_analysis": "🤖 Start AI Analysis",
+    "analyzing_breed": "Identifying breed characteristics...",
+    "analyzing_coat": "Analyzing coat type...",
+    "analyzing_products": "Matching Davis product database...",
+    "analyzing_season": "Considering seasonal factors...",
+    "analyzing_plan": "Generating personalized grooming plan...",
+    "result_title": "Three-Tier Grooming Plan",
+    "no_pet": "No pet detected in photo",
+    "no_pet_hint": "Please upload a clear photo with a dog or cat, or use breed search",
+    "retry": "Retry Analysis",
+    "share": "Share Results"
+  },
+  "tiers": {
+    "basic": "🔵 Basic Wash",
+    "advanced": "💎 Advanced Wash",
+    "signature": "✨ Signature SPA"
+  },
+  "step": {
+    "first_wash": "First Wash",
+    "second_wash": "Second Wash",
+    "spa_wash": "SPA Third Wash",
+    "conditioner": "Conditioner",
+    "conditioner_2": "Conditioner (2nd)",
+    "dilution": "Dilution",
+    "dwell_time": "Dwell Time"
+  },
+  "embed": {
+    "confirm": "✅ Confirm this plan",
+    "confirmed": "Selected and synced to system"
+  },
+  "share": {
+    "title": "Share Grooming Plan",
+    "copy_link": "Copy Link",
+    "download": "Download Image",
+    "line": "Share on LINE",
+    "ig": "Share on IG"
+  },
+  "certify": {
+    "title": "Apply for Davis Groomer Certification",
+    "name": "Name",
+    "shop": "Shop Name",
+    "city": "City",
+    "phone": "Phone",
+    "email": "Email",
+    "ig": "Instagram",
+    "fb": "Facebook",
+    "photo": "Profile Photo",
+    "submit": "Submit Application",
+    "pending": "Under Review",
+    "approved": "Certified ✅"
+  },
+  "groomers": {
+    "title": "Davis Certified Groomers",
+    "list_view": "List",
+    "map_view": "Map",
+    "find_cta": "Find a Groomer",
+    "verified": "Davis Certified"
+  },
+  "products": {
+    "title": "Davis Product Guide",
+    "all": "All",
+    "shampoo": "Shampoo",
+    "conditioner": "Conditioner",
+    "spa": "SPA",
+    "specialty": "Specialty"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "back": "Back",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "search": "Search",
+    "dog": "Dog",
+    "cat": "Cat"
+  },
+  "season": {
+    "spring": "Spring — Shedding season, enhance undercoat care",
+    "summer": "Summer — Hot & humid, focus on cleansing & deodorizing",
+    "autumn": "Autumn — Dry climate, add moisture & hydration",
+    "winter": "Winter — Cold & dry, deep nourishment & static protection"
+  },
+  "footer": {
+    "brand": "davistaiwan.com",
+    "powered": "Powered by Davis Manufacturing"
+  }
+}

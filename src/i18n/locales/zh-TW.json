@@ -1,0 +1,132 @@
+{
+  "app": {
+    "title": "Davis AI 寵物洗護顧問",
+    "subtitle": "拍一張照，立即獲得專業洗護建議"
+  },
+  "nav": {
+    "home": "首頁",
+    "analyze": "AI 分析",
+    "products": "產品圖鑑",
+    "groomers": "認證美容師",
+    "certify": "申請認證",
+    "admin": "管理後台"
+  },
+  "hero": {
+    "tagline": "AI 寵物洗護顧問",
+    "description": "拍一張照，立即獲得專業洗護建議",
+    "cta_photo": "📷 開始分析",
+    "cta_breed": "⚡ 品種快選"
+  },
+  "brand": {
+    "title": "為什麼選 Davis？",
+    "cfa": "CFA 官方推薦",
+    "history": "40 年歷史品牌",
+    "formula": "專業配方研發"
+  },
+  "cert": {
+    "title": "Davis 認證美容師",
+    "description": "尋找你附近的認證專業美容師",
+    "view_groomers": "查看認證美容師",
+    "apply": "我是美容師，申請認證 →"
+  },
+  "product_section": {
+    "title": "產品圖鑑",
+    "description": "探索 Davis 全系列洗護產品",
+    "browse": "瀏覽產品 →"
+  },
+  "analyze": {
+    "upload_title": "上傳寵物照片",
+    "upload_hint": "拍照或拖曳上傳",
+    "or_breed": "或用品種搜尋",
+    "search_placeholder": "輸入品種名稱...",
+    "common_breeds": "常見品種",
+    "start_analysis": "🤖 開始 AI 分析",
+    "analyzing_breed": "正在辨識品種特徵...",
+    "analyzing_coat": "分析毛質類型...",
+    "analyzing_products": "比對 Davis 產品資料庫...",
+    "analyzing_season": "參考當季環境因素...",
+    "analyzing_plan": "生成個人化洗護方案...",
+    "result_title": "三等級洗護方案",
+    "no_pet": "未偵測到寵物照片",
+    "no_pet_hint": "請上傳含有犬貓的清晰照片，或使用品種搜尋",
+    "retry": "重新分析",
+    "share": "分享結果"
+  },
+  "tiers": {
+    "basic": "🔵 基礎洗",
+    "advanced": "💎 進階洗",
+    "signature": "✨ 完美SPA"
+  },
+  "step": {
+    "first_wash": "第一洗",
+    "second_wash": "第二洗",
+    "spa_wash": "SPA第三洗",
+    "conditioner": "護毛素",
+    "conditioner_2": "護毛素(二)",
+    "dilution": "稀釋",
+    "dwell_time": "停留"
+  },
+  "embed": {
+    "confirm": "✅ 確認選擇此方案",
+    "confirmed": "已選擇，已同步回系統"
+  },
+  "share": {
+    "title": "分享洗護方案",
+    "copy_link": "複製連結",
+    "download": "下載圖片",
+    "line": "分享到 LINE",
+    "ig": "分享到 IG"
+  },
+  "certify": {
+    "title": "申請 Davis 認證美容師",
+    "name": "姓名",
+    "shop": "店名",
+    "city": "城市",
+    "phone": "電話",
+    "email": "Email",
+    "ig": "Instagram",
+    "fb": "Facebook",
+    "photo": "個人照片",
+    "submit": "提交申請",
+    "pending": "審核中",
+    "approved": "已認證 ✅"
+  },
+  "groomers": {
+    "title": "Davis 認證美容師",
+    "list_view": "列表",
+    "map_view": "地圖",
+    "find_cta": "找美容師",
+    "verified": "Davis 認證"
+  },
+  "products": {
+    "title": "Davis 產品圖鑑",
+    "all": "全部",
+    "shampoo": "洗劑",
+    "conditioner": "護毛素",
+    "spa": "SPA",
+    "specialty": "特殊護理"
+  },
+  "common": {
+    "loading": "載入中...",
+    "error": "發生錯誤",
+    "retry": "重試",
+    "back": "返回",
+    "close": "關閉",
+    "save": "儲存",
+    "cancel": "取消",
+    "confirm": "確認",
+    "search": "搜尋",
+    "dog": "狗",
+    "cat": "貓"
+  },
+  "season": {
+    "spring": "春季 — 換毛季節，加強底層護理",
+    "summer": "夏季 — 高溫潮濕，注重清潔除臭",
+    "autumn": "秋季 — 氣候乾燥，補充滋潤保濕",
+    "winter": "冬季 — 寒冷乾燥，深層滋養護理"
+  },
+  "footer": {
+    "brand": "davistaiwan.com",
+    "powered": "Powered by Davis Manufacturing"
+  }
+}
