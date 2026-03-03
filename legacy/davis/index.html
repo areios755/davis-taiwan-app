@@ -1,0 +1,2556 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="description" content="Davis Taiwan 寵物洗護 AI 顧問 — 上傳毛孩照片，立即獲得專業洗護建議與產品推薦" />
+<meta property="og:title" content="Davis Taiwan 寵物洗護 AI 顧問" />
+<meta property="og:description" content="拍一張照，立即獲得量身定制的 Davis 專業洗護建議" />
+<title>Davis Taiwan 寵物洗護 AI 顧問</title>
+
+<link rel="manifest" href="/manifest.json" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Davis 洗護顧問" />
+<meta name="theme-color" content="#1A4A9E" />
+<link rel="apple-touch-icon" href="/icon.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #1A6FD4;
+  --gold-light: #E8F0FF;
+  --orange: #1A4A9E;
+  --teal: #2196C8;
+  --purple: #1A4A9E;
+  --green: #2196C8;
+  --blue: #1A6FD4;
+  --bg-1: #0B1E3D;
+  --bg-2: #112554;
+  --bg-3: #091830;
+  --surface: rgba(255,255,255,0.055);
+  --surface-hover: rgba(255,255,255,0.09);
+  --border: rgba(255,255,255,0.10);
+  --text: #EEF4FF;
+  --muted: rgba(220,235,255,0.55);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans TC', 'PingFang TC', -apple-system, sans-serif;
+  background: linear-gradient(155deg, #091830 0%, #0B1E3D 40%, #112554 75%, #0D2040 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── EMBED MODE ── */
+html.embed .header {
+  padding: 8px 14px !important;
+  background: rgba(10,25,58,0.95) !important;
+  border-bottom: 1px solid rgba(26,106,212,0.3) !important;
+}
+html.embed .header-logo { width: 32px !important; height: 32px !important; border-radius: 7px !important; }
+html.embed .header-logo img { width: 26px !important; height: 26px !important; }
+html.embed .header-brand { font-size: 13px !important; }
+html.embed .header-sub { display: none !important; }
+html.embed .cta-footer { display: none !important; }
+html.embed .install-banner { display: none !important; }
+html.embed .hero { display: none !important; }
+html.embed .setup-banner { display: none !important; }
+html.embed .ios-modal-overlay { display: none !important; }
+html.embed .main { padding-top: 12px !important; }
+
+/* ── EMBED CONFIRM BUTTON ── */
+.embed-confirm-bar {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  left: 0; right: 0;
+  z-index: 200;
+  background: linear-gradient(180deg, transparent 0%, rgba(10,25,58,0.95) 20%);
+  padding: 16px 16px 20px;
+  text-align: center;
+}
+html.embed .embed-confirm-bar.visible { display: block; }
+.embed-confirm-btn {
+  width: 100%;
+  max-width: 400px;
+  padding: 14px 24px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #1A6FD4, #1A4A9E);
+  color: white;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(26,111,212,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.02em;
+}
+.embed-confirm-btn:active { transform: scale(0.97); }
+.embed-confirm-btn:hover { box-shadow: 0 6px 28px rgba(26,111,212,0.55); }
+.embed-confirm-tier {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ── HEADER ── */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,25,58,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 13px 18px;
+  display: flex; align-items: center; gap: 13px;
+}
+.header-logo {
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(26,106,212,0.35);
+  overflow: hidden;
+  padding: 3px;
+}
+.header-brand { font-weight: 900; font-size: 15px; color: #A8CCFF; letter-spacing: 0.02em; line-height: 1.3; }
+.header-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+
+/* ── MAIN ── */
+.main { max-width: 520px; margin: 0 auto; padding: 26px 16px 170px; }
+
+/* ── HERO ── */
+.hero { text-align: center; margin-bottom: 28px; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(33,150,200,0.18);
+  border: 1px solid rgba(33,150,200,0.38);
+  border-radius: 30px; padding: 5px 12px;
+  font-size: 12px; color: #6BB8E8; font-weight: 700;
+  margin-bottom: 14px; letter-spacing: 0.04em;
+}
+.hero-title {
+  font-size: 28px; font-weight: 900; line-height: 1.22;
+  color: var(--gold-light);
+}
+.hero-title span { color: #5AABF0; }
+.hero-sub { font-size: 14px; color: var(--muted); margin-top: 10px; line-height: 1.65; }
+
+/* ── DROP ZONE ── */
+.drop-zone {
+  position: relative;
+  border: 2px dashed rgba(26,106,212,0.35);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.25s, background 0.25s;
+  min-height: 190px;
+  display: flex; align-items: center; justify-content: center;
+}
+.drop-zone:hover { border-color: rgba(26,106,212,0.75); background: rgba(26,106,212,0.07); }
+.drop-zone.drag-over { border-color: #1A6FD4; background: rgba(26,111,212,0.12); border-style: solid; }
+.drop-zone.has-image { border-style: solid; border-color: rgba(26,111,212,0.5); }
+.drop-inner { text-align: center; padding: 38px 24px; }
+.drop-icon { font-size: 48px; margin-bottom: 11px; display: block; }
+.drop-primary { font-weight: 800; font-size: 16px; color: var(--gold-light); margin-bottom: 5px; }
+.drop-secondary { font-size: 13px; color: var(--muted); }
+.drop-format { font-size: 11.5px; color: var(--muted); opacity: 0.5; margin-top: 10px; }
+.upload-btns { display: flex; gap: 10px; justify-content: center; margin: 14px 0 10px; flex-wrap: wrap; }
+.upload-btn {
+  padding: 10px 20px; border-radius: 30px; border: 1.5px solid rgba(26,106,212,0.45);
+  background: rgba(26,106,212,0.12); color: #A8CCFF;
+  font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
+  transition: all 0.18s; white-space: nowrap;
+}
+.upload-btn:hover, .upload-btn:active { background: rgba(26,106,212,0.28); border-color: #1A6FD4; }
+.preview-img { width: 100%; max-height: 320px; object-fit: cover; display: block; }
+.preview-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(9,24,48,0.82) 0%, transparent 55%);
+  display: flex; align-items: flex-end; padding: 14px;
+}
+.preview-change-btn {
+  font-size: 13px; color: #A8CCFF; font-family: inherit; font-weight: 700;
+  background: rgba(9,24,48,0.78); padding: 6px 14px;
+  border-radius: 30px; border: 1px solid rgba(26,106,212,0.45); cursor: pointer;
+  transition: background 0.2s;
+}
+.preview-change-btn:hover { background: rgba(9,24,48,0.95); }
+
+/* ── DIVIDER ── */
+.divider-wrap { display: flex; align-items: center; gap: 10px; margin: 22px 0 14px; }
+.divider-line { flex: 1; height: 1px; background: var(--border); }
+.divider-text { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* ── BREED CHIPS ── */
+.breed-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chip {
+  padding: 7px 14px; border-radius: 30px;
+  background: rgba(26,106,212,0.12);
+  border: 1px solid rgba(26,106,212,0.3);
+  color: #A8CCFF; font-size: 13px; cursor: pointer; font-family: inherit;
+  transition: all 0.18s; font-weight: 500;
+}
+.chip:hover, .chip:active { background: rgba(26,106,212,0.28); border-color: #1A6FD4; }
+
+/* ── ANALYZE BTN ── */
+.analyze-btn {
+  width: 100%; margin-top: 20px; padding: 15px;
+  border-radius: var(--radius-md); border: none;
+  background: linear-gradient(135deg, #1A6FD4 0%, #1A4A9E 100%);
+  color: #fff; font-size: 17px; font-weight: 900; font-family: inherit;
+  cursor: pointer; letter-spacing: 0.03em;
+  box-shadow: 0 6px 22px rgba(26,106,212,0.45);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.analyze-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 9px 30px rgba(26,106,212,0.58); }
+.analyze-btn:active:not(:disabled) { transform: translateY(0); }
+.analyze-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── ANALYZING ── */
+.analyzing-wrap { text-align: center; padding: 52px 20px; }
+.scan-frame {
+  display: inline-block; position: relative;
+  margin-bottom: 28px; border-radius: 18px; overflow: hidden;
+}
+.scan-img { width: 170px; height: 170px; object-fit: cover; display: block; border-radius: 18px; opacity: 0.72; }
+.scan-placeholder {
+  width: 170px; height: 170px; border-radius: 18px;
+  background: linear-gradient(135deg, rgba(26,106,212,0.18), rgba(33,150,200,0.15));
+  display: flex; align-items: center; justify-content: center; font-size: 60px;
+}
+.scan-line {
+  position: absolute; left: 0; right: 0; height: 2.5px;
+  background: linear-gradient(90deg, transparent 0%, #1A6FD4 30%, #fff 50%, #1A6FD4 70%, transparent 100%);
+  animation: scanLine 1.9s ease-in-out infinite; top: 0;
+}
+@keyframes scanLine {
+  0% { top: 0; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+.scanning-corner {
+  position: absolute; width: 18px; height: 18px;
+  border-color: #1A6FD4; border-style: solid;
+}
+.scanning-corner.tl { top: 8px; left: 8px; border-width: 2.5px 0 0 2.5px; }
+.scanning-corner.tr { top: 8px; right: 8px; border-width: 2.5px 2.5px 0 0; }
+.scanning-corner.bl { bottom: 8px; left: 8px; border-width: 0 0 2.5px 2.5px; }
+.scanning-corner.br { bottom: 8px; right: 8px; border-width: 0 2.5px 2.5px 0; }
+.analyzing-title { font-size: 21px; font-weight: 900; color: var(--gold-light); margin-bottom: 10px; }
+.analyzing-step { font-size: 15px; color: var(--muted); min-height: 26px; margin-bottom: 26px; transition: opacity 0.3s; }
+.dots { display: flex; justify-content: center; gap: 7px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #1A6FD4; animation: dotBounce 1.3s ease-in-out infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce { 0%,80%,100%{transform:translateY(0);opacity:0.45} 40%{transform:translateY(-13px);opacity:1} }
+
+/* ── RESULTS ── */
+.result-header { display: flex; align-items: center; gap: 13px; margin-bottom: 20px; }
+.result-thumb { width: 52px; height: 52px; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
+.result-emoji { width:52px; height:52px; border-radius:12px; background:rgba(26,106,212,0.18); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
+.result-title { font-size: 18px; font-weight: 900; color: var(--gold-light); }
+.result-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.result-breed-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(26,106,212,0.18); border: 1px solid rgba(26,106,212,0.35);
+  border-radius: 20px; padding: 2px 9px; font-size: 11.5px; color: #6BB8E8;
+  margin-top: 5px;
+}
+
+/* ── PRODUCT CARD ── */
+.product-card {
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 19px;
+  margin-bottom: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: cardIn 0.4s ease both;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.product-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+.card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+.card-icon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+}
+.card-name { font-weight: 900; font-size: 17px; line-height: 1.3; }
+.card-tag { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ── STEP ── */
+.step-item {
+  background: rgba(0,0,0,0.26); border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 8px;
+  border-left-width: 3px; border-left-style: solid;
+}
+.step-role { font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+.step-name { font-size: 14px; font-weight: 700; line-height: 1.45; margin-bottom: 9px; }
+.step-meta { display: flex; gap: 7px; flex-wrap: wrap; }
+.meta-pill {
+  font-size: 11.5px; color: var(--muted);
+  background: rgba(255,255,255,0.07);
+  padding: 3px 9px; border-radius: 20px;
+}
+
+/* ── REASON / NOTE ── */
+.reason-box {
+  border-radius: var(--radius-sm); padding: 11px 13px;
+  font-size: 13px; line-height: 1.68; margin-top: 4px;
+}
+.reason-label { font-weight: 800; margin-right: 3px; }
+.note-box {
+  background: rgba(26,106,212,0.08); border-radius: var(--radius-sm);
+  padding: 9px 13px; font-size: 12px; color: var(--muted);
+  margin-top: 8px; line-height: 1.6;
+}
+
+/* ── COMPLIANCE ── */
+.compliance-box {
+  background: rgba(255,255,255,0.04); border-radius: var(--radius-md);
+  padding: 12px 15px; font-size: 12px; color: var(--muted);
+  line-height: 1.7; margin: 4px 0 14px;
+}
+
+/* ── RESET BTN ── */
+.reset-btn {
+  width: 100%; padding: 13px; border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,0.14); background: transparent;
+  color: var(--text); font-size: 15px; cursor: pointer; font-family: inherit;
+  transition: background 0.2s; margin-bottom: 8px;
+}
+.reset-btn:hover { background: rgba(255,255,255,0.07); }
+
+/* ── ERROR ── */
+.error-box {
+  background: rgba(200,60,60,0.12); border: 1px solid rgba(200,60,60,0.3);
+  border-radius: var(--radius-md); padding: 14px 16px;
+  font-size: 14px; color: #f0a0a0; line-height: 1.6; margin-bottom: 16px;
+}
+
+/* ── CTA FOOTER ── */
+.cta-footer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: linear-gradient(0deg, rgba(9,24,48,0.99) 70%, rgba(9,24,48,0.0) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(26,106,212,0.25);
+  padding: 13px 16px 30px;
+}
+.cta-inner { max-width: 520px; margin: 0 auto; }
+.cta-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, #1A6FD4 0%, #1A4A9E 100%);
+  color: #fff; text-align: center; border-radius: var(--radius-md);
+  font-size: 16px; font-weight: 900; text-decoration: none; letter-spacing: 0.03em;
+  box-shadow: 0 7px 26px rgba(26,106,212,0.52);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,106,212,0.62); }
+.cta-arrow { font-size: 20px; }
+.cta-sub { text-align: center; font-size: 11.5px; color: var(--muted); margin-top: 7px; opacity: 0.5; }
+
+/* ── SETUP BANNER ── */
+.setup-banner {
+  background: rgba(26,74,158,0.15); border: 1px solid rgba(26,106,212,0.35);
+  border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 18px;
+  font-size: 13px; line-height: 1.65; color: rgba(240,235,225,0.8);
+  display: none;
+}
+.setup-banner.visible { display: block; }
+.setup-banner a { color: var(--gold); }
+
+/* ── RESPONSIVE ── */
+@media (min-width: 540px) {
+  .main { padding-left: 24px; padding-right: 24px; }
+}
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  display: none;
+  align-items: center; gap: 12px;
+  background: linear-gradient(135deg, rgba(26,106,212,0.18), rgba(26,74,158,0.18));
+  border: 1px solid rgba(26,106,212,0.35);
+  border-radius: var(--radius-md);
+  padding: 13px 15px; margin-bottom: 18px; cursor: pointer;
+  transition: background 0.2s;
+}
+.install-banner.visible { display: flex; }
+.install-banner:hover { background: linear-gradient(135deg, rgba(26,106,212,0.28), rgba(26,74,158,0.28)); }
+.install-icon { font-size: 26px; flex-shrink: 0; }
+.install-text { flex: 1; }
+.install-title { font-weight: 800; font-size: 14px; color: #A8CCFF; margin-bottom: 2px; }
+.install-sub { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.install-arrow { font-size: 18px; color: #1A6FD4; flex-shrink: 0; }
+
+/* ── iOS INSTALL MODAL ── */
+.ios-modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+  align-items: flex-end; justify-content: center;
+}
+.ios-modal-overlay.visible { display: flex; }
+.ios-modal {
+  background: #0F2550; border-radius: 20px 20px 0 0;
+  padding: 24px 22px 40px; width: 100%; max-width: 520px;
+  border-top: 1px solid rgba(26,106,212,0.3);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.ios-modal-title { font-size: 17px; font-weight: 900; color: #A8CCFF; margin-bottom: 6px; }
+.ios-modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+.ios-step { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.ios-step-num {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(26,106,212,0.2); border: 1px solid rgba(26,106,212,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: #5AABF0;
+}
+.ios-step-text { font-size: 14px; line-height: 1.55; padding-top: 3px; }
+.ios-step-text strong { color: var(--gold-light); }
+.ios-close {
+  width: 100%; margin-top: 20px; padding: 13px;
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: var(--text); font-size: 15px;
+  cursor: pointer; font-family: inherit;
+}
+
+/* ── TIER TABS ── */
+.tier-tabs {
+  display: flex; gap: 6px; margin-bottom: 20px;
+  background: rgba(0,0,0,0.25); border-radius: 14px; padding: 5px;
+}
+.tier-tab {
+  flex: 1; padding: 9px 4px; border-radius: 10px; border: none;
+  background: transparent; color: var(--muted); font-size: 12px;
+  font-weight: 700; font-family: inherit; cursor: pointer;
+  transition: all 0.2s; text-align: center; line-height: 1.3;
+}
+.tier-tab.active {
+  background: linear-gradient(135deg, #1A6FD4, #1A4A9E);
+  color: #fff; box-shadow: 0 3px 12px rgba(26,106,212,0.4);
+}
+.tier-tab-locked {
+  opacity: 0.45; cursor: default;
+}
+.tier-tab-locked:hover { background: transparent !important; }
+.tier-tab .tab-label { display: block; font-size: 11px; opacity: 0.75; margin-top: 1px; }
+.tier-tab.active .tab-label { opacity: 1; }
+.tier-tab .tab-badge {
+  display: inline-block; font-size: 9px; background: rgba(255,255,255,0.15);
+  border-radius: 6px; padding: 1px 5px; margin-top: 2px;
+}
+.tier-tab.active .tab-badge { background: rgba(255,255,255,0.25); }
+
+/* ── TIER PANEL ── */
+.tier-panel { display: none; }
+.tier-panel.active { display: block; }
+.tier-tagline {
+  font-size: 13px; color: var(--muted); margin-bottom: 16px;
+  padding: 9px 13px; background: rgba(26,106,212,0.08);
+  border-radius: 10px; border-left: 3px solid #1A6FD4;
+}
+
+/* ── STEP CARD ── */
+.step-card {
+  background: rgba(0,0,0,0.22); border-radius: 14px;
+  border: 1px solid var(--border); margin-bottom: 10px;
+  overflow: hidden; animation: cardIn 0.35s ease both;
+}
+.step-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.step-badge {
+  font-size: 10px; font-weight: 900; letter-spacing: 0.05em;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  background: rgba(26,106,212,0.2); color: #5AABF0;
+  border: 1px solid rgba(26,106,212,0.35);
+}
+.step-badge.wash1 { background: rgba(26,106,212,0.2); color: #5AABF0; border-color: rgba(26,106,212,0.4); }
+.step-badge.wash2 { background: rgba(33,150,200,0.2); color: #6BC8E8; border-color: rgba(33,150,200,0.4); }
+.step-badge.wash3 { background: rgba(100,60,200,0.2); color: #A898F0; border-color: rgba(100,60,200,0.4); }
+.step-badge.cond  { background: rgba(26,74,158,0.25); color: #88AAEE; border-color: rgba(26,74,158,0.4); }
+.step-body { padding: 11px 14px 13px; }
+.step-products { margin-bottom: 8px; }
+.step-product-name {
+  font-weight: 800; font-size: 14px; color: var(--gold-light);
+  line-height: 1.4; margin-bottom: 2px;
+}
+.step-mix-note { font-size: 11.5px; color: #6BB8E8; margin-bottom: 6px; }
+.step-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.step-pill {
+  font-size: 11.5px; color: var(--muted);
+  background: rgba(255,255,255,0.07); padding: 3px 9px; border-radius: 20px;
+}
+.step-tip { font-size: 11.5px; color: #6BB8E8; margin-top: 5px; }
+
+/* ── HIGHLIGHT BOX ── */
+.highlight-box {
+  background: rgba(26,106,212,0.1); border: 1px solid rgba(26,106,212,0.25);
+  border-radius: 12px; padding: 11px 14px; margin: 14px 0 4px;
+  font-size: 13px; line-height: 1.6;
+}
+.highlight-box strong { color: #5AABF0; }
+
+/* ── SHARE BTN ── */
+.share-btn {
+  width: 100%; margin-top: 14px; padding: 13px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid rgba(26,106,212,0.45);
+  background: rgba(26,106,212,0.1);
+  color: #A8CCFF; font-size: 15px; font-weight: 700;
+  font-family: inherit; cursor: pointer; letter-spacing: 0.02em;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+}
+.share-btn:hover { background: rgba(26,106,212,0.22); border-color: #1A6FD4; }
+
+/* ── UPLOAD ACTIONS (相簿 + 拍照 雙按鈕) ── */
+.upload-actions {
+  display: flex; gap: 10px; margin: 10px 0 0;
+}
+.upload-action-btn {
+  flex: 1; padding: 13px 8px; border-radius: 14px;
+  border: 1.5px solid rgba(26,106,212,0.4);
+  background: rgba(26,106,212,0.1);
+  color: #A8CCFF; font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all 0.2s;
+}
+.upload-action-btn:hover { background: rgba(26,106,212,0.2); }
+.upload-action-btn-camera {
+  background: rgba(26,106,212,0.18);
+  border-color: rgba(26,106,212,0.55);
+}
+
+/* ── BREED NOTICE ── */
+.breed-notice {
+  font-size: 12.5px; line-height: 1.65;
+  color: rgba(220,235,255,0.65);
+  background: rgba(255,200,50,0.07);
+  border: 1px solid rgba(255,200,50,0.2);
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 12px;
+}
+.breed-notice strong { color: rgba(255,220,80,0.9); }
+
+/* ── NO PET ERROR BOX ── */
+.nopet-box {
+  background: rgba(255,100,80,0.08);
+  border: 1px solid rgba(255,100,80,0.3);
+  border-radius: 14px;
+  padding: 20px 18px;
+  text-align: center;
+  margin-bottom: 16px;
+  animation: cardIn 0.3s ease;
+}
+.nopet-icon { font-size: 36px; margin-bottom: 10px; }
+.nopet-title { font-size: 17px; font-weight: 900; color: #FFAA88; margin-bottom: 8px; }
+.nopet-msg { font-size: 13.5px; color: rgba(220,235,255,0.75); line-height: 1.7; margin-bottom: 16px; }
+.nopet-retry-btn {
+  width: 100%; padding: 13px; border-radius: 12px;
+  background: linear-gradient(135deg, #1A6FD4, #1A4A9E);
+  border: none; color: #fff; font-size: 15px; font-weight: 800;
+  font-family: inherit; cursor: pointer; margin-bottom: 8px;
+}
+.nopet-camera-btn {
+  width: 100%; padding: 12px; border-radius: 12px;
+  background: transparent;
+  border: 1.5px solid rgba(26,106,212,0.4); color: #A8CCFF;
+  font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+}
+
+/* ── CTA FOOTER DUAL BUTTONS ── */
+.cta-btns-row {
+  display: flex; gap: 10px; margin-bottom: 10px;
+}
+.cta-btn-shop, .cta-btn-line {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 13px 10px; border-radius: 14px;
+  font-size: 14px; font-weight: 800; text-decoration: none;
+  letter-spacing: 0.02em; transition: all 0.2s;
+}
+.cta-btn-shop {
+  background: linear-gradient(135deg, #1A6FD4, #1A4A9E);
+  color: #fff; box-shadow: 0 4px 18px rgba(26,106,212,0.35);
+}
+.cta-btn-shop:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(26,106,212,0.45); }
+.cta-btn-line {
+  background: linear-gradient(135deg, #06C755, #00A344);
+  color: #fff; box-shadow: 0 4px 18px rgba(6,199,85,0.35);
+}
+.cta-btn-line:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(6,199,85,0.45); }
+.cta-arrow { opacity: 0.8; font-size: 12px; }
+.cta-copyright {
+  font-size: 11px; color: rgba(168,204,255,0.4);
+  margin-top: 8px; text-align: center;
+}
+
+/* ── SHARE MODAL ── */
+.share-modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  align-items: flex-end; justify-content: center;
+}
+.share-modal-overlay.visible { display: flex; }
+.share-modal {
+  background: #0F2550; border-radius: 20px 20px 0 0;
+  padding: 22px 20px 40px; width: 100%; max-width: 520px;
+  border-top: 1px solid rgba(26,106,212,0.3);
+  animation: slideUp 0.28s ease;
+}
+.share-modal-title { font-size: 16px; font-weight: 900; color: #A8CCFF; margin-bottom: 4px; }
+.share-modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+.share-preview-img {
+  width: 100%; border-radius: 14px; margin-bottom: 14px;
+  display: block; background: rgba(0,0,0,0.3);
+}
+.share-options { display: flex; gap: 10px; }
+.share-option-btn {
+  flex: 1; padding: 12px 8px; border-radius: 12px; border: 1.5px solid rgba(26,106,212,0.35);
+  background: rgba(26,106,212,0.12); color: #A8CCFF;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  transition: all 0.18s; text-align: center;
+}
+.share-option-btn:hover { background: rgba(26,106,212,0.25); }
+.share-close {
+  width: 100%; margin-top: 12px; padding: 12px;
+  border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+  background: transparent; color: var(--muted); font-size: 14px;
+  cursor: pointer; font-family: inherit;
+}
+
+/* ── EMBED MODE ── */
+body.embed-mode .header {
+  padding: 8px 14px !important;
+  background: rgba(10,25,58,0.97) !important;
+  border-bottom: 1px solid rgba(26,106,212,0.3) !important;
+}
+body.embed-mode .header-sub { display: none !important; }
+body.embed-mode .cta-footer { display: none !important; }
+body.embed-mode .install-banner { display: none !important; }
+body.embed-mode .hero { display: none !important; }
+body.embed-mode .setup-banner { display: none !important; }
+body.embed-mode .ios-modal-overlay { display: none !important; }
+body.embed-mode { background: #0B1E3D; }
+body.embed-mode .main { padding-top: 12px; }
+
+/* embed 頂部品種/體重資訊條 */
+.embed-info-bar {
+  display: none;
+  background: rgba(26,106,212,0.15);
+  border: 1px solid rgba(26,106,212,0.3);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: #A8CCFF;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.embed-info-bar .embed-hotel-tag {
+  background: rgba(26,106,212,0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7DBFFF;
+  margin-left: auto;
+}
+.embed-info-bar .embed-breed-pill {
+  font-weight: 700;
+  color: #EEF4FF;
+}
+
+/* postMessage 成功提示 */
+.post-sent-toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: rgba(26,180,100,0.92); color: #fff;
+  padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 9999;
+  white-space: nowrap;
+}
+.post-sent-toast.visible { opacity: 1; }
+</style>
+
+<!-- Embed mode: runs before body paints, sets class on <html> element -->
+<script>if(location.search.indexOf('embed=true')!==-1){document.documentElement.className+=' embed';}</script>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo"><img src="/logo.png" alt="Davis" style="width:38px;height:38px;object-fit:contain;border-radius:8px;" /></div>
+  <div>
+    <div class="header-brand">Davis Taiwan 寵物洗護 AI 顧問</div>
+    <div class="header-sub">拍一張照，立即獲得專業洗護建議</div>
+  </div>
+</header>
+
+<!-- EMBED INFO BAR (hidden in standalone mode) -->
+<div class="embed-info-bar" id="embedInfoBar" style="display:none">
+  <span>🐾</span>
+  <span class="embed-breed-pill" id="embedBreedLabel">—</span>
+  <span id="embedWeightLabel" style="color:var(--muted)"></span>
+  <span class="embed-hotel-tag" id="embedHotelTag">汪得福</span>
+</div>
+
+<!-- postMessage toast -->
+<div class="post-sent-toast" id="postSentToast">✅ 推薦結果已回傳給汪得福</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ═══ UPLOAD PHASE ═══ -->
+  <section id="uploadPhase">
+
+    <!-- Install Banner -->
+    <div class="install-banner" id="installBanner" onclick="handleInstallClick()">
+      <div class="install-icon">📲</div>
+      <div class="install-text">
+        <div class="install-title">加到手機主畫面</div>
+        <div class="install-sub">像 App 一樣快速開啟，隨時查詢洗護建議</div>
+      </div>
+      <div class="install-arrow">›</div>
+    </div>
+
+    <!-- iOS Install Modal -->
+    <div class="ios-modal-overlay" id="iosModal" onclick="closeIosModal(event)">
+      <div class="ios-modal">
+        <div class="ios-modal-title">📲 加到主畫面</div>
+        <div class="ios-modal-sub">依照以下步驟，把 Davis 洗護顧問加到桌面，就像 App 一樣使用</div>
+        <div class="ios-step">
+          <div class="ios-step-num">1</div>
+          <div class="ios-step-text">點擊 Safari 下方的 <strong>分享按鈕</strong>（方塊加箭頭圖示 ⬆️）</div>
+        </div>
+        <div class="ios-step">
+          <div class="ios-step-num">2</div>
+          <div class="ios-step-text">在選單中找到 <strong>「加入主畫面」</strong> 並點擊</div>
+        </div>
+        <div class="ios-step">
+          <div class="ios-step-num">3</div>
+          <div class="ios-step-text">點擊右上角 <strong>「新增」</strong>，完成！</div>
+        </div>
+        <button class="ios-close" onclick="closeIosModal()">好，我知道了</button>
+      </div>
+    </div>
+
+    <div id="setupBanner" class="setup-banner">
+      ⚙️ <strong>部署提示：</strong>請在 Netlify → Site Settings → Environment Variables 加入 <code>ANTHROPIC_API_KEY</code>，即可啟用 AI 圖片分析功能。品種快速選擇功能目前可正常使用。
+    </div>
+
+    <div class="hero">
+      <div class="hero-eyebrow">✨ 由 Claude AI 驅動分析</div>
+      <div class="hero-title">上傳毛孩照片<br /><span>秒獲專業洗護建議</span></div>
+      <div class="hero-sub">AI 辨識品種與毛質，推薦對應的<br />Davis 專業洗護套組與完整使用流程</div>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="drop-zone" id="dropZone" onclick="triggerFileInput()">
+      <div class="drop-inner">
+        <span class="drop-icon">📷</span>
+        <div class="drop-primary">上傳毛孩照片</div>
+        <div class="drop-secondary">點擊選擇相簿照片，或使用下方拍照按鈕</div>
+        <div class="drop-format">支援 JPG · PNG · HEIC · WEBP</div>
+      </div>
+    </div>
+    <!-- 相簿選取（不強制 capture，讓 Android 也能選相簿） -->
+    <input type="file" id="fileInput" accept="image/*" style="display:none" />
+    <!-- 拍照專用（capture=environment 直接開相機） -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
+
+    <!-- 上傳/拍照 雙按鈕列 -->
+    <div class="upload-actions" id="uploadActions">
+      <button class="upload-action-btn" onclick="triggerFileInput()">
+        🖼️ 從相簿選取
+      </button>
+      <button class="upload-action-btn upload-action-btn-camera" onclick="triggerCamera()">
+        📷 立即拍照
+      </button>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn" style="display:none" onclick="startAnalysis()">
+      🔍 開始 AI 分析推薦
+    </button>
+
+    <!-- Quick breed chips -->
+    <div class="divider-wrap">
+      <div class="divider-line"></div>
+      <div class="divider-text">或直接選擇品種</div>
+      <div class="divider-line"></div>
+    </div>
+    <div class="breed-notice">
+      ⚠️ <strong>品種快速選擇限制說明</strong><br>
+      因為沒有照片可作個別分析，AI 無法判斷您家毛孩的毛況、年齡、體質等實際狀況，<strong>只能提供該品種的大方向基礎推薦</strong>。<br>
+      想獲得真正適合的進階推薦或完美推薦，建議上傳毛孩的清晰獨照進行 AI 分析。
+    </div>
+    <div class="breed-chips" id="breedChips"></div>
+
+  </section>
+
+  <!-- ═══ ANALYZING PHASE ═══ -->
+  <section id="analyzingPhase" style="display:none">
+    <div class="analyzing-wrap">
+      <div class="scan-frame" id="scanFrame">
+        <div class="scan-placeholder">🐾</div>
+        <div class="scan-line"></div>
+        <div class="scanning-corner tl"></div>
+        <div class="scanning-corner tr"></div>
+        <div class="scanning-corner bl"></div>
+        <div class="scanning-corner br"></div>
+      </div>
+      <div class="analyzing-title">AI 分析中...</div>
+      <div class="analyzing-step" id="stepText"></div>
+      <div class="dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RESULT PHASE ═══ -->
+  <section id="resultPhase" style="display:none">
+    <div class="result-header" id="resultHeader"></div>
+    <div id="errorBox"></div>
+
+    <!-- Tier Tabs -->
+    <div class="tier-tabs" id="tierTabs">
+      <button class="tier-tab active" data-tier="basic" onclick="switchTier('basic')">
+        基礎推薦<span class="tab-label">Essential</span>
+      </button>
+      <button class="tier-tab" data-tier="advanced" onclick="switchTier('advanced')">
+        進階推薦<span class="tab-label">Advanced</span>
+      </button>
+      <button class="tier-tab" data-tier="signature" onclick="switchTier('signature')">
+        完美推薦<span class="tab-label">Signature ✨</span>
+      </button>
+    </div>
+
+    <!-- Tier Panels -->
+    <div id="panel-basic" class="tier-panel active"></div>
+    <div id="panel-advanced" class="tier-panel"></div>
+    <div id="panel-signature" class="tier-panel"></div>
+
+    <div class="compliance-box">
+      ℹ️ 以上建議僅描述清潔、保養及毛質表現，不涉及醫療效果。如有皮膚紅腫、破皮、異常分泌等狀況，請建議諮詢獸醫。
+    </div>
+
+    <!-- EMBED: Confirm selection button (only visible in embed mode) -->
+    <div class="embed-confirm-bar" id="embedConfirmBar">
+      <button class="embed-confirm-btn" id="embedConfirmBtn" onclick="confirmEmbedSelection()">
+        ✅ 選擇此方案，回到汪得福
+      </button>
+      <div class="embed-confirm-tier" id="embedConfirmTierLabel">目前：基礎推薦</div>
+    </div>
+
+    <button class="reset-btn" onclick="resetApp()">↩ 重新分析</button>
+  </section>
+
+</main>
+
+<!-- SHARE MODAL -->
+<div class="share-modal-overlay" id="shareModal" onclick="closeShareModal(event)">
+  <div class="share-modal">
+    <div class="share-modal-title">📤 分享洗護方案</div>
+    <div class="share-modal-sub">分享圖片包含完整使用指引；文字版僅列出使用產品名稱</div>
+    <canvas id="shareCanvas" style="display:none"></canvas>
+    <img id="sharePreviewImg" class="share-preview-img" alt="分享預覽" style="display:none" />
+    <div class="share-options">
+      <button class="share-option-btn" onclick="doShare('image')">🖼️ 分享圖片<br><small>含完整使用指引</small></button>
+      <button class="share-option-btn" onclick="doShare('text')">📝 分享文字<br><small>僅列產品名稱</small></button>
+    </div>
+    <button class="share-close" onclick="closeShareModal()">取消</button>
+  </div>
+</div>
+
+<!-- CTA FOOTER -->
+<footer class="cta-footer">
+  <div class="cta-inner">
+    <div class="cta-btns-row">
+      <a class="cta-btn cta-btn-shop" href="https://davistaiwan.com" target="_blank" rel="noopener noreferrer">
+        <span>🛒 官網選購</span>
+        <span class="cta-arrow">→</span>
+      </a>
+      <a class="cta-btn cta-btn-line" href="https://line.me/ti/p/@davistaiwan" target="_blank" rel="noopener noreferrer">
+        <span>💬 加入 LINE</span>
+        <span class="cta-arrow">@davistaiwan</span>
+      </a>
+    </div>
+    <div class="cta-sub">davistaiwan.com · 台灣唯一官方授權通路</div>
+    <div class="cta-copyright">© 2025 寶淇智慧科技股份有限公司 · Powered by Claude AI</div>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════
+// EMBED MODE — URL 參數處理
+// ═══════════════════════════════════════
+(function initEmbedMode() {
+  const params = new URLSearchParams(window.location.search);
+  const embedMode = params.get('embed') === 'true';
+  const preBreed  = params.get('breed')  || '';
+  const preWeight = params.get('weight') || '';
+  const preLang   = params.get('lang')   || '';   // 'zh' | 'en' | 'ja'
+  const hotelSource = params.get('hotel') || '';  // 'wangdefu'
+
+  // 儲存到全域，讓後續 JS 可取用
+  window._embed = { embedMode, preBreed, preWeight, preLang, hotelSource };
+
+  // ── embed CSS class + 立即注入 style 確保隱藏生效 ──
+  if (embedMode) {
+    document.body.classList.add('embed-mode');
+    // 立即注入 <style>，不依賴外部 CSS 載入順序
+    var styleEl = document.createElement('style');
+    styleEl.id = 'embed-override-style';
+    styleEl.textContent = [
+      '.cta-footer { display: none !important; }',
+      '.install-banner { display: none !important; }',
+      '.hero { display: none !important; }',
+      '.setup-banner { display: none !important; }',
+      '.ios-modal-overlay { display: none !important; }',
+      'body { background: #0B1E3D !important; }',
+      '.main { padding-top: 12px !important; }',
+      '.header { padding: 8px 14px !important; }',
+      '.header-sub { display: none !important; }'
+    ].join('\n');
+    (document.head || document.documentElement).appendChild(styleEl);
+  }
+
+  // ── 在 DOM Ready 後執行預填與 UI 調整 ──
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!embedMode && !preBreed) return;
+
+    // 顯示 embed info bar
+    if (embedMode || preBreed) {
+      const bar = document.getElementById('embedInfoBar');
+      if (bar) {
+        bar.style.display = 'flex';
+        // 插入到 uploadPhase 最前面
+        const upload = document.getElementById('uploadPhase');
+        if (upload) upload.insertBefore(bar, upload.firstChild);
+      }
+    }
+
+    // 品種 label
+    if (preBreed) {
+      const bl = document.getElementById('embedBreedLabel');
+      if (bl) bl.textContent = preBreed;
+    }
+
+    // 體重 label
+    if (preWeight) {
+      const wl = document.getElementById('embedWeightLabel');
+      if (wl) wl.textContent = preWeight + ' kg';
+    }
+
+    // 旅館 tag
+    const hotelNames = { wangdefu: '汪得福寵物旅館', wonderful: '汪得福寵物旅館' };
+    const htEl = document.getElementById('embedHotelTag');
+    if (htEl && hotelSource) {
+      htEl.textContent = hotelNames[hotelSource] || hotelSource;
+    } else if (htEl && !hotelSource) {
+      htEl.style.display = 'none';
+    }
+
+    // 預填品種：embed 模式下假裝 AI 分析，非 embed 直接點 chip
+    if (preBreed) {
+      setTimeout(function () {
+        const chips = document.querySelectorAll('#breedChips .chip');
+        let matchedChip = null;
+        const mappedBreed = (typeof BREED_MAP_FROM_WANGDEFU !== 'undefined' && BREED_MAP_FROM_WANGDEFU[preBreed]) || preBreed;
+        chips.forEach(function (chip) {
+          const chipText = chip.textContent.trim();
+          if (chipText === preBreed.trim() || chipText === mappedBreed.trim()) {
+            matchedChip = chip;
+          }
+        });
+
+        if (embedMode && matchedChip) {
+          // ── 假裝 AI 分析動畫 ──
+          document.getElementById('uploadPhase').style.display = 'none';
+          document.getElementById('analyzingPhase').style.display = 'block';
+          var sf = document.getElementById('scanFrame');
+          if (sf) sf.innerHTML = '<div class="result-emoji" style="font-size:64px;margin:20px auto;text-align:center">🐾</div>';
+          var fakeSteps = [
+            '🔍 正在辨識 ' + preBreed + ' 品種特徵...',
+            '🐾 分析毛質類型與被毛狀態...',
+            '💧 比對 Davis 產品資料庫...',
+            '📋 生成個人化洗護流程建議...',
+            '✨ 最後確認與整理方案...',
+          ];
+          var stepEl = document.getElementById('stepText');
+          var fi = 0;
+          if (stepEl) stepEl.textContent = fakeSteps[0];
+          var fakeTotalMs = (DAVIS_SETTINGS.embed_fake_delay_ms) || 2000;
+          var fakeStepMs = Math.round(fakeTotalMs / fakeSteps.length);
+          var fakeInterval = setInterval(function () {
+            fi++;
+            if (fi < fakeSteps.length && stepEl) stepEl.textContent = fakeSteps[fi];
+          }, fakeStepMs);
+          setTimeout(function () {
+            clearInterval(fakeInterval);
+            logDavisAnalytics({ breed: preBreed, is_real_ai: false });
+            matchedChip.click();
+          }, fakeTotalMs);
+        } else if (matchedChip) {
+          logDavisAnalytics({ breed: preBreed, is_real_ai: false });
+          matchedChip.click();
+          matchedChip.style.background = 'rgba(26,106,212,0.45)';
+          matchedChip.style.borderColor = '#1A6FD4';
+        } else {
+          var hint = document.createElement('div');
+          hint.style.cssText = 'font-size:12px;color:var(--muted);margin-top:6px;text-align:center';
+          hint.textContent = '📸 上傳 ' + preBreed + ' 的照片以取得完整分析';
+          var dz = document.getElementById('dropZone');
+          if (dz && dz.parentNode) dz.parentNode.insertBefore(hint, dz.nextSibling);
+        }
+      }, 100);
+    }
+  });
+})();
+
+// ═══════════════════════════════════════
+// PRODUCT DATABASE（依原廠培訓講義）
+// ═══════════════════════════════════════
+const PRODUCTS = {
+
+  // ── 清潔類 ──
+  "去油膏前置處理": {
+    icon: "🧴", color: "#1A6FD4",
+    tag: "油尾巴・皮脂分泌過多・CFA推薦",
+    steps: [
+      { role: "前置 · 局部使用", name: "去油膏 Davis Degrease Shampoo", dilution: "💧 原液直接塗抹油脂部位", time: "⏱ 靜置 3–5 分鐘後再進行主洗" },
+    ],
+    reason: "CFA官方推薦。專門處理貓咪油尾巴及皮脂分泌過度問題，預防油脂堆積堵塞後引起的細菌感染。有傷口時不可使用。",
+    note: "有傷口或病理性油脂堵塞時，請先使用洗樂舒，不可直接用去油膏。",
+  },
+
+  "強效深層清潔": {
+    icon: "🧼", color: "#1A4A9E",
+    tag: "非常髒・污垢重・STEP 1首選",
+    steps: [
+      { role: "Step 1 · 強效主洗", name: "強效清潔洗劑 Grubby Dog Shampoo", dilution: "💧 犬稀釋 50:1 / 貓稀釋 30:1", time: "⏱ 停留 3–5 分鐘，充分起泡去除污垢" },
+      { role: "Step 2 · 護毛", name: "滋潤護毛素 Creme Rinse & Conditioner", dilution: "💧 稀釋 7:1（水:護毛素）", time: "⏱ 停留 3 分鐘後沖淨，補充毛髮營養" },
+    ],
+    reason: "快速去除嚴重污垢，適合戶外犬或非常髒的毛孩。強效但溫和，可作為日常洗護的第一步。",
+    note: "非常髒的毛孩建議連續使用兩次強效洗劑，再進行護毛程序。",
+  },
+
+  "去油深層清潔": {
+    icon: "🍊", color: "#2196C8",
+    tag: "油脂偏重・護週期頻繁・橘子油溫和去油",
+    steps: [
+      { role: "Step 1 · 溫和去油主洗", name: "泡沫柑橘洗劑 Lather-A-Pup Citrus Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 停留 3–5 分鐘，橘子油成分溫和去油" },
+      { role: "Step 2 · 護毛", name: "滋潤護毛素 Creme Rinse & Conditioner", dilution: "💧 稀釋 7:1（水:護毛素）", time: "⏱ 停留 3 分鐘後沖淨" },
+    ],
+    reason: "橘子油溫和去油，適合護理週期較為頻繁的犬貓。比強效洗劑更溫和，日常去油首選。",
+  },
+
+  "蘇打燕麥溫和清潔": {
+    icon: "🌾", color: "#2196C8",
+    tag: "幼犬幼貓・老年犬貓・特別溫和",
+    steps: [
+      { role: "Step 1 · 溫和主洗", name: "蘇打燕麥洗劑 Baking Soda & Oatmeal Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 溫柔按摩，停留 3 分鐘" },
+      { role: "Step 2 · 護毛", name: "燕麥免沖護毛素 Oatmeal Leave-On Conditioner", dilution: "💧 免稀釋均勻噴塗", time: "⏱ 不沖淨，直接吹乾" },
+    ],
+    reason: "特別適合幼犬幼貓、老年犬貓。內含燕麥成分可以加強皮膚屏障，舒緩乾燥和瘙癢。",
+    note: "幼犬幼貓首選，成分最溫和，不刺激眼睛和皮膚。",
+  },
+
+  // ── 毛質分類 ──
+  "蓬鬆硬毛造型": {
+    icon: "✨", color: "#1A6FD4",
+    tag: "硬毛・捲毛・需要蓬鬆立體毛根支撐",
+    steps: [
+      { role: "Step 1 · 主洗", name: "質感洗劑 Texturizing Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 停留 3–5 分鐘，均勻按摩至毛根" },
+      { role: "Step 2 · 護毛（清爽型）", name: "純粹護毛素 Pure Planet Complete Conditioner", dilution: "💧 稀釋 10:1（水:護毛素）", time: "⏱ 均勻塗抹後沖淨，拉毛首選清爽配方" },
+    ],
+    reason: "質感洗劑為硬毛和彈性毛提供毛根支撐；清爽型護毛素不讓毛髮變軟塌，蓬鬆造型效果最佳。",
+    note: "吹整時搭配圓梳由內向外梳開，蓬鬆效果更顯著。適合貴賓、比熊、雪納瑞等需要造型的品種。",
+  },
+
+  "柔順解結": {
+    icon: "🪮", color: "#2196C8",
+    tag: "長毛・易打結・梳理阻力大",
+    steps: [
+      { role: "Step 1 · 主洗", name: "柔順洗劑 Detangling Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 分區起泡，停留 3–5 分鐘" },
+      { role: "Step 2 · 護毛（沖淨型）", name: "滋潤護毛素 Creme Rinse & Conditioner", dilution: "💧 稀釋 7:1（水:護毛素）", time: "⏱ 沿毛流方向均勻塗抹，停留 3 分鐘後沖淨" },
+      { role: "Step 3 · 護毛（免沖，進階選用）", name: "燕麥免沖護毛素 Oatmeal Leave-On Conditioner", dilution: "💧 免稀釋，少量噴於毛尖", time: "⏱ 不沖淨，吹整前使用效果更好" },
+    ],
+    reason: "先降低梳理摩擦阻力，護毛素補充毛髮養分做收尾；長毛打結族群三步驟才能持久柔順。",
+    note: "嚴重打結建議先手動輕柔解開再下水，避免濕梳拉傷毛幹。",
+  },
+
+  "天然柔韌彈性": {
+    icon: "🌸", color: "#2196C8",
+    tag: "軟毛・飄逸毛・恢復柔韌彈性",
+    steps: [
+      { role: "Step 1 · 主洗", name: "天然洋李洗劑 Plum Natural Shampoo", dilution: "💧 稀釋 24:1（水:洗劑）", time: "⏱ 停留 3 分鐘，溫和清潔" },
+      { role: "Step 2 · 護毛", name: "滋潤護毛素 Creme Rinse & Conditioner", dilution: "💧 稀釋 7:1（水:護毛素）", time: "⏱ 停留 3 分鐘後沖淨" },
+    ],
+    reason: "天然洋李萃取，適合貓狗軟毛和飄逸毛質，恢復毛髮柔韌彈性，讓被毛更有光澤感。",
+  },
+
+  // ── 毛色類 ──
+  "淺色白毛亮澤": {
+    icon: "⚪", color: "#1A6FD4",
+    tag: "白毛・淺色系・抗氧化提亮",
+    steps: [
+      { role: "Step 1 · 主洗", name: "高級炫彩洗劑 Premium Color Enhancing Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 停留 5 分鐘，特別適合白毛抗氧化" },
+      { role: "Step 2 · 護毛", name: "滋潤護毛素 Creme Rinse & Conditioner", dilution: "💧 稀釋 7:1（水:護毛素）", time: "⏱ 停留 3 分鐘後沖淨，提升光澤感" },
+    ],
+    reason: "特別適合白毛抗氧化，讓淺色系毛髮看起來更乾淨亮白，色澤呈現更均勻。",
+  },
+
+  "黑色深色亮澤": {
+    icon: "🖤", color: "#555",
+    tag: "黑毛・深色系・滋潤溫和配方",
+    steps: [
+      { role: "Step 1 · 主洗", name: "炫黑洗劑 Black Coat Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 停留 5 分鐘，讓色澤成分充分滲透" },
+      { role: "Step 2 · 護毛", name: "滋潤護毛素 Creme Rinse & Conditioner", dilution: "💧 稀釋 7:1（水:護毛素）", time: "⏱ 停留 3 分鐘後沖淨，提升光澤感" },
+    ],
+    reason: "滋潤溫和配方，洗後深色毛髮更顯亮澤乾淨，視覺差異明顯。適合展示前使用。",
+  },
+
+  // ── 季節與皮毛狀態 ──
+  "掉毛季（犬）": {
+    icon: "🐕", color: "#1A6FD4",
+    tag: "換毛季・雙層毛・提升梳理效率",
+    steps: [
+      { role: "Step 1 · 主洗", name: "輕盈洗劑 Davis De-Shed Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 停留 5 分鐘，充分按摩底層被毛" },
+      { role: "Step 2 · 輕盈乳液", name: "輕盈乳液 Davis De-Shed Rinser", dilution: "💧 稀釋 7:1（水:乳液）", time: "⏱ 停留 3 分鐘後沖淨；洗後趁濕梳毛效率最高" },
+    ],
+    reason: "富含泛醇、氨基酸等營養成分強化健康毛囊，幫助浮毛脫落，梳毛前後差異明顯。換毛季必備。",
+    note: "非常髒可前置強效洗劑做底層預清潔，再接掉毛季流程。",
+  },
+
+  "掉毛季（貓）": {
+    icon: "🐱", color: "#1A6FD4",
+    tag: "貓咪換毛季・PH值更偏向貓・低敏",
+    steps: [
+      { role: "Step 1 · 主洗（貓專用）", name: "輕盈洗劑貓用 Davis De-Shed Plus Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）", time: "⏱ 輕柔按摩，停留 3–5 分鐘" },
+      { role: "Step 2 · 輕盈乳液", name: "輕盈乳液 Davis De-Shed Rinser", dilution: "💧 稀釋 7:1（水:乳液）", time: "⏱ 停留 3 分鐘後沖淨" },
+    ],
+    reason: "PH值和香味更偏向貓，對貓來講更低敏。適合藍貓類型毛質，換毛季清潔與梳理效率大幅提升。",
+    note: "只做貓洗護的店鋪首選貓專用版本。",
+  },
+
+  "低敏日常保養": {
+    icon: "🌿", color: "#5A9E4A",
+    tag: "幼犬幼貓・敏感皮膚・乾燥季日常",
+    steps: [
+      { role: "Step 1 · 溫和主洗", name: "燕麥蘆薈洗劑 Oatmeal & Aloe Shampoo", dilution: "💧 稀釋 12:1（水:洗劑）", time: "⏱ 溫柔按摩全身，停留 2–3 分鐘" },
+      { role: "Step 2 · 護毛（免沖）", name: "燕麥免沖護毛素 Oatmeal Leave-On Conditioner", dilution: "💧 免稀釋，均勻噴塗全身", time: "⏱ 不沖淨，直接吹乾即可" },
+    ],
+    reason: "膠狀燕麥成分起到保濕和舒緩作用，緩解乾燥引起的瘙癢發紅。短毛、超短毛、無毛品種首選。",
+    note: "適合幼犬幼貓、老年犬貓、皮膚敏感個體，或乾燥季節日常保養。",
+  },
+
+  "潮濕控油止癢": {
+    icon: "💧", color: "#1A6FD4",
+    tag: "潮濕季節・油脂旺盛・體味重",
+    steps: [
+      { role: "Step 1 · 主洗（分解體味）", name: "奢華洗劑 Davis Best Luxury Shampoo", dilution: "💧 稀釋 12:1（水:洗劑）", time: "⏱ 停留 5 分鐘，分解體味" },
+      { role: "Step 2 · 護毛", name: "滋潤護毛素 Creme Rinse & Conditioner", dilution: "💧 稀釋 7:1（水:護毛素）", time: "⏱ 停留 3 分鐘後沖淨" },
+    ],
+    reason: "潮濕季節油脂分泌旺盛時使用，有效分解體味，讓毛孩長時間保持清爽。",
+  },
+
+  // ── 扁臉系列 ──
+  "扁臉眼周清潔": {
+    icon: "👁️", color: "#1A6FD4",
+    tag: "扁臉犬貓・淚痕・眼周精細清潔",
+    steps: [
+      { role: "Step 1 · 全身主洗（無皂無淚）", name: "甜瓜洗劑 Pure Planet Cucumber Melon Shampoo", dilution: "💧 稀釋 10:1（水:洗劑）；16盎司為即用配方", time: "⏱ 全身使用，臉部可輕洗，嚴格避開眼球" },
+      { role: "Step 2 · 眼周精細清潔", name: "Davis Spa 潔面乳 Davis Spa Facial", dilution: "💧 少量直接使用，不稀釋", time: "⏱ 沿眼周外圈少量多次，濕布擦拭或沖淨" },
+    ],
+    reason: "甜瓜洗劑無皂無淚配方，溫和無負擔，適合藥浴前準備。潔面乳無淚配方專門溫和去除面部污垢和暗沉，有淚痕的犬貓首選。",
+    note: "少量多次、分區處理、嚴格避開眼球。若眼周出現紅腫或異常分泌物，請諮詢獸醫。",
+  },
+
+  // ── SPA 進階系列 ──
+  "SPA深層清潔": {
+    icon: "✨", color: "#1A4A9E",
+    tag: "SPA進階・深層清潔・比強效更溫和",
+    steps: [
+      { role: "Step 1 · SPA進階清潔", name: "純粹深層清潔洗劑 Pure Planet Deep Cleansing Shampoo", dilution: "💧 稀釋 50:1（水:洗劑）", time: "⏱ 停留 5 分鐘，溫和而徹底滲透毛囊" },
+      { role: "Step 2 · SPA護毛", name: "純粹護毛素 Pure Planet Complete Conditioner", dilution: "💧 稀釋 10:1（水:護毛素）", time: "⏱ 均勻塗抹後沖淨" },
+      { role: "Step 3 · 毛質升級（選用）", name: "魔力薰衣草洗劑 Lavender Magic Shampoo 或 竹節花洗劑 Flower Bamboo Shampoo", dilution: "💧 稀釋 10:1", time: "⏱ 停留 3 分鐘後沖淨" },
+    ],
+    reason: "一般選擇進階系列的客戶使用，比強效更溫和。深層清潔毛囊，配合SPA護毛素讓毛質全面升級。",
+    note: "薰衣草系列適合柔順升級，竹節花系列適合蓬鬆升級。",
+  },
+};
+
+// ── 品種對應推薦情境 ──
+const BREEDS = {
+  // 犬 - 蓬鬆造型類
+  "貴賓犬 🐩": ["蓬鬆硬毛造型"],
+  "比熊犬 ☁️": ["蓬鬆硬毛造型"],
+  "博美犬 🦊": ["蓬鬆硬毛造型", "淺色白毛亮澤"],
+  "雪納瑞": ["蓬鬆硬毛造型", "去油深層清潔"],
+  // 犬 - 長毛柔順類
+  "馬爾濟斯 🤍": ["柔順解結"],
+  "瑪爾泰迪 🧸": ["淺色白毛亮澤", "柔順解結"],
+  "約克夏㹴": ["柔順解結"],
+  "西施犬": ["柔順解結", "扁臉眼周清潔"],
+  "西高地白梗": ["蓬鬆硬毛造型", "淺色白毛亮澤"],
+  // 犬 - 小型活力類
+  "吉娃娃": ["蘇打燕麥溫和清潔"],
+  "臘腸犬": ["去油深層清潔"],
+  "蝴蝶犬": ["柔順解結"],
+  "迷你品犬": ["去油深層清潔"],
+  "傑克羅素㹴": ["去油深層清潔"],
+  // 犬 - 扁臉類
+  "法國鬥牛犬": ["去油深層清潔", "扁臉眼周清潔"],
+  "英國鬥牛犬": ["去油深層清潔", "扁臉眼周清潔"],
+  "巴哥犬 🐶": ["去油深層清潔", "扁臉眼周清潔"],
+  // 犬 - 中型犬
+  "可卡犬": ["柔順解結", "去油深層清潔"],
+  "比特犬": ["去油深層清潔"],
+  // 犬 - 掉毛類
+  "柯基 🦮": ["掉毛季（犬）"],
+  "柴犬 🦊": ["掉毛季（犬）"],
+  "拉布拉多": ["掉毛季（犬）", "強效深層清潔"],
+  "黃金獵犬": ["掉毛季（犬）", "柔順解結"],
+  "哈士奇": ["掉毛季（犬）"],
+  "薩摩耶 ☁️": ["掉毛季（犬）", "淺色白毛亮澤"],
+  "邊境牧羊犬": ["掉毛季（犬）", "柔順解結"],
+  "德國牧羊犬": ["掉毛季（犬）", "強效深層清潔"],
+  "伯恩山犬": ["掉毛季（犬）", "柔順解結"],
+  "秋田犬": ["掉毛季（犬）"],
+  "大麥町": ["去油深層清潔"],
+  // 犬 - 其他
+  "米格魯 🐶": ["去油深層清潔"],
+  "米克斯犬 🐕": ["去油深層清潔"],
+  "幼犬 🐣": ["蘇打燕麥溫和清潔"],
+  // 貓 - 短毛類
+  "英國短毛貓 🐈": ["掉毛季（貓）", "低敏日常保養"],
+  "美國短毛貓": ["掉毛季（貓）"],
+  "俄羅斯藍貓": ["掉毛季（貓）", "黑色深色亮澤"],
+  "蘇格蘭折耳": ["低敏日常保養"],
+  // 貓 - 長毛類
+  "布偶貓 💜": ["柔順解結", "掉毛季（貓）"],
+  "緬因貓": ["柔順解結", "掉毛季（貓）"],
+  "波斯貓": ["柔順解結", "扁臉眼周清潔"],
+  "金吉拉": ["柔順解結", "淺色白毛亮澤"],
+  // 貓 - 扁臉
+  "異國短毛貓": ["扁臉眼周清潔", "低敏日常保養"],
+  "幼貓 🐣": ["蘇打燕麥溫和清潔"],
+};
+
+// ── 汪得福品種名 → Davis 品種名 對照（用於 embed URL param 預填匹配）──
+const BREED_MAP_FROM_WANGDEFU = {
+  '貴賓（迷你/玩具）': '貴賓犬 🐩',
+  '中型貴賓': '貴賓犬 🐩',
+  '巨型貴賓': '貴賓犬 🐩',
+  '比熊': '比熊犬 ☁️',
+  '博美': '博美犬 🦊',
+  '約克夏': '約克夏㹴',
+  '西施': '西施犬',
+  '法鬥': '法國鬥牛犬',
+  '巴哥': '巴哥犬 🐶',
+  '柯基': '柯基 🦮',
+  '柴犬': '柴犬 🦊',
+  '米格魯': '米格魯 🐶',
+  '迷你雪納瑞': '雪納瑞',
+  '中型雪納瑞': '雪納瑞',
+  '薩摩耶': '薩摩耶 ☁️',
+  '馬爾濟斯': '馬爾濟斯 🤍',
+  '吉娃娃': '吉娃娃',
+  '臘腸': '臘腸犬',
+  '蝴蝶犬': '蝴蝶犬',
+  '迷你品犬': '迷你品犬',
+  '傑克羅素': '傑克羅素㹴',
+  '可卡': '可卡犬',
+  '比特犬': '比特犬',
+  '邊境牧羊犬': '邊境牧羊犬',
+  '德國牧羊犬': '德國牧羊犬',
+  '伯恩山犬': '伯恩山犬',
+  '秋田犬': '秋田犬',
+  '大麥町': '大麥町',
+  '米克斯': '米克斯犬 🐕',
+};
+
+// ═══════════════════════════════════════
+// ANALYTICS LOGGING (fire-and-forget)
+// ═══════════════════════════════════════
+function logDavisAnalytics(data) {
+  try {
+    var embed = window._embed || {};
+    var payload = {
+      breed: data.breed || '',
+      pet_type: data.pet_type || '',
+      source: embed.hotelSource || 'direct',
+      lang: embed.preLang || 'zh-TW',
+      is_embed: !!embed.embedMode,
+      is_real_ai: data.is_real_ai !== false,
+      tier_selected: data.tier_selected || '',
+    };
+    fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(function(){});
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let imgBase64 = null;
+let imgMediaType = null;
+let previewUrl = null;
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// DYNAMIC CONFIG (overrides from admin panel)
+// ═══════════════════════════════════════
+let DAVIS_SETTINGS = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // 載入動態設定 (products/breeds/settings from Supabase)
+  try {
+    const r = await fetch('/api/config');
+    const d = await r.json();
+    window.__DAVIS_KEY__ = d.k || '';
+
+    if (d.dynamic && d.settings) {
+      DAVIS_SETTINGS = d.settings;
+
+      // Override PRODUCTS from DB if available
+      if (d.products && d.products.length) {
+        // Clear hardcoded, rebuild from DB
+        const dbProducts = {};
+        d.products.forEach(function(p) {
+          dbProducts[p.id] = {
+            icon: p.icon || '🧴',
+            color: p.color || '#1A6FD4',
+            tag: p.tag_zh || '',
+            tag_en: p.tag_en || '',
+            tag_ja: p.tag_ja || '',
+            steps: (p.steps || []).map(function(s) {
+              return { role: s.role||'', name: s.name||'', name_en: s.name_en||'', name_ja: s.name_ja||'', dilution: s.dilution||'', time: s.time||'', tip: s.tip||'' };
+            }),
+            reason: p.reason_zh || '',
+            reason_en: p.reason_en || '',
+            reason_ja: p.reason_ja || '',
+            note: p.note_zh || '',
+            note_en: p.note_en || '',
+            note_ja: p.note_ja || '',
+          };
+        });
+        // Merge: DB overrides hardcoded
+        Object.assign(PRODUCTS, dbProducts);
+      }
+
+      // Override BREEDS from DB if available
+      if (d.breeds && d.breeds.length) {
+        const dbBreeds = {};
+        const dbBreedMap = {};
+        d.breeds.forEach(function(b) {
+          const displayName = b.name_zh + (b.emoji ? ' ' + b.emoji : '');
+          dbBreeds[displayName] = b.product_keys || [];
+          // Build wangdefu alias map
+          (b.wangdefu_aliases || []).forEach(function(alias) {
+            dbBreedMap[alias] = displayName;
+          });
+        });
+        if (Object.keys(dbBreeds).length) {
+          // Clear and rebuild
+          Object.keys(BREEDS).forEach(function(k) { delete BREEDS[k]; });
+          Object.assign(BREEDS, dbBreeds);
+        }
+        if (Object.keys(dbBreedMap).length) {
+          Object.assign(BREED_MAP_FROM_WANGDEFU, dbBreedMap);
+        }
+      }
+    }
+
+    // ── Embed whitelist enforcement ──
+    if (window._embed && window._embed.embedMode) {
+      var whitelist = (d.dynamic && d.settings && d.settings.embed_whitelist) || [];
+      if (typeof whitelist === 'string') { try { whitelist = JSON.parse(whitelist); } catch(e) { whitelist = []; } }
+      if (whitelist.length > 0) {
+        var parentOrigin = '';
+        try { parentOrigin = document.referrer ? new URL(document.referrer).origin : ''; } catch(e) {}
+        var allowed = whitelist.some(function(url) {
+          try { return new URL(url).origin === parentOrigin; } catch(e) { return false; }
+        });
+        if (!allowed) {
+          document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#fff;font-size:18px;text-align:center;padding:20px;background:#0B1E3D;font-family:sans-serif">'
+            + '<div>⚠️ 此網站未被授權嵌入 Davis 洗護顧問<br><span style="font-size:13px;color:#999;margin-top:8px;display:block">請聯繫 Davis Taiwan 申請嵌入權限</span></div></div>';
+          return; // 終止後續初始化
+        }
+      }
+    }
+  } catch(e) {
+    window.__DAVIS_KEY__ = '';
+    console.error('Failed to load config:', e);
+  }
+  // Breed chips
+  const container = document.getElementById('breedChips');
+  Object.entries(BREEDS).forEach(([breed, recs]) => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = breed;
+    btn.addEventListener('click', () => renderBreedBasic(breed, recs));
+    container.appendChild(btn);
+  });
+
+  // File input (相簿)
+  document.getElementById('fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+  });
+  // Camera input (拍照)
+  document.getElementById('cameraInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+  });
+
+  // Drag & Drop
+  const dz = document.getElementById('dropZone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) processFile(file);
+  });
+});
+
+function triggerFileInput() {
+  document.getElementById('fileInput').click();
+}
+function triggerCamera() {
+  document.getElementById('cameraInput').click();
+}
+// ═══════════════════════════════════════
+// SMART IMAGE PROCESSING
+// 目標：最長邊 1280px，中央裁切，base64 < 1.2MB
+// ═══════════════════════════════════════
+const MAX_LONG_SIDE = 1024;  // 最長邊像素上限（降低避免超過 Netlify 1MB 限制）
+const MAX_B64_BYTES = 680000; // ~680KB，加上 JSON overhead 確保 event.body < 1MB
+const JPEG_QUALITY_START = 0.85;
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const img = new Image();
+    img.onload = () => {
+      const processed = smartCropAndResize(img);
+      previewUrl = processed.dataUrl;         // 保留原比例預覽
+      imgBase64 = processed.b64;
+      imgMediaType = 'image/jpeg';
+      showDropPreview(previewUrl);
+      document.getElementById('analyzeBtn').style.display = 'block';
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function smartCropAndResize(img) {
+  const srcW = img.naturalWidth;
+  const srcH = img.naturalHeight;
+
+  // ── Step 1：縮放，最長邊不超過 MAX_LONG_SIDE ──
+  let scale = Math.min(MAX_LONG_SIDE / srcW, MAX_LONG_SIDE / srcH, 1);
+  let dstW = Math.round(srcW * scale);
+  let dstH = Math.round(srcH * scale);
+
+  // ── Step 2：若長寬比超過 4:3（直式極端比例），以中央 4:3 crop ──
+  // 目的：移除上下多餘背景，讓臉部更居中
+  const ratio = Math.max(srcW, srcH) / Math.min(srcW, srcH);
+  let cropX = 0, cropY = 0, cropW = srcW, cropH = srcH;
+
+  if (ratio > 1.5) {
+    if (srcH > srcW) {
+      // 直式照片：優先保留上半部（臉通常在上半）
+      cropH = Math.round(srcW * 1.35);   // 接近正方形偏高
+      cropY = Math.max(0, Math.round(srcH * 0.05)); // 頂部留少量空間
+      cropH = Math.min(cropH, srcH - cropY);
+    } else {
+      // 橫式照片：中央裁切
+      cropW = Math.round(srcH * 1.5);
+      cropX = Math.round((srcW - cropW) / 2);
+    }
+    // 重算縮放比例
+    scale = Math.min(MAX_LONG_SIDE / cropW, MAX_LONG_SIDE / cropH, 1);
+    dstW = Math.round(cropW * scale);
+    dstH = Math.round(cropH * scale);
+  }
+
+  // ── Step 3：Canvas 繪製 ──
+  const canvas = document.createElement('canvas');
+  canvas.width = dstW;
+  canvas.height = dstH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, dstW, dstH);
+
+  // ── Step 4：壓縮品質迴圈，直到 base64 < MAX_B64_BYTES ──
+  let quality = JPEG_QUALITY_START;
+  let dataUrl, b64;
+  do {
+    dataUrl = canvas.toDataURL('image/jpeg', quality);
+    b64 = dataUrl.split(',')[1];
+    quality -= 0.06;
+  } while (b64.length > MAX_B64_BYTES && quality > 0.35);
+
+  console.log(`[Davis AI] 原始 ${srcW}×${srcH} → 處理後 ${dstW}×${dstH}，b64 ${(b64.length/1024).toFixed(0)}KB，品質 ${(quality+0.06).toFixed(2)}`);
+  return { dataUrl, b64 };
+}
+
+function showDropPreview(url) {
+  const dz = document.getElementById('dropZone');
+  dz.classList.add('has-image');
+  dz.innerHTML = `
+    <img class="preview-img" src="${url}" alt="毛孩照片" />
+    <div class="preview-overlay">
+      <button class="preview-change-btn" onclick="event.stopPropagation(); triggerFileInput()">📁 換照片</button>
+      <button class="preview-change-btn" onclick="event.stopPropagation(); triggerCamera()" style="margin-left:8px">📷 重拍</button>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════
+// ANALYSIS
+// ═══════════════════════════════════════
+async function startAnalysis() {
+  document.getElementById('uploadPhase').style.display = 'none';
+  document.getElementById('analyzingPhase').style.display = 'block';
+
+  // Set scan frame
+  const sf = document.getElementById('scanFrame');
+  if (previewUrl) {
+    sf.innerHTML = `
+      <img class="scan-img" src="${previewUrl}" alt="" />
+      <div class="scan-line"></div>
+      <div class="scanning-corner tl"></div>
+      <div class="scanning-corner tr"></div>
+      <div class="scanning-corner bl"></div>
+      <div class="scanning-corner br"></div>
+    `;
+  }
+
+  const steps = [
+    "🔍 正在辨識毛孩品種...",
+    "🐾 分析毛質類型與被毛狀態...",
+    "💧 比對 Davis 產品資料庫...",
+    "📋 生成個人化洗護流程建議...",
+    "✨ 最後確認與整理方案...",
+  ];
+
+  let si = 0;
+  document.getElementById('stepText').textContent = steps[0];
+  const interval = setInterval(() => {
+    si++;
+    if (si < steps.length) {
+      document.getElementById('stepText').textContent = steps[si];
+    }
+  }, 900);
+
+  try {
+    const result = await callAPI();
+    clearInterval(interval);
+    await new Promise(r => setTimeout(r, 400));
+    // Check for no-pet signal from API
+    if (result.no_pet) {
+      showNoPetError();
+    } else {
+      renderResults(result.recommendations, result, null);
+      logDavisAnalytics({ breed: result.breed, pet_type: result.pet_type, is_real_ai: true });
+      // ── postMessage 回傳推薦結果給父視窗（embed 模式）──
+      sendRecommendationToParent(result);
+    }
+  } catch (err) {
+    clearInterval(interval);
+    console.error('Analysis error:', err);
+    // 【DEBUG】強制顯示實際錯誤，方便診斷
+    const debugMsg = err.message || '(no message)';
+    if (err.isTimeout) {
+      showRetryError('AI 分析時間稍長，這次來不及完成。<br>請再試一次，或換一張背景較簡單的照片。');
+    } else if (err.message === 'IMAGE_TOO_LARGE') {
+      showRetryError('照片檔案太大，請換一張較小的照片或重新拍照。');
+    } else {
+      showRetryError(`分析失敗，錯誤訊息：<br><code style="background:rgba(0,0,0,0.3);padding:4px 8px;border-radius:6px;font-size:12px;word-break:break-all;">${debugMsg}</code>`);
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// EMBED — postMessage 回傳推薦給父視窗
+// ═══════════════════════════════════════
+function sendRecommendationToParent(aiResult) {
+  if (window.parent === window) return; // 非 iframe 內嵌，不發送
+
+  // In embed mode, don't auto-send — user will use the confirm button
+  if (window._embed && window._embed.embedMode) {
+    console.log('[Davis] Embed mode: waiting for user to confirm tier selection');
+    // Show the confirm bar
+    const bar = document.getElementById('embedConfirmBar');
+    if (bar) bar.classList.add('visible');
+    // Update button to show AI recommended tier
+    const tierNames = { basic: '基礎洗', advanced: '進階洗', signature: '完美SPA洗' };
+    const rawTier = (aiResult.recommended || 'advanced').toLowerCase();
+    const recLabel = tierNames[rawTier] || '進階洗';
+    const confirmBtn = document.getElementById('embedConfirmBtn');
+    if (confirmBtn) confirmBtn.textContent = '✅ 確認「' + recLabel + '」，回到汪得福';
+    const tierLabel = document.getElementById('embedConfirmTierLabel');
+    if (tierLabel) tierLabel.textContent = '🤖 AI 推薦：' + recLabel + '（可切換其他方案再確認）';
+    // Auto-switch to recommended tier tab
+    if (rawTier === 'signature') switchTier('signature');
+    else if (rawTier === 'advanced') switchTier('advanced');
+    else switchTier('basic');
+    return;
+  }
+
+  // Non-embed: send immediately (for standalone diagnostic use)
+  const tierMap = { basic: 'basic', advanced: 'advanced', signature: 'spa' };
+  const rawTier = (aiResult.recommended || 'advanced').toLowerCase();
+  const recommended = tierMap[rawTier] || 'advanced';
+  const reason = aiResult.reason || aiResult.coat_analysis || '依毛質分析推薦';
+  const breed  = aiResult.breed  || (window._embed && window._embed.preBreed) || '';
+  const weight = window._embed && window._embed.preWeight ? parseFloat(window._embed.preWeight) : null;
+
+  const payload = {
+    type: 'davis-recommendation',
+    source: 'davis-grooming-ai',
+    hotel: (window._embed && window._embed.hotelSource) || '',
+    breed: breed,
+    weight: weight,
+    result: {
+      recommended: recommended,
+      reason: reason,
+      autoApply: false
+    }
+  };
+
+  try {
+    window.parent.postMessage(payload, '*');
+    console.log('[Davis] postMessage sent:', payload);
+  } catch (e) {
+    console.warn('[Davis] postMessage failed:', e);
+  }
+}
+
+function showNoPetError() {
+  document.getElementById('uploadPhase').style.display = 'block';
+  document.getElementById('analyzingPhase').style.display = 'none';
+  document.getElementById('resultPhase').style.display = 'none';
+  // Show no-pet error overlay in upload phase
+  const existing = document.getElementById('noPetBox');
+  if (existing) existing.remove();
+  const box = document.createElement('div');
+  box.id = 'noPetBox';
+  box.className = 'nopet-box';
+  box.innerHTML = `
+    <div class="nopet-icon">🐾</div>
+    <div class="nopet-title">找不到清楚的毛孩</div>
+    <div class="nopet-msg">
+      照片中未偵測到貓或狗，或是寵物在畫面中太小而難以辨識。<br>
+      請重拍一張<strong>毛孩的清晰獨照</strong>，讓 AI 能準確分析品種與毛質。<br><br>
+      📌 拍照小提醒：確保毛孩佔滿畫面大部分、光線充足、毛髮清晰可見。
+    </div>
+    <button class="nopet-retry-btn" onclick="retryWithCamera()">📷 重新拍照</button>
+    <button class="nopet-camera-btn" onclick="retryWithAlbum()">🖼️ 重新選取照片</button>
+  `;
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  analyzeBtn.style.display = 'none';
+  analyzeBtn.parentNode.insertBefore(box, analyzeBtn);
+  // Reset image state
+  imgBase64 = null; imgMediaType = null; previewUrl = null;
+  const dz = document.getElementById('dropZone');
+  dz.classList.remove('has-image');
+  dz.onclick = triggerFileInput;
+  dz.innerHTML = `
+    <div class="drop-inner">
+      <span class="drop-icon">📷</span>
+      <div class="drop-primary">上傳毛孩照片</div>
+      <div class="drop-secondary">點擊選擇相簿照片，或使用下方拍照按鈕</div>
+      <div class="drop-format">支援 JPG · PNG · HEIC · WEBP</div>
+    </div>
+  `;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('cameraInput').value = '';
+}
+
+function retryWithCamera() {
+  const box = document.getElementById('noPetBox');
+  if (box) box.remove();
+  triggerCamera();
+}
+function retryWithAlbum() {
+  const box = document.getElementById('noPetBox');
+  if (box) box.remove();
+  triggerFileInput();
+}
+
+// 技術性錯誤（500/網路等）友善提示
+function showRetryError(msg) {
+  document.getElementById('uploadPhase').style.display = 'block';
+  document.getElementById('analyzingPhase').style.display = 'none';
+  document.getElementById('resultPhase').style.display = 'none';
+
+  const existing = document.getElementById('noPetBox');
+  if (existing) existing.remove();
+
+  const box = document.createElement('div');
+  box.id = 'noPetBox';
+  box.className = 'nopet-box';
+  box.innerHTML = `
+    <div class="nopet-icon">😅</div>
+    <div class="nopet-title">分析遇到小問題</div>
+    <div class="nopet-msg">
+      ${msg}<br><br>
+      📌 小提醒：照片請在<strong>充足光線</strong>下拍攝，讓毛孩臉部清晰可見；避免背光或過暗的環境。
+    </div>
+    <button class="nopet-retry-btn" onclick="retryWithCamera()">📷 重新拍照試試</button>
+    <button class="nopet-camera-btn" onclick="retryWithAlbum()">🖼️ 換一張照片</button>
+  `;
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  analyzeBtn.style.display = 'none';
+  analyzeBtn.parentNode.insertBefore(box, analyzeBtn);
+  imgBase64 = null; imgMediaType = null; previewUrl = null;
+  const dz = document.getElementById('dropZone');
+  dz.classList.remove('has-image');
+  dz.onclick = triggerFileInput;
+  dz.innerHTML = `
+    <div class="drop-inner">
+      <span class="drop-icon">📷</span>
+      <div class="drop-primary">上傳毛孩照片</div>
+      <div class="drop-secondary">點擊選擇相簿照片，或使用下方拍照按鈕</div>
+      <div class="drop-format">支援 JPG · PNG · HEIC · WEBP</div>
+    </div>
+  `;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('cameraInput').value = '';
+}
+
+async function callAPI() {
+  // 直接呼叫 Anthropic API，繞過 Netlify 10秒限制
+  const apiKey = window.__DAVIS_KEY__;
+  if (!apiKey) throw new Error('API Key 未設定');
+
+  const systemPrompt = `你是 Davis Taiwan 寵物洗護顧問。看照片分析毛孩品種和毛質，用指定產品設計三等級洗護方案，只輸出JSON。
+
+【產品庫】名稱|稀釋比例|停留時間
+第一洗: 戴維斯去油膏|原液局部|5min / 強效清潔洗劑|犬50:1貓30:1|3-5min / 泡沫柑橘洗劑|10:1|3-5min / 蘇打燕麥洗劑|10:1|3min / 水療甜瓜洗劑|10:1|3-5min / 奢華洗劑|12:1|5-8min
+第二洗: 柔順洗劑|10:1|5-8min / 高級炫彩洗劑|10:1|5-8min / 炫黑洗劑|10:1|5-8min / 輕盈洗劑(犬用)|10:1|5-8min / 輕盈洗劑(貓用)|10:1|5min / 燕麥蘆薈洗劑|12:1|5-8min / 茶樹精油洗劑|5:1|5-10min / 無淚洗劑|10:1|3-5min / 蜂蜜杏仁洗劑|10:1|5-8min / 蘆薈蛋白滋養洗劑|10:1|5-8min / 洋李天然洗劑|24:1|5min / 質感洗劑|10:1|5-8min / 櫻桃果醬洗劑|10:1|5-8min / 魔力薰衣草洗劑|10:1|5-8min
+SPA: 純粹深層清潔洗劑|50:1|5-10min / 竹節花香氛洗劑|10:1|5-8min / 卡瓦樹舒緩洗劑|10:1|5-10min / 甘甜曲奇洗劑|10:1|5-8min / 熱帶椰子柔順洗劑|10:1|5-8min
+護毛素: 純粹全效護毛素|10:1|沖淨 / 高級皮毛護理霜|原液|5-10min沖淨 / 滋潤護毛素|7:1|沖淨 / 燕麥蘆薈護毛素|7:1|免沖 / 輕盈乳液|7:1|沖淨
+
+【選品規則 — 依需求/毛況】
+
+蓬鬆造型（貴賓/比熊/博美，有拉毛修剪需求）：
+→ 第一洗：洗護間隔20天以上→強效清潔洗劑；20天以下→泡沫柑橘洗劑
+→ 第二洗：白色/淺色→高級炫彩洗劑；追求蓬鬆立體→洋李天然洗劑（可兩款交替）
+→ 護毛：純粹全效護毛素（蓬鬆效果最佳）
+
+長毛柔順防打結（西施/馬爾濟斯/約克夏/絲質長毛品種）：
+→ 第一洗：泡沫柑橘洗劑
+→ 第二洗 日常：柔順洗劑 / 進階：魔力薰衣草洗劑
+→ 護毛 日常：滋潤護毛素 / 進階：高級皮毛護理霜（原液停留5-10min）
+
+換毛量大（柯基/拉布拉多/黃金/柴犬/哈士奇，雙層毛掉毛期）：
+→ 第一洗：洗護間隔15天以上→強效清潔洗劑；以下→泡沫柑橘洗劑
+→ 第二洗：輕盈洗劑(犬用)（促進換毛、減少掉毛）
+→ 護毛：輕盈乳液
+
+黑色系（黑貴賓/黑柴/黑拉布拉多等深黑色毛）：
+→ 第一洗：泡沫柑橘洗劑（溫和清潔保色）
+→ 第二洗：炫黑洗劑（保護色素、補水增光）
+→ 護毛：滋潤護毛素
+→ ⚠️ 注意：黑色毛色素中粒子需油脂保護，洗護全程注意補水；紅棕/橘色絕對不用炫黑（炫黑會讓暖色變冷變深）
+
+紅棕色/橘色（紅棕貴賓/橘色博美/棕色品種）：
+→ 第一洗：洗護間隔長→強效清潔洗劑；間隔短→泡沫柑橘洗劑
+→ 第二洗：高級炫彩洗劑（提亮暖色，勿誤用炫黑）
+→ 護毛：有修剪拉毛需求→純粹全效護毛素；一般護理→滋潤護毛素
+
+油脂分泌旺盛/體味重（法鬥/米格魯/巴哥/英鬥）：
+→ 第一洗 搭配茶樹精油洗劑時：蘇打燕麥洗劑（平衡水油）
+→ 第一洗 其他搭配：泡沫柑橘洗劑
+→ 第二洗：茶樹精油洗劑（稀釋5:1，去油抗菌）
+→ 護毛：有掉毛→輕盈乳液；無掉毛→燕麥蘆薈護毛素（免沖，補水）
+→ ⚠️ 水油平衡原則：去油同時必須補水，避免皮膚乾燥反彈分泌更多油脂
+
+皮膚敏感（發紅/搔癢/乾燥/皮屑，多見短毛品種）：
+→ 第一洗：蘇打燕麥洗劑（止癢補水）
+→ 第二洗：燕麥蘆薈洗劑（舒緩修復）
+→ 護毛：燕麥蘆薈護毛素（免沖，持續補水）
+→ ⚠️ 過敏源不明/天生敏感→改用水療甜瓜洗劑更安全（低敏配方）
+
+幼犬/老年犬/特別易過敏的犬貓：
+→ 第一洗：蘇打燕麥洗劑（最溫和）
+→ 第二洗：水療甜瓜洗劑（低敏配方）
+→ 護毛：短毛→燕麥蘆薈護毛素（免沖）；長毛→純粹全效護毛素
+
+深層修護（累積油脂/長期未洗護/毛況不明的進階犬）：
+→ SPA：純粹深層清潔洗劑（50:1，深層去油）
+→ 第二洗：卡瓦樹舒緩洗劑（舒緩修護）
+→ 護毛：高級皮毛護理霜（原液護理）或純粹全效護毛素
+
+【貓咪選品規則】
+
+英短/美短（短毛，掉毛管理）：
+→ 洗護間隔1個月以上：戴維斯去油膏局部前置（原液） → 強效清潔洗劑（貓30:1）
+→ 洗護間隔1個月以下：泡沫柑橘洗劑（10:1）
+→ 第二洗：輕盈洗劑(貓用)（10:1，5min）
+→ 護毛：輕盈乳液
+
+布偶/緬因長毛（蓬鬆回彈絲質光澤）：
+→ 長毛部位（尾巴/頸毛/胸毛）：洋李天然洗劑（24:1）
+→ 短毛身體段：櫻桃果醬洗劑（10:1）
+→ 護毛：有掉毛問題→輕盈乳液；追求蓬鬆光澤→純粹全效護毛素
+
+緬因身體短毛段/美短棉質毛（柔順服帖）：
+→ 第二洗：柔順洗劑（10:1）
+→ 護毛：有掉毛→輕盈乳液；一般→滋潤護毛素
+
+貓 日常品種不明：輕盈洗劑(貓用) + 輕盈乳液
+貓 進階品種不明：卡瓦樹舒緩洗劑 + 輕盈乳液
+
+【固定選品規則（覆蓋上述規則）】
+焦慮型(貴賓/吉娃娃/博美/約克夏/馬爾濟斯/瑪爾泰迪/比熊) → Signature SPA必用卡瓦樹舒緩洗劑
+體味重(黃金/拉拉/米格魯/法鬥/巴哥) → 第一洗必用奢華洗劑
+白/淺色毛 → 第二洗必用高級炫彩洗劑
+雙層掉毛(柴/柯基/哈士奇) → 第二洗必用輕盈洗劑(犬用)
+扁臉(法鬥/英鬥/巴哥/波斯/異短) → 第一洗用水療甜瓜洗劑
+瑪爾泰迪偏絲質毛 → 第二洗加柔順洗劑；偏捲毛 → 蜂蜜杏仁洗劑；護毛素用燕麥蘆薈護毛素
+
+【品種辨識：白色小型犬四步驟（必須依序執行）】
+
+STEP1 毛質/毛型：
+→ 捲毛/波浪毛 = 貴賓、瑪爾泰迪、或比熊
+→ 完全絲直毛、毛髮垂墜光滑 = 馬爾濟斯（不是貴賓！）
+
+STEP2 口吻長度：
+→ 鼻前有明顯距離 = 貴賓或瑪爾泰迪
+→ 鼻幾乎貼眼、口吻極短 = 比熊
+
+STEP3 體型與四肢：
+→ 四肢修長、站姿高挑 = 貴賓
+→ 極嬌小(2-4kg)、腳短 = 瑪爾泰迪或馬爾濟斯
+→ 矮圓身體 = 比熊
+
+STEP4 眼眶：
+→ 明顯黑色素環繞眼眶（黑眼圈）= 比熊
+→ 無黑眼圈 = 貴賓、瑪爾泰迪、或馬爾濟斯
+
+⚠️ 馬爾濟斯 vs 貴賓：馬爾濟斯是絲質直毛長毛、貴賓是捲毛。看到捲毛/波浪毛絕對不是馬爾濟斯。
+⚠️ 泰迪熊剪只改頭型不改毛質和口吻！捲毛圓頭=貴賓泰迪剪，不是馬爾濟斯。
+⚠️ 台灣白色小型犬最常見：白貴賓泰迪剪 > 瑪爾泰迪 > 馬爾濟斯 > 比熊。
+
+【白貴賓 vs 比熊：體型比對法（最快最準）】
+用照片背景中的物品（椅子/桌子/人手/門把/碗盤等）對比狗的體型：
+→ 狗的體型明顯嬌小（像一個小玩具）= 白貴賓泰迪剪
+→ 狗的體型中等偏大（比想像中大）= 比熊
+→ 無法判斷體型，或背景無參考物 = 一律判白貴賓泰迪剪
+
+比熊現實體型：約5-8kg，站立肩高約28-30cm，明顯比白貴賓大
+白貴賓玩具型：約2-4kg，站立肩高約20-25cm，嬌小
+
+❌ 不要只看臉判品種，臉型會因剪毛造型而改變
+✅ 看體型對比背景物件最可靠
+✅ 分不清楚一律判白貴賓（台灣白貴賓數量遠多於比熊）
+
+【常見誤判修正】
+情境：白色捲毛、圓頭泰迪熊造型、有一定口吻長度、體型嬌小
+✅ 正確：白貴賓（泰迪熊剪）→ 第一洗強效清潔洗劑，第二洗高級炫彩洗劑
+
+情境：白色捲毛、體型明顯較大、口吻極短、有黑眼圈
+✅ 正確：比熊 → 第一洗水療甜瓜洗劑，第二洗高級炫彩洗劑
+
+無清楚貓狗 → {"no_pet":true}
+
+【等級定義】
+Basic = 第一洗+護毛素 / Advanced = 第一洗+第二洗+護毛素 / Signature = 第一洗+第二洗+SPA+護毛素x2
+
+【JSON格式】嚴格照此格式輸出，不加任何說明：
+{"breed":"品種","pet_type":"狗或貓","coat_analysis":"毛質(15字)","personality_note":"個性(15字)","recommended":"basic或advanced或signature","reason":"推薦此等級的理由(25字，說明品種毛質特性)","tiers":{"basic":{"label":"基礎推薦","tagline":"(10字)","steps":[{"phase":"第一洗・深層清潔","products":["產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"},{"phase":"護毛・沖淨型","products":["護毛素名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"}],"highlight":"(10字)"},"advanced":{"label":"進階推薦","tagline":"(10字)","steps":[{"phase":"第一洗・深層清潔","products":["產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"},{"phase":"第二洗・功能強化","products":["產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"},{"phase":"護毛・沖淨型","products":["護毛素名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"}],"highlight":"(10字)"},"signature":{"label":"完美推薦","tagline":"(10字)","steps":[{"phase":"第一洗・深層清潔","products":["產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"},{"phase":"第二洗・功能強化","products":["產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"},{"phase":"第三洗・SPA水療","products":["SPA產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"},{"phase":"第一護毛・沖淨型","products":["護毛素名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘後沖淨","tip":"(8字)"},{"phase":"第二護毛・免沖鎖水","products":["免沖護毛素名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"免沖淨均勻噴覆後吹乾","tip":"(8字)"}],"highlight":"(10字)"}},"note":"(20字)"}`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: imgMediaType || 'image/jpeg', data: imgBase64 } },
+        { type: 'text', text: `分析照片中的毛孩，輸出JSON。判斷品種時注意：
+1. 用背景物件（椅子/桌子/碗/人手等）估算體型：嬌小玩具感→白貴賓；體型明顯較大→才考慮比熊
+2. 看不出大小、或背景無參考物→一律判白貴賓泰迪剪
+3. 捲毛絕對不是馬爾濟斯（馬爾濟斯是長直絲質毛）
+只輸出JSON。` }
+      ]}]
+    })
+  });
+
+  const rawText = await resp.text();
+  let data;
+  try { data = JSON.parse(rawText); } catch(e) { throw new Error('回應解析失敗: ' + rawText.slice(0, 100)); }
+  if (!resp.ok) throw new Error('API錯誤(' + resp.status + '): ' + (data?.error?.message || ''));
+
+  const text = (data.content || []).map(c => c.text || '').join('');
+  const s = text.indexOf('{'), e = text.lastIndexOf('}');
+  if (s === -1) throw new Error('AI未回傳JSON: ' + text.slice(0, 100));
+  return JSON.parse(text.slice(s, e + 1));
+}
+
+// ═══════════════════════════════════════
+// CURRENT AI RESULT (global)
+// ═══════════════════════════════════════
+let currentAiResult = null;
+let currentTier = 'basic';
+
+// ═══════════════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════════════
+function renderResults(recs, aiResult, breedName, errorMsg) {
+  document.getElementById('uploadPhase').style.display = 'none';
+  document.getElementById('analyzingPhase').style.display = 'none';
+  document.getElementById('resultPhase').style.display = 'block';
+
+  currentAiResult = aiResult;
+  currentTier = 'basic';
+
+  // Header
+  const header = document.getElementById('resultHeader');
+  const thumb = previewUrl
+    ? `<img class="result-thumb" src="${previewUrl}" alt="" />`
+    : `<div class="result-emoji">🐾</div>`;
+
+  let subtitle = '';
+  let breedPill = '';
+  let personalityPill = '';
+
+  if (aiResult && aiResult.tiers) {
+    subtitle = aiResult.coat_analysis || '依毛質分析推薦';
+    if (aiResult.breed) {
+      breedPill = `<div class="result-breed-pill">🐾 ${aiResult.breed} · ${aiResult.pet_type || ''}</div>`;
+    }
+    if (aiResult.personality_note) {
+      personalityPill = `<div style="font-size:11.5px;color:var(--muted);margin-top:4px">💬 ${aiResult.personality_note}</div>`;
+    }
+    if (aiResult.note) {
+      subtitle += `<br><span style="opacity:0.7;font-size:12px">💡 ${aiResult.note}</span>`;
+    }
+
+    // Render all three tier panels
+    ['basic', 'advanced', 'signature'].forEach(tier => {
+      renderTierPanel(tier, aiResult.tiers[tier]);
+    });
+
+    // Show tabs
+    document.getElementById('tierTabs').style.display = 'flex';
+    switchTier('basic');
+
+  } else if (breedName) {
+    // Handled by renderBreedBasic, not renderResults
+    subtitle = `依照品種大方向推薦（基礎方案）`;
+    document.getElementById('tierTabs').style.display = 'none';
+    document.getElementById('panel-basic').classList.add('active');
+  } else {
+    subtitle = '一般通用洗護建議';
+    document.getElementById('tierTabs').style.display = 'none';
+  }
+
+  header.innerHTML = `
+    ${thumb}
+    <div style="flex:1">
+      <div class="result-title">✅ 三等級洗護方案</div>
+      <div class="result-sub">${subtitle}</div>
+      ${breedPill}${personalityPill}
+    </div>
+  `;
+
+  // Error box
+  const eb = document.getElementById('errorBox');
+  if (errorMsg) {
+    eb.innerHTML = `<div class="error-box">⚠️ AI 分析遇到問題（${errorMsg}）。請確認 API Key 設定正確，或改用品種快速選擇。</div>`;
+  } else {
+    eb.innerHTML = '';
+  }
+}
+
+function getStepBadgeClass(phase) {
+  if (phase.includes('第一洗')) return 'wash1';
+  if (phase.includes('第二洗')) return 'wash2';
+  if (phase.includes('第三洗') || phase.includes('SPA')) return 'wash3';
+  return 'cond';
+}
+
+function renderTierPanel(tierId, tierData) {
+  const panel = document.getElementById(`panel-${tierId}`);
+  if (!panel || !tierData) return;
+
+  const tierEmoji = tierId === 'basic' ? '🔵' : tierId === 'advanced' ? '💎' : '✨';
+
+  const stepsHtml = tierData.steps.map((step, idx) => {
+    const badgeClass = getStepBadgeClass(step.phase);
+    const productsHtml = step.products.map(p =>
+      `<div class="step-product-name">${p}</div>`
+    ).join('');
+    const mixHtml = step.mix_note ? `<div class="step-mix-note">🔀 ${step.mix_note}</div>` : '';
+    const tipHtml = step.tip ? `<div class="step-tip">💡 ${step.tip}</div>` : '';
+
+    return `
+      <div class="step-card" style="animation-delay:${idx * 0.08}s">
+        <div class="step-header">
+          <span class="step-badge ${badgeClass}">${step.phase}</span>
+        </div>
+        <div class="step-body">
+          <div class="step-products">${productsHtml}</div>
+          ${mixHtml}
+          <div class="step-pills">
+            <span class="step-pill">💧 ${step.dilution}</span>
+            <span class="step-pill">⏱ ${step.dwell_time || step.time || ''}</span>
+          </div>
+          ${tipHtml}
+        </div>
+      </div>`;
+  }).join('');
+
+  panel.innerHTML = `
+    <div class="tier-tagline">${tierEmoji} ${tierData.tagline || ''}</div>
+    ${stepsHtml}
+    <div class="highlight-box">
+      <strong>⭐ 方案亮點</strong><br>${tierData.highlight || ''}
+    </div>
+    <button class="share-btn" onclick="openShareModal('${tierId}')">
+      📤 分享這個方案
+    </button>
+  `;
+}
+
+// ═══════════════════════════════════════
+// BREED BASIC RENDER (品種快選，僅基礎方案)
+// ═══════════════════════════════════════
+function renderBreedBasic(breedName, recs) {
+  currentAiResult = null;
+  currentTier = 'basic';
+
+  document.getElementById('uploadPhase').style.display = 'none';
+  document.getElementById('analyzingPhase').style.display = 'none';
+  document.getElementById('resultPhase').style.display = 'block';
+
+  const header = document.getElementById('resultHeader');
+  const cleanBreed = breedName.replace(/[^一-鿿\w\s]/g, '').trim();
+  header.innerHTML = `
+    <div class="result-emoji">🐾</div>
+    <div style="flex:1">
+      <div class="result-title">📋 ${cleanBreed} 三等級洗護方案</div>
+      <div class="result-sub" style="color:rgba(255,200,80,0.85);font-size:12.5px;margin-top:4px">
+        ⚠️ 品種快選為大方向參考　📸 上傳照片可獲得個人化精準推薦
+      </div>
+      <div class="result-breed-pill">🐾 ${cleanBreed}</div>
+    </div>
+  `;
+
+  document.getElementById('errorBox').innerHTML = '';
+
+  // Unlock ALL three tabs
+  const tierTabs = document.getElementById('tierTabs');
+  tierTabs.style.display = 'flex';
+  tierTabs.innerHTML = `
+    <button class="tier-tab active" data-tier="basic" onclick="switchTier('basic')">
+      基礎推薦<span class="tab-label">Essential</span>
+    </button>
+    <button class="tier-tab" data-tier="advanced" onclick="switchTier('advanced')">
+      進階推薦<span class="tab-label">Advanced</span>
+    </button>
+    <button class="tier-tab" data-tier="signature" onclick="switchTier('signature')">
+      完美推薦<span class="tab-label">Signature ✨</span>
+    </button>
+  `;
+
+  // Collect all steps from breed recommendations
+  let basicSteps = [];
+  let reasons = [];
+  recs.forEach(key => {
+    const p = PRODUCTS[key];
+    if (!p) return;
+    p.steps.forEach(s => basicSteps.push(s));
+    if (p.reason) reasons.push(p.reason);
+  });
+
+  // Helper to render step cards
+  const renderSteps = (steps, tierEmoji) => steps.map((s, idx) => `
+    <div class="step-card">
+      <div class="step-header">
+        <span class="step-badge ${s._badge || ('wash' + Math.min(idx+1,3))}">${s.role || s.phase || ''}</span>
+      </div>
+      <div class="step-body">
+        <div class="step-product-name">${s.name}</div>
+        <div class="step-pills">
+          <span class="step-pill">💧 ${(s.dilution||'').replace('💧 ','')}</span>
+          <span class="step-pill">⏱ ${(s.time || s.dwell_time || '').replace('⏱ ','')}</span>
+        </div>
+        ${s.tip ? '<div class="step-tip">💡 ' + s.tip + '</div>' : ''}
+      </div>
+    </div>`).join('');
+
+  // Share button (same in standalone and embed modes)
+  const shareBtn = (tierId) => `<button class="share-btn" onclick="openShareModal('${tierId}')">📤 分享這個方案</button>`;
+
+  // === BASIC ===
+  const basicHtml = renderSteps(basicSteps);
+  document.getElementById('panel-basic').innerHTML = `
+    <div class="tier-tagline">🔵 依 ${cleanBreed} 品種特性整理的基礎洗護方向</div>
+    ${basicHtml}
+    ${reasons.length ? '<div class="highlight-box"><strong>💡 推薦理由</strong><br>' + reasons[0] + '</div>' : ''}
+    ${shareBtn('basic')}
+  `;
+
+  // === ADVANCED: add pre-clean step ===
+  const preClean = { role: '第一洗・深層清潔', name: '泡沫柑橘洗劑 Citrus Shampoo', dilution: '稀釋 10:1', time: '停留 3-5 分鐘後沖淨', tip: '溫和去油，為第二洗做準備', _badge: 'wash1' };
+  const advSteps = [preClean];
+  basicSteps.forEach((s, i) => {
+    const isWash = !s.role?.includes('護毛');
+    advSteps.push({...s, role: isWash ? '第二洗・功能強化' : s.role, _badge: isWash ? 'wash2' : 'cond'});
+  });
+  document.getElementById('panel-advanced').innerHTML = `
+    <div class="tier-tagline">💎 加強前置清潔，雙重洗護更徹底</div>
+    ${renderSteps(advSteps)}
+    <div class="highlight-box"><strong>⭐ 方案亮點</strong><br>多一道深層清潔，確保毛孩清爽乾淨</div>
+    ${shareBtn('advanced')}
+  `;
+
+  // === SIGNATURE: pre-clean + main wash + SPA + double conditioner ===
+  const spaStep = { role: '第三洗・SPA水療', name: '卡瓦樹舒緩洗劑 Kava Shampoo', dilution: '稀釋 10:1', time: '停留 5 分鐘，輕柔按摩', tip: '舒緩緊張情緒，深層放鬆', _badge: 'wash3' };
+  const leaveOn = { role: '第二護毛・免沖鎖水', name: '燕麥免沖護毛素 Oatmeal Leave-On', dilution: '免稀釋均勻噴覆', time: '免沖淨，吹乾定型', tip: '鎖住水分，持久柔順', _badge: 'cond' };
+  const sigSteps = [preClean];
+  basicSteps.forEach((s, i) => {
+    const isWash = !s.role?.includes('護毛');
+    if (isWash) sigSteps.push({...s, role: '第二洗・功能強化', _badge: 'wash2'});
+  });
+  sigSteps.push(spaStep);
+  basicSteps.forEach(s => {
+    if (s.role?.includes('護毛')) sigSteps.push({...s, role: '第一護毛・沖淨型', _badge: 'cond'});
+  });
+  if (!basicSteps.some(s => s.role?.includes('護毛'))) {
+    sigSteps.push({ role: '第一護毛・沖淨型', name: '滋潤護毛素 Creme Rinse & Conditioner', dilution: '稀釋 7:1', time: '停留 3 分鐘後沖淨', _badge: 'cond' });
+  }
+  sigSteps.push(leaveOn);
+  document.getElementById('panel-signature').innerHTML = `
+    <div class="tier-tagline">✨ 全方位深層呵護，SPA 級奢寵體驗</div>
+    ${renderSteps(sigSteps)}
+    <div class="highlight-box"><strong>⭐ 方案亮點</strong><br>五道完整洗護流程，SPA 水療舒壓＋雙重護毛鎖水，回家後毛髮柔順發亮</div>
+    ${shareBtn('signature')}
+  `;
+
+  // Set store for embed confirm
+  currentAiResult = { breed: cleanBreed, recommended: 'basic', reason: '依品種特性推薦', tiers: {
+    basic: { tagline: '基礎洗護', steps: basicSteps, highlight: reasons[0] || '快速護理' },
+    advanced: { tagline: '進階雙重洗護', steps: advSteps, highlight: '加強前置清潔' },
+    signature: { tagline: 'SPA 全方位呵護', steps: sigSteps, highlight: '五道完整洗護' }
+  }};
+
+  ['basic','advanced','signature'].forEach(t => {
+    document.getElementById(`panel-${t}`).classList.remove('active');
+  });
+  document.getElementById('panel-basic').classList.add('active');
+
+  // Show embed confirm bar
+  const isEmbed = window._embed && window._embed.embedMode;
+  if (isEmbed) {
+    const bar = document.getElementById('embedConfirmBar');
+    if (bar) bar.classList.add('visible');
+    const confirmBtn = document.getElementById('embedConfirmBtn');
+    if (confirmBtn) confirmBtn.textContent = '✅ 確認「基礎洗」，回到汪得福';
+    const tierLabel = document.getElementById('embedConfirmTierLabel');
+    if (tierLabel) tierLabel.textContent = '📸 上傳照片可獲得個人化精準推薦';
+  }
+}
+
+function showPhotoNeeded() {
+  // Flash the upsell notice
+  const panel = document.getElementById('panel-basic');
+  panel.classList.add('active');
+  const upsellEl = panel.querySelector('[style*="dashed"]');
+  if (upsellEl) {
+    upsellEl.style.borderColor = 'rgba(255,200,50,0.6)';
+    upsellEl.style.background = 'rgba(255,200,50,0.08)';
+    setTimeout(() => {
+      upsellEl.style.borderColor = '';
+      upsellEl.style.background = '';
+    }, 1500);
+  }
+}
+
+function switchTier(tierId) {
+  currentTier = tierId;
+  document.querySelectorAll('.tier-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tier === tierId);
+  });
+  document.querySelectorAll('.tier-panel').forEach(p => {
+    p.classList.toggle('active', p.id === `panel-${tierId}`);
+  });
+  // Update embed confirm button label
+  const tierLabels = { basic: '基礎推薦', advanced: '進階推薦', signature: '完美推薦 ✨' };
+  const tierWangdefu = { basic: '基礎洗', advanced: '進階洗', signature: '完美SPA洗' };
+  const confirmLabel = document.getElementById('embedConfirmTierLabel');
+  if (confirmLabel) confirmLabel.textContent = '目前選擇：' + (tierLabels[tierId] || tierId);
+  const confirmBtn = document.getElementById('embedConfirmBtn');
+  if (confirmBtn) confirmBtn.textContent = '✅ 確認「' + (tierWangdefu[tierId] || tierId) + '」，回到汪得福';
+}
+
+// ═══════════════════════════════════════
+// EMBED — User confirms tier selection → postMessage to parent
+// ═══════════════════════════════════════
+function confirmEmbedSelection() {
+  embedConfirmTier(currentTier);
+}
+
+// Called from embed confirm bar at bottom
+function embedConfirmTier(tierId) {
+  if (window.parent === window) return;
+
+  const tierMap = { basic: 'basic', advanced: 'advanced', signature: 'spa' };
+  const selectedTier = tierMap[tierId] || 'advanced';
+
+  const tierReasons = {
+    basic: '基礎洗護方案，日常清潔保養',
+    advanced: '進階洗護，加強功能性護理',
+    signature: '完美SPA洗護，全方位深層呵護'
+  };
+
+  const breed = (currentAiResult && currentAiResult.breed)
+    || (window._embed && window._embed.preBreed) || '';
+
+  const payload = {
+    type: 'davis-recommendation',
+    source: 'davis-grooming-ai',
+    hotel: (window._embed && window._embed.hotelSource) || '',
+    breed: breed,
+    weight: window._embed && window._embed.preWeight ? parseFloat(window._embed.preWeight) : null,
+    result: {
+      recommended: selectedTier,
+      reason: (currentAiResult && currentAiResult.reason) || tierReasons[tierId] || '',
+      autoApply: true
+    }
+  };
+
+  try {
+    window.parent.postMessage(payload, '*');
+    const toast = document.getElementById('postSentToast');
+    if (toast) {
+      const tierNames = { basic: '基礎洗', advanced: '進階洗', spa: '完美SPA洗' };
+      toast.textContent = '✅ 已選擇「' + (tierNames[selectedTier] || selectedTier) + '」，已同步到汪得福';
+      toast.classList.add('visible');
+      setTimeout(() => toast.classList.remove('visible'), 3000);
+    }
+    console.log('[Davis] Embed confirm sent:', payload);
+  } catch (e) {
+    console.warn('[Davis] Embed confirm failed:', e);
+  }
+}
+
+// ═══════════════════════════════════════
+// SHARE FUNCTIONALITY
+// ═══════════════════════════════════════
+let shareTargetTier = 'basic';
+
+function openShareModal(tierId) {
+  shareTargetTier = tierId;
+  generateShareImage(tierId);
+  document.getElementById('shareModal').classList.add('visible');
+}
+
+function closeShareModal(event) {
+  if (!event || event.target === document.getElementById('shareModal')) {
+    document.getElementById('shareModal').classList.remove('visible');
+  }
+}
+
+function getShareText(tierId) {
+  if (!currentAiResult || !currentAiResult.tiers) return '';
+  const tier = currentAiResult.tiers[tierId];
+  if (!tier) return '';
+
+  const tierLabels = { basic: '基礎推薦', advanced: '進階推薦', signature: '完美推薦' };
+  const breed = currentAiResult.breed || '毛孩';
+  const products = tier.steps.flatMap(s => s.products).join('、');
+
+  return `🐾 ${breed} 的 Davis 洗護方案 — ${tierLabels[tierId]}\n\n使用產品：${products}\n\n${tier.highlight}\n\n💧 由 Davis Taiwan AI 洗護顧問生成\nhttps://davistaiwan.netlify.app`;
+}
+
+function generateShareImage(tierId) {
+  const canvas = document.getElementById('shareCanvas');
+  const ctx = canvas.getContext('2d');
+
+  if (!currentAiResult || !currentAiResult.tiers) return;
+  const tier = currentAiResult.tiers[tierId];
+  if (!tier) return;
+
+  const W = 750;
+  const tierLabels = { basic: '基礎推薦 Essential', advanced: '進階推薦 Advanced', signature: '完美推薦 Signature ✨' };
+
+  // Calculate dynamic height
+  const lineH = 26;
+  const stepH = tier.steps.length * 110 + 80;
+  const H = 180 + stepH + 120;
+
+  canvas.width = W;
+  canvas.height = H;
+
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#091830');
+  bg.addColorStop(0.5, '#0B1E3D');
+  bg.addColorStop(1, '#112554');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Header bar
+  ctx.fillStyle = 'rgba(26,106,212,0.25)';
+  ctx.fillRect(0, 0, W, 90);
+
+  // Davis logo text
+  ctx.fillStyle = '#A8CCFF';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.fillText('DAVIS Taiwan 寵物洗護 AI 顧問', 30, 38);
+  ctx.fillStyle = 'rgba(168,204,255,0.55)';
+  ctx.font = '15px sans-serif';
+  ctx.fillText('davistaiwan.netlify.app', 30, 62);
+
+  // Tier badge
+  const tierColors = { basic: '#1A6FD4', advanced: '#2196C8', signature: '#7060C8' };
+  ctx.fillStyle = tierColors[tierId] || '#1A6FD4';
+  ctx.beginPath();
+  ctx.roundRect(W - 210, 20, 185, 50, 12);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 17px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText(tierLabels[tierId], W - 22, 50);
+  ctx.textAlign = 'left';
+
+  // Breed & coat info
+  ctx.fillStyle = '#EEF4FF';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(`🐾 ${currentAiResult.breed || '毛孩'} 專屬洗護方案`, 30, 130);
+  ctx.fillStyle = 'rgba(220,235,255,0.6)';
+  ctx.font = '16px sans-serif';
+  ctx.fillText(currentAiResult.coat_analysis || '', 30, 158);
+
+  // Steps
+  let y = 190;
+  tier.steps.forEach((step, i) => {
+    // Step bg
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.beginPath();
+    ctx.roundRect(20, y, W - 40, 95, 12);
+    ctx.fill();
+
+    // Phase badge
+    const phaseColors = ['#1A6FD4','#2196C8','#7060C8','#1A4A9E','#3080B8'];
+    ctx.fillStyle = phaseColors[i % phaseColors.length] + '55';
+    ctx.beginPath();
+    ctx.roundRect(34, y + 12, 180, 26, 8);
+    ctx.fill();
+    ctx.fillStyle = '#A8CCFF';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.fillText(step.phase, 44, y + 30);
+
+    // Product names
+    ctx.fillStyle = '#EEF4FF';
+    ctx.font = 'bold 15px sans-serif';
+    const prodText = step.products.join(' + ');
+    ctx.fillText(prodText.length > 45 ? prodText.substring(0, 44) + '…' : prodText, 34, y + 58);
+
+    // Pills
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '13px sans-serif';
+    const dwellT = step.dwell_time || step.time || '';
+    ctx.fillText(`💧 ${step.dilution}  ⏱ ${dwellT}`, 34, y + 80);
+
+    y += 105;
+  });
+
+  // Highlight
+  y += 10;
+  ctx.fillStyle = 'rgba(26,106,212,0.2)';
+  ctx.beginPath();
+  ctx.roundRect(20, y, W - 40, 55, 12);
+  ctx.fill();
+  ctx.fillStyle = '#5AABF0';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText('⭐ 方案亮點', 34, y + 22);
+  ctx.fillStyle = '#EEF4FF';
+  ctx.font = '14px sans-serif';
+  const hl = tier.highlight || '';
+  ctx.fillText(hl.length > 48 ? hl.substring(0, 47) + '…' : hl, 34, y + 44);
+
+  // Footer
+  ctx.fillStyle = 'rgba(168,204,255,0.35)';
+  ctx.font = '13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('以上建議僅描述清潔保養效果，不涉及醫療效果', W/2, H - 20);
+  ctx.textAlign = 'left';
+
+  // Show preview
+  const dataUrl = canvas.toDataURL('image/png');
+  const img = document.getElementById('sharePreviewImg');
+  img.src = dataUrl;
+  img.style.display = 'block';
+}
+
+async function doShare(type) {
+  if (type === 'text') {
+    const text = getShareText(shareTargetTier);
+    if (navigator.share) {
+      await navigator.share({ text });
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert('已複製到剪貼簿！');
+    }
+  } else {
+    // Image share
+    const canvas = document.getElementById('shareCanvas');
+    const dataUrl = canvas.toDataURL('image/png');
+
+    if (navigator.share && navigator.canShare) {
+      // Convert to blob for native share
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `Davis洗護方案_${shareTargetTier}.png`, { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Davis 洗護方案' });
+        return;
+      }
+    }
+    // Fallback: download
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `Davis洗護方案_${shareTargetTier}.png`;
+    a.click();
+  }
+  closeShareModal();
+}
+
+// ═══════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════
+function resetApp() {
+  imgBase64 = null; imgMediaType = null; previewUrl = null;
+  currentAiResult = null; currentTier = 'basic';
+
+  // Reset tier panels
+  ['basic','advanced','signature'].forEach(t => {
+    const p = document.getElementById(`panel-${t}`);
+    if (p) { p.innerHTML = ''; p.classList.remove('active'); }
+    const tab = document.querySelector(`.tier-tab[data-tier="${t}"]`);
+    if (tab) tab.classList.remove('active');
+  });
+  const firstTab = document.querySelector('.tier-tab[data-tier="basic"]');
+  if (firstTab) firstTab.classList.add('active');
+  const firstPanel = document.getElementById('panel-basic');
+  if (firstPanel) firstPanel.classList.add('active');
+
+  const dz = document.getElementById('dropZone');
+  dz.classList.remove('has-image', 'drag-over');
+  dz.onclick = triggerFileInput;
+  dz.innerHTML = `
+    <div class="drop-inner">
+      <span class="drop-icon">📷</span>
+      <div class="drop-primary">上傳毛孩照片</div>
+      <div class="drop-secondary">點擊選擇相簿照片，或使用下方拍照按鈕</div>
+      <div class="drop-format">支援 JPG · PNG · HEIC · WEBP</div>
+    </div>
+  `;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('cameraInput').value = '';
+  document.getElementById('analyzeBtn').style.display = 'none';
+  // Remove no-pet error box if present
+  const noPetBox = document.getElementById('noPetBox');
+  if (noPetBox) noPetBox.remove();
+  // Restore tier tabs to normal
+  document.getElementById('tierTabs').innerHTML = `
+    <button class="tier-tab active" data-tier="basic" onclick="switchTier('basic')">基礎推薦<span class="tab-label">Essential</span></button>
+    <button class="tier-tab" data-tier="advanced" onclick="switchTier('advanced')">進階推薦<span class="tab-label">Advanced</span></button>
+    <button class="tier-tab" data-tier="signature" onclick="switchTier('signature')">完美推薦<span class="tab-label">Signature ✨</span></button>
+  `;
+  document.getElementById('uploadPhase').style.display = 'block';
+  document.getElementById('analyzingPhase').style.display = 'none';
+  document.getElementById('resultPhase').style.display = 'none';
+}
+
+// ═══════════════════════════════════════
+// INSTALL TO HOME SCREEN
+// ═══════════════════════════════════════
+let deferredPrompt = null;
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+function initInstallBanner() {
+  if (isInStandaloneMode) return; // already installed, hide banner
+
+  if (isIos) {
+    // iOS: always show banner (Safari doesn't fire beforeinstallprompt)
+    document.getElementById('installBanner').classList.add('visible');
+  } else {
+    // Android/Chrome: wait for beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.add('visible');
+    });
+  }
+}
+
+function handleInstallClick() {
+  if (isIos) {
+    document.getElementById('iosModal').classList.add('visible');
+  } else if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.remove('visible');
+    });
+  }
+}
+
+function closeIosModal(event) {
+  if (!event || event.target === document.getElementById('iosModal')) {
+    document.getElementById('iosModal').classList.remove('visible');
+  }
+}
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+initInstallBanner();
+</script>
+</body>
+</html>

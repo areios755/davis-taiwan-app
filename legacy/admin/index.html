@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Davis Taiwan Admin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#333}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1A6FD4,#0D47A1)}
+.login-box{background:white;padding:40px;border-radius:16px;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-box h1{font-size:22px;text-align:center;margin-bottom:24px;color:#1A6FD4}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1A6FD4}
+textarea{resize:vertical;min-height:60px}
+.btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
+.btn-primary{background:#1A6FD4;color:white}.btn-primary:hover{background:#155bb5}
+.btn-danger{background:#f44336;color:white}.btn-danger:hover{background:#d32f2f}
+.btn-success{background:#4caf50;color:white}.btn-success:hover{background:#388e3c}
+.btn-outline{background:white;border:1px solid #ddd;color:#555}.btn-outline:hover{border-color:#1A6FD4;color:#1A6FD4}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-full{width:100%}
+.topbar{background:white;padding:12px 20px;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar h1{font-size:18px;color:#1A6FD4}
+.tabs{display:flex;gap:4px;background:white;padding:8px 20px;border-bottom:1px solid #e0e0e0;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#666;transition:all .2s}
+.tab:hover{background:#f0f0f0}.tab.active{background:#1A6FD4;color:white}
+.main{padding:20px;max-width:1200px;margin:0 auto}
+.card{background:white;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.card h2{font-size:16px;color:#1A6FD4;margin-bottom:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:600;color:#666;margin-bottom:4px}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:200px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.switch-row:last-child{border:none}
+.switch{width:48px;height:26px;background:#ccc;border-radius:13px;cursor:pointer;position:relative;transition:background .2s}
+.switch.on{background:#4caf50}
+.switch::after{content:'';position:absolute;width:22px;height:22px;background:white;border-radius:50%;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on::after{left:24px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #f0f0f0}
+th{background:#f8f8f8;font-weight:600;color:#666;position:sticky;top:0}
+tr:hover{background:#fafafa}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge-green{background:#e8f5e9;color:#2e7d32}.badge-red{background:#ffebee;color:#c62828}.badge-blue{background:#e3f2fd;color:#1565c0}.badge-orange{background:#fff3e0;color:#e65100}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center}
+.modal{background:white;border-radius:16px;padding:24px;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h2{font-size:18px;color:#1A6FD4;margin-bottom:16px}
+.tag-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag-item{background:#e3f2fd;padding:2px 8px;border-radius:10px;font-size:11px;display:flex;align-items:center;gap:4px}
+.tag-item button{background:none;border:none;cursor:pointer;font-size:14px;color:#999;padding:0}
+.toast{position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:12px 20px;border-radius:10px;font-size:14px;z-index:200;animation:fadeIn .3s}
+.cost-card{text-align:center;padding:16px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border:1px solid #ffe0b2}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){.row>*{min-width:100%}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback}=React;
+const API='/api/admin';
+// Pricing: Claude Opus 4 — $15/MTok input, $75/MTok output
+const DEFAULT_PRICING={input_per_mtok:15,output_per_mtok:75};
+function calcCost(tokens,pricing){
+  const p=pricing||DEFAULT_PRICING;
+  const ic=(tokens.input_tokens||0)/1000000*p.input_per_mtok;
+  const oc=(tokens.output_tokens||0)/1000000*p.output_per_mtok;
+  return {input_cost:ic,output_cost:oc,total:ic+oc};
+}
+
+function App(){
+  const [token,setToken]=useState(localStorage.getItem('davis_admin_token')||'');
+  const [authed,setAuthed]=useState(false);
+  const [role,setRole]=useState('');
+  const [displayName,setDisplayName]=useState('');
+  const [tab,setTab]=useState('dashboard');
+  const [toast,setToast]=useState('');
+  const [showPwModal,setShowPwModal]=useState(false);
+
+  const showToast=(msg)=>{setToast(msg);setTimeout(()=>setToast(''),3000);};
+
+  const api=useCallback(async(path,opts={})=>{
+    const r=await fetch(API+path,{...opts,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,...(opts.headers||{})}});
+    const j=await r.json();
+    if(r.status===401){setAuthed(false);localStorage.removeItem('davis_admin_token');}
+    return j;
+  },[token]);
+
+  useEffect(()=>{
+    if(token) api('/me').then(r=>{
+      if(r.username){setAuthed(true);setRole(r.role);}
+      else{setAuthed(false);localStorage.removeItem('davis_admin_token');}
+    }).catch(()=>{});
+  },[token]);
+
+  if(!authed) return <LoginPage onLogin={(t,r,dn)=>{setToken(t);setRole(r);setDisplayName(dn);localStorage.setItem('davis_admin_token',t);setAuthed(true);}}/>;
+
+  const isAdmin=role==='admin';
+  const allTabs=[['dashboard','📊 數據'],['ai','🤖 AI 助手'],['certs','🏅 認證'],['settings','⚙️ 設定'],['products','🧴 配方'],['breeds','🐕 品種'],['users','👥 帳號']];
+  const visibleTabs=isAdmin?allTabs:allTabs.filter(([k])=>k==='dashboard');
+
+  return <div>
+    <div className="topbar">
+      <h1>🧴 Davis Admin</h1>
+      <div style={{display:'flex',gap:8,alignItems:'center'}}>
+        <span style={{fontSize:12,color:'#666'}}>{displayName||role} <span className={`badge ${isAdmin?'badge-blue':'badge-orange'}`}>{isAdmin?'管理員':'檢視者'}</span></span>
+        <button className="btn btn-outline btn-sm" onClick={()=>setShowPwModal(true)}>🔑 改密碼</button>
+        <button className="btn btn-outline btn-sm" onClick={()=>{setAuthed(false);setToken('');localStorage.removeItem('davis_admin_token');}}>登出</button>
+      </div>
+    </div>
+    <div className="tabs">
+      {visibleTabs.map(([k,l])=><div key={k} className={`tab ${tab===k?'active':''}`} onClick={()=>setTab(k)}>{l}</div>)}
+    </div>
+    <div className="main">
+      {tab==='dashboard'&&<DashboardTab api={api} showToast={showToast}/>}
+      {tab==='ai'&&isAdmin&&<AIAssistantTab api={api} showToast={showToast}/>}
+      {tab==='certs'&&isAdmin&&<CertsTab api={api} showToast={showToast}/>}
+      {tab==='settings'&&isAdmin&&<SettingsTab api={api} showToast={showToast}/>}
+      {tab==='products'&&isAdmin&&<ProductsTab api={api} showToast={showToast}/>}
+      {tab==='breeds'&&isAdmin&&<BreedsTab api={api} showToast={showToast}/>}
+      {tab==='users'&&isAdmin&&<UsersTab api={api} showToast={showToast}/>}
+    </div>
+    {toast&&<div className="toast">{toast}</div>}
+    {showPwModal&&<ChangePwModal api={api} showToast={showToast} onClose={()=>setShowPwModal(false)} isEnvAdmin={role==='admin'}/>}
+  </div>;
+}
+
+// ── Login ──
+function LoginPage({onLogin}){
+  const [user,setUser]=useState('');const [pw,setPw]=useState('');const [err,setErr]=useState('');const [loading,setLoading]=useState(false);
+  const doLogin=async()=>{
+    setLoading(true);setErr('');
+    const r=await fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:user,password:pw})});
+    const j=await r.json();setLoading(false);
+    if(j.ok)onLogin(j.token,j.role,j.displayName);else setErr(j.error||'Login failed');
+  };
+  return <div className="login-wrap"><div className="login-box">
+    <h1>🧴 Davis Admin</h1>
+    <input type="text" placeholder="帳號" value={user} onChange={e=>setUser(e.target.value)} autoComplete="username"/>
+    <input type="password" placeholder="密碼" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} autoComplete="current-password"/>
+    {err&&<div style={{color:'red',fontSize:13,marginBottom:8}}>{err}</div>}
+    <button className="btn btn-primary btn-full" onClick={doLogin} disabled={loading}>{loading?'驗證中...':'登入'}</button>
+  </div></div>;
+}
+
+// ── Change Password Modal ──
+function ChangePwModal({api,showToast,onClose,isEnvAdmin}){
+  const [oldPw,setOldPw]=useState('');const [newPw,setNewPw]=useState('');const [err,setErr]=useState('');const [loading,setLoading]=useState(false);
+  const doChange=async()=>{
+    setLoading(true);setErr('');
+    const r=await api('/change-password',{method:'POST',body:JSON.stringify({old_password:oldPw,new_password:newPw})});
+    setLoading(false);
+    if(r.ok){showToast('✅ 密碼已更新');onClose();}else setErr(r.error||'Failed');
+  };
+  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+    <h2>🔑 更改密碼</h2>
+    <div className="field"><label>舊密碼</label><input type="password" value={oldPw} onChange={e=>setOldPw(e.target.value)}/></div>
+    <div className="field"><label>新密碼</label><input type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doChange()}/></div>
+    {err&&<div style={{color:'red',fontSize:13,marginBottom:8}}>{err}</div>}
+    <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+      <button className="btn btn-outline" onClick={onClose}>取消</button>
+      <button className="btn btn-primary" onClick={doChange} disabled={loading||!newPw}>{loading?'更新中...':'更新密碼'}</button>
+    </div>
+  </div></div>;
+}
+
+// ── DB Backup Card ──
+function DbBackupCard({api,showToast}){
+  const [loading,setLoading]=useState(false);
+  const [lastExport,setLastExport]=useState(localStorage.getItem('davis_last_export')||'');
+  const [stats,setStats]=useState(null);
+
+  useEffect(()=>{
+    // 載入時先抓筆數統計
+    Promise.all([api('/breeds'),api('/products')]).then(([b,p])=>{
+      setStats({breeds:(b.breeds||[]).length, products:(p.products||[]).length});
+    }).catch(()=>{});
+  },[]);
+
+  const doExport=async()=>{
+    setLoading(true);
+    try{
+      const [bRes,pRes]=await Promise.all([api('/breeds'),api('/products')]);
+      const breeds=bRes.breeds||[];
+      const products=pRes.products||[];
+      const now=new Date();
+      const payload={
+        _meta:{
+          exported_at:now.toISOString(),
+          exported_by:'Davis Admin',
+          version:'1.0',
+          breed_count:breeds.length,
+          product_count:products.length,
+          note:'Davis Taiwan 寵物洗護知識庫備份。此檔案包含完整品種與配方資料，可重新匯入或用於 AI 訓練。'
+        },
+        breeds,
+        products
+      };
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      const dateStr=now.toISOString().slice(0,10);
+      a.href=url;
+      a.download=`davis-db-backup-${dateStr}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      const ts=now.toLocaleString('zh-TW');
+      setLastExport(ts);
+      localStorage.setItem('davis_last_export',ts);
+      setStats({breeds:breeds.length,products:products.length});
+      showToast(`✅ 備份完成：品種 ${breeds.length} 筆 · 配方 ${products.length} 筆`);
+    }catch(e){
+      showToast('❌ 匯出失敗：'+e.message);
+    }
+    setLoading(false);
+  };
+
+  const doImport=(e)=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=async(ev)=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(!data.breeds&&!data.products)throw new Error('格式不正確，找不到 breeds 或 products');
+        const meta=data._meta||{};
+        const msg=`確認匯入備份？\n\n`+
+          `備份時間：${meta.exported_at?.slice(0,16)||'未知'}\n`+
+          `品種：${(data.breeds||[]).length} 筆\n`+
+          `配方：${(data.products||[]).length} 筆\n\n`+
+          `⚠️ 同名資料會被覆蓋（upsert），不會刪除現有資料。`;
+        if(!confirm(msg))return;
+        setLoading(true);
+        let ok=0,fail=0;
+        // Import breeds
+        if((data.breeds||[]).length){
+          const r=await api('/breeds/import',{method:'POST',body:JSON.stringify({rows:data.breeds})});
+          ok+=r.ok||0;fail+=r.fail||0;
+        }
+        // Import products
+        if((data.products||[]).length){
+          const r=await api('/products/import',{method:'POST',body:JSON.stringify({rows:data.products})});
+          ok+=r.ok||0;fail+=r.fail||0;
+        }
+        showToast(`✅ 匯入完成：${ok} 成功 / ${fail} 失敗`);
+        // Refresh stats
+        Promise.all([api('/breeds'),api('/products')]).then(([b,p])=>{
+          setStats({breeds:(b.breeds||[]).length,products:(p.products||[]).length});
+        });
+      }catch(err){
+        showToast('❌ 匯入失敗：'+err.message);
+      }
+      setLoading(false);
+    };
+    reader.readAsText(file);
+    e.target.value='';
+  };
+
+  const importRef=React.useRef();
+
+  return <div className="card" style={{borderLeft:'4px solid #4CAF50',marginBottom:16}}>
+    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+      <div>
+        <h2 style={{margin:'0 0 4px'}}>🗄️ 知識庫備份</h2>
+        <div style={{fontSize:12,color:'#666',lineHeight:1.6}}>
+          {stats
+            ? <span>目前資料：<strong style={{color:'#1A6FD4'}}>品種 {stats.breeds} 筆</strong> · <strong style={{color:'#4CAF50'}}>配方 {stats.products} 筆</strong></span>
+            : '載入中...'}
+          {lastExport&&<span style={{marginLeft:12,color:'#999'}}>上次備份：{lastExport}</span>}
+        </div>
+        <div style={{fontSize:11,color:'#999',marginTop:4}}>
+          匯出為 JSON 格式 · 可重新匯入 · 可用於 AI 訓練 · 建議定期備份
+        </div>
+      </div>
+      <div style={{display:'flex',gap:8,alignItems:'center'}}>
+        <button className="btn btn-outline btn-sm" onClick={()=>importRef.current.click()} disabled={loading}>
+          📤 匯入備份
+        </button>
+        <button className="btn btn-success btn-sm" onClick={doExport} disabled={loading}
+          style={{background:'#4CAF50',color:'white',border:'none'}}>
+          {loading?'處理中...':'📥 匯出完整備份'}
+        </button>
+        <input ref={importRef} type="file" accept=".json" hidden onChange={doImport}/>
+      </div>
+    </div>
+  </div>;
+}
+
+// ── Dashboard Tab ──
+function DashboardTab({api,showToast}){
+  const [data,setData]=useState(null);const [loading,setLoading]=useState(true);const [days,setDays]=useState(30);
+  const dailyRef=useRef(null);const breedRef=useRef(null);const sourceRef=useRef(null);const modeRef=useRef(null);
+  const chartsRef=useRef({});
+  const [pricing,setPricing]=useState(DEFAULT_PRICING);
+
+  const load=(d)=>{setLoading(true);Promise.all([
+    api('/analytics/summary?days='+(d||days)),
+    api('/settings')
+  ]).then(([r,s])=>{
+    setData(r);
+    if(s.settings&&s.settings.ai_pricing){try{const p=typeof s.settings.ai_pricing==='string'?JSON.parse(s.settings.ai_pricing):s.settings.ai_pricing;setPricing(p);}catch{}}
+    setLoading(false);
+  }).catch(()=>setLoading(false));};
+  useEffect(()=>{load();},[]);
+
+  useEffect(()=>{
+    if(!data||loading)return;
+    Object.values(chartsRef.current).forEach(c=>{try{c.destroy();}catch{}});chartsRef.current={};
+    if(dailyRef.current&&data.daily&&data.daily.length){
+      chartsRef.current.daily=new Chart(dailyRef.current.getContext('2d'),{type:'line',data:{labels:data.daily.map(d=>d.date.slice(5)),datasets:[{label:'分析次數',data:data.daily.map(d=>d.count),borderColor:'#1A6FD4',backgroundColor:'rgba(26,111,212,0.1)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#1A6FD4'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{ticks:{maxRotation:45,font:{size:11}}}}}});
+    }
+    if(breedRef.current&&data.topBreeds&&data.topBreeds.length){
+      const colors=['#1A6FD4','#2196F3','#42A5F5','#64B5F6','#90CAF9','#BBDEFB','#FF9800','#FFB74D','#FFCC80','#FFE0B2'];
+      chartsRef.current.breed=new Chart(breedRef.current.getContext('2d'),{type:'bar',data:{labels:data.topBreeds.map(b=>b.breed),datasets:[{label:'次數',data:data.topBreeds.map(b=>b.count),backgroundColor:colors}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
+    }
+    if(sourceRef.current&&data.sources&&data.sources.length){
+      chartsRef.current.source=new Chart(sourceRef.current.getContext('2d'),{type:'doughnut',data:{labels:data.sources.map(s=>s.source==='direct'?'直接使用':s.source),datasets:[{data:data.sources.map(s=>s.count),backgroundColor:['#4CAF50','#FF9800','#2196F3','#9C27B0','#F44336','#607D8B']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:12}}}}}});
+    }
+    if(modeRef.current&&data.embedVsDirect){
+      chartsRef.current.mode=new Chart(modeRef.current.getContext('2d'),{type:'doughnut',data:{labels:['崁入模式','直接使用'],datasets:[{data:[data.embedVsDirect.embed,data.embedVsDirect.direct],backgroundColor:['#FF9800','#1A6FD4']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:12}}}}}});
+    }
+  },[data,loading]);
+
+  if(loading)return <div className="card">載入中...</div>;
+  if(!data)return <div className="card">無法載入數據</div>;
+
+  const mCost=calcCost(data.monthTokens||{},pricing);
+  const yCost=calcCost(data.yearTokens||{},pricing);
+
+  return <div>
+
+    {/* DB Backup Card */}
+    <DbBackupCard api={api} showToast={showToast}/>
+
+    <div style={{display:'flex',gap:6,marginBottom:16}}>
+      {[7,14,30,90].map(d=><button key={d} className={`btn btn-sm ${days===d?'btn-primary':'btn-outline'}`} onClick={()=>{setDays(d);load(d);}}>{d} 天</button>)}
+    </div>
+
+    {/* Summary */}
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:16}}>
+      <div className="card" style={{textAlign:'center',padding:16}}><div style={{fontSize:32,fontWeight:700,color:'#1A6FD4'}}>{data.periodTotal}</div><div style={{fontSize:12,color:'#666'}}>近 {data.days} 天分析</div></div>
+      <div className="card" style={{textAlign:'center',padding:16}}><div style={{fontSize:32,fontWeight:700,color:'#4CAF50'}}>{data.allTimeTotal}</div><div style={{fontSize:12,color:'#666'}}>累計總分析</div></div>
+      <div className="card" style={{textAlign:'center',padding:16}}><div style={{fontSize:32,fontWeight:700,color:'#FF9800'}}>{data.realVsFake?.real||0}</div><div style={{fontSize:12,color:'#666'}}>真 AI 分析</div></div>
+      <div className="card" style={{textAlign:'center',padding:16}}><div style={{fontSize:32,fontWeight:700,color:'#9C27B0'}}>{data.realVsFake?.fake||0}</div><div style={{fontSize:12,color:'#666'}}>品種預填（省 API）</div></div>
+    </div>
+
+    {/* AI Cost */}
+    <div className="card" style={{background:'linear-gradient(135deg,#fff8e1,#fff3e0)',border:'1px solid #ffe0b2'}}>
+      <h2>💰 AI 呼叫成本</h2>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+        <div style={{padding:16,background:'white',borderRadius:10,textAlign:'center'}}>
+          <div style={{fontSize:13,color:'#666',marginBottom:4}}>📅 {data.currentMonth} 本月</div>
+          <div style={{fontSize:28,fontWeight:700,color:'#e65100'}}>${mCost.total.toFixed(2)}</div>
+          <div style={{fontSize:11,color:'#999',marginTop:4}}>
+            {(data.monthTokens?.ai_calls||0)} 次呼叫 ·
+            輸入 {((data.monthTokens?.input_tokens||0)/1000).toFixed(1)}K tokens (${ mCost.input_cost.toFixed(3)}) ·
+            輸出 {((data.monthTokens?.output_tokens||0)/1000).toFixed(1)}K tokens (${mCost.output_cost.toFixed(3)})
+          </div>
+        </div>
+        <div style={{padding:16,background:'white',borderRadius:10,textAlign:'center'}}>
+          <div style={{fontSize:13,color:'#666',marginBottom:4}}>📆 {data.currentYear} 年度</div>
+          <div style={{fontSize:28,fontWeight:700,color:'#bf360c'}}>${yCost.total.toFixed(2)}</div>
+          <div style={{fontSize:11,color:'#999',marginTop:4}}>
+            {(data.yearTokens?.ai_calls||0)} 次呼叫 ·
+            輸入 {((data.yearTokens?.input_tokens||0)/1000).toFixed(1)}K tokens (${yCost.input_cost.toFixed(3)}) ·
+            輸出 {((data.yearTokens?.output_tokens||0)/1000).toFixed(1)}K tokens (${yCost.output_cost.toFixed(3)})
+          </div>
+        </div>
+      </div>
+      <div style={{fontSize:11,color:'#999',marginTop:8,textAlign:'right'}}>
+        定價基準：Claude Opus 4 · 輸入 ${pricing.input_per_mtok}/MTok · 輸出 ${pricing.output_per_mtok}/MTok · 僅計算真 AI 分析
+      </div>
+    </div>
+
+    {/* Daily trend */}
+    <div className="card"><h2>📈 每日分析趨勢</h2><div style={{height:250,position:'relative'}}>{data.daily?.length?<canvas ref={dailyRef}/>:<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',color:'#999'}}>尚無數據</div>}</div></div>
+
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+      <div className="card"><h2>🐕 熱門品種 Top 10</h2><div style={{height:300,position:'relative'}}>{data.topBreeds?.length?<canvas ref={breedRef}/>:<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',color:'#999'}}>尚無數據</div>}</div></div>
+      <div className="card"><h2>🔗 流量來源</h2><div style={{height:300,position:'relative'}}>{data.sources?.length?<canvas ref={sourceRef}/>:<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',color:'#999'}}>尚無數據</div>}</div></div>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginTop:16}}>
+      <div className="card"><h2>📱 崁入 vs 直接</h2><div style={{height:220,position:'relative'}}>{(data.embedVsDirect?.embed||0)+(data.embedVsDirect?.direct||0)>0?<canvas ref={modeRef}/>:<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',color:'#999'}}>尚無數據</div>}</div></div>
+      <div className="card"><h2>📋 品種明細</h2><div style={{maxHeight:220,overflowY:'auto'}}><table><thead><tr><th>品種</th><th style={{textAlign:'right'}}>次數</th><th style={{textAlign:'right'}}>佔比</th></tr></thead><tbody>{(data.topBreeds||[]).map((b,i)=><tr key={i}><td style={{fontWeight:600}}>{b.breed}</td><td style={{textAlign:'right'}}>{b.count}</td><td style={{textAlign:'right',color:'#666'}}>{data.periodTotal?Math.round(b.count/data.periodTotal*100):0}%</td></tr>)}</tbody></table></div></div>
+    </div>
+  </div>;
+}
+
+// ── Certifications Tab ──
+function CertsTab({api,showToast}){
+  const [certs,setCerts]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [filter,setFilter]=useState('pending');
+  const [selected,setSelected]=useState(null);
+
+  const load=(s)=>{
+    setLoading(true);
+    const q=s||filter;
+    fetch(`/api/certify/list${q?'?status='+q:''}`,{headers:{'Authorization':'Bearer '+(localStorage.getItem('davis_admin_token')||'')}})
+      .then(r=>r.json()).then(d=>{setCerts(d.certs||[]);setLoading(false);}).catch(()=>setLoading(false));
+  };
+  useEffect(()=>{load();},[]);
+
+  const approve=async(id,level)=>{
+    await fetch(`/api/certify/${encodeURIComponent(id)}`,{method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('davis_admin_token')||'')},
+      body:JSON.stringify({status:'approved',badge_level:level||'certified'})});
+    showToast('✅ 已核准認證');setSelected(null);load();
+  };
+  const reject=async(id)=>{
+    if(!confirm('確定拒絕此申請？'))return;
+    await fetch(`/api/certify/${encodeURIComponent(id)}`,{method:'PATCH',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+(localStorage.getItem('davis_admin_token')||'')},
+      body:JSON.stringify({status:'rejected'})});
+    showToast('🗑️ 已拒絕');setSelected(null);load();
+  };
+
+  const statusColor={'pending':'badge-orange','approved':'badge-green','rejected':'badge-red'};
+  const statusLabel={'pending':'待審核','approved':'已認證','rejected':'已拒絕'};
+  const badgeIcon={'certified':'🏅','advanced':'🥈','master':'👑'};
+
+  return <div>
+    {/* Stats + filter */}
+    <div className="card" style={{marginBottom:12}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
+        <h2 style={{margin:0}}>🏅 認證管理</h2>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {[['pending','⏳ 待審核'],['approved','✅ 已認證'],['rejected','❌ 已拒絕'],['','全部']].map(([s,l])=>
+            <button key={s} className={`btn btn-sm ${filter===s?'btn-primary':'btn-outline'}`}
+              onClick={()=>{setFilter(s);load(s);}}>{l}</button>)}
+          <a href="/certify" target="_blank" className="btn btn-outline btn-sm" style={{textDecoration:'none'}}>
+            📋 申請頁面 ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {loading?<div className="card">載入中...</div>:
+      certs.length===0?<div className="card" style={{textAlign:'center',padding:40,color:'#999'}}>
+        <div style={{fontSize:36,marginBottom:8}}>🏅</div>
+        <div>尚無{filter==='pending'?'待審核的':''}申請</div>
+      </div>:
+      <div className="card" style={{padding:0,overflow:'hidden'}}>
+        <div style={{overflowX:'auto'}}>
+          <table>
+            <thead><tr>
+              <th>店名</th><th>美容師</th><th>地區</th>
+              <th>社群</th><th>申請時間</th><th>狀態</th><th>操作</th>
+            </tr></thead>
+            <tbody>
+              {certs.map(c=><tr key={c.id}>
+                <td style={{fontWeight:600}}>{c.shop_name}</td>
+                <td>{c.owner_name}</td>
+                <td>{c.city||'—'}</td>
+                <td style={{fontSize:12}}>
+                  {c.ig_url?<a href={c.ig_url} target="_blank" style={{color:'#1A6FD4',marginRight:4}}>IG</a>:''}
+                  {c.fb_url?<a href={c.fb_url} target="_blank" style={{color:'#1A6FD4',marginRight:4}}>FB</a>:''}
+                  {c.line_id?<span style={{color:'#999'}}>LINE</span>:''}
+                  {!c.ig_url&&!c.fb_url&&!c.line_id?'—':''}
+                </td>
+                <td style={{fontSize:12,color:'#999'}}>{c.created_at?.slice(0,10)}</td>
+                <td>
+                  <span className={`badge ${statusColor[c.status]||'badge-blue'}`}>
+                    {c.status==='approved'?(badgeIcon[c.badge_level]||'🏅')+' ':''}{statusLabel[c.status]||c.status}
+                  </span>
+                </td>
+                <td style={{whiteSpace:'nowrap'}}>
+                  <button className="btn btn-outline btn-sm" onClick={()=>setSelected(c)}>詳細</button>
+                  {c.status==='approved'&&<> {' '}
+                    <a href={`/verify/${c.id}`} target="_blank"
+                      className="btn btn-outline btn-sm" style={{textDecoration:'none',fontSize:11}}>🔗 驗證頁</a>
+                  </>}
+                </td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
+      </div>}
+
+    {/* Detail Modal */}
+    {selected&&<div className="modal-overlay" onClick={()=>setSelected(null)}>
+      <div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:520}}>
+        <h2>📋 申請詳情</h2>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:16}}>
+          {[['店名',selected.shop_name],['美容師',selected.owner_name],
+            ['電話',selected.phone||'—'],['地區',selected.city||'—'],
+            ['地址',selected.address||'—'],['LINE',selected.line_id||'—'],
+          ].map(([l,v])=><div key={l} style={{background:'#f8f8f8',borderRadius:8,padding:10}}>
+            <div style={{fontSize:11,color:'#999',marginBottom:2}}>{l}</div>
+            <div style={{fontSize:14,fontWeight:600}}>{v}</div>
+          </div>)}
+        </div>
+        {selected.note&&<div style={{background:'#f8f8f8',borderRadius:8,padding:12,marginBottom:16}}>
+          <div style={{fontSize:11,color:'#999',marginBottom:4}}>申請說明</div>
+          <div style={{fontSize:13,lineHeight:1.6}}>{selected.note}</div>
+        </div>}
+        {/* 社群連結 */}
+        <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+          {selected.ig_url&&<a href={selected.ig_url} target="_blank" className="btn btn-outline btn-sm" style={{textDecoration:'none'}}>📸 Instagram</a>}
+          {selected.fb_url&&<a href={selected.fb_url} target="_blank" className="btn btn-outline btn-sm" style={{textDecoration:'none'}}>👍 Facebook</a>}
+        </div>
+        {/* 認證編號 */}
+        <div style={{fontSize:11,color:'#999',marginBottom:16,fontFamily:'monospace'}}>認證編號：{selected.id}</div>
+
+        {selected.status==='pending'&&<div>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:8,color:'#555'}}>核准並設定等級：</div>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+            {[['certified','🏅 Certified 認證'],['advanced','🥈 Advanced 進階'],['master','👑 Master 大師']].map(([lv,lb])=>
+              <button key={lv} className="btn btn-success btn-sm"
+                style={{flex:1,minWidth:120}}
+                onClick={()=>approve(selected.id,lv)}>{lb}</button>)}
+          </div>
+          <button className="btn btn-danger btn-sm" style={{width:'100%'}} onClick={()=>reject(selected.id)}>拒絕此申請</button>
+        </div>}
+
+        {selected.status==='approved'&&<div style={{background:'#e8f5e9',borderRadius:8,padding:12,fontSize:13}}>
+          <div style={{color:'#2e7d32',fontWeight:600,marginBottom:4}}>
+            {badgeIcon[selected.badge_level]} 已核准 — {selected.badge_level} 等級
+          </div>
+          <div style={{color:'#555',marginBottom:8}}>
+            有效至：{selected.expires_at?.slice(0,10)||'—'}
+          </div>
+          <div style={{fontSize:12,color:'#666',marginBottom:8}}>📎 嵌入標章代碼（貼到美容店官網）：</div>
+          <textarea readOnly style={{width:'100%',fontSize:11,fontFamily:'monospace',
+            background:'#f5f5f5',border:'1px solid #ddd',borderRadius:6,padding:8,height:70,resize:'none'}}
+            value={`<iframe src="https://davistaiwan.com/badge/${selected.id}" style="border:none;width:300px;height:70px" loading="lazy"></iframe>`}
+            onClick={e=>e.target.select()}/>
+        </div>}
+
+        <div style={{display:'flex',justifyContent:'flex-end',marginTop:12}}>
+          <button className="btn btn-outline btn-sm" onClick={()=>setSelected(null)}>關閉</button>
+        </div>
+      </div>
+    </div>}
+  </div>;
+}
+
+// ── AI Assistant Tab ──
+function AIAssistantTab({api,showToast}){
+  const [text,setText]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [result,setResult]=useState(null);
+  const [step,setStep]=useState('');
+  const [saving,setSaving]=useState({});
+
+  const TEMPLATES={
+    chat:`[對話紀錄範例]
+美容師：今天來了一隻橘色博美，毛色有點暗沉，推薦什麼？
+我：博美橘色毛建議用高級炫彩洗劑提亮，護毛用純粹全效護毛素維持蓬鬆。
+第一洗：間隔超過20天用強效清潔洗劑，常洗就用泡沫柑橘洗劑。
+
+另一案例：
+緬因貓尾巴毛很蓬鬆但身體毛較短，分開處理——
+尾巴長毛用洋李天然洗劑24:1，身體短毛用輕盈洗劑10:1。
+護毛用輕盈乳液，追求蓬鬆換純粹全效護毛素。`,
+    article:`[文章/筆記範例]
+黑色犬毛的洗護要點：
+
+黑色毛髮的色素粒子細緻，需要油脂來保護光澤。
+建議第一洗用泡沫柑橘洗劑去油，第二洗選炫黑洗劑保護色素。
+護毛選滋潤護毛素，補充油脂同時增加光澤。
+
+注意：紅棕色品種（紅棕貴賓、橘色博美）不要用炫黑洗劑，
+應改用高級炫彩洗劑提亮。
+
+適用品種：黑貴賓、黑柴犬、黑拉布拉多`,
+    training:`[培訓資料範例]
+換毛期護理要點
+
+換毛量大的品種（柯基、柴犬、拉布拉多、黃金獵犬、哈士奇）：
+
+1. 第一洗：
+   - 洗護間隔超過15天 → 強效清潔洗劑（犬50:1，3-5分鐘）
+   - 間隔較短 → 泡沫柑橘洗劑（10:1，3-5分鐘）
+
+2. 第二洗：
+   - 輕盈洗劑（犬用）10:1，停留5-8分鐘
+   - 功效：促進死毛代謝，減少靜電
+
+3. 護毛：
+   - 輕盈乳液（7:1）沖淨型
+   - 搭配吹風機順毛方向吹，去死毛效果加倍
+
+換毛期建議每2週洗護一次。`
+  };
+
+  const SYSTEM_PROMPT=`你是 Davis Taiwan 寵物洗護顧問系統的 AI 後台編輯器。
+
+任務：分析用戶貼入的文字（對話紀錄、文章、培訓資料等），提取：
+1. 新的品種洗護資訊（含多語言）
+2. 新的洗護配方組合
+
+現有 Davis 產品名稱（請用這些名稱）：
+清潔類：去油膏前置處理、強效清潔洗劑、泡沫柑橘洗劑、蘇打燕麥洗劑
+毛質類：蓬鬆硬毛造型、柔順解結、掉毛季（犬）、掉毛季（貓）、扁臉眼周清潔
+色澤類：淺色白毛亮澤、黑色深色護色、紅棕色暖色提亮
+SPA類：Signature SPA（焦慮型）、水療甜瓜洗劑
+護毛：純粹全效護毛素、滋潤護毛素、輕盈乳液、燕麥免沖護毛素
+
+請輸出嚴格 JSON 格式：
+{
+  "breeds": [
+    {
+      "name_zh": "品種繁中名稱",
+      "name_en": "English name",
+      "name_ja": "日本語名",
+      "emoji": "🐾",
+      "coat_type": "double/single/wire/curly/long/short/flat_face/shedding",
+      "product_keys": ["配方ID1","配方ID2"],
+      "reason": "為何推薦這些配方（15-25字）",
+      "confidence": "high/medium/low"
+    }
+  ],
+  "products": [
+    {
+      "id": "配方唯一ID（如：掉毛季（犬））",
+      "category": "cleaning/coat_type/coat_color/sensitive/spa/cat",
+      "icon": "✨",
+      "tag_zh": "適用標籤（繁中）",
+      "tag_en": "Tag in English",
+      "tag_ja": "タグ（日本語）",
+      "reason_zh": "推薦理由（繁中，20-40字）",
+      "reason_en": "Reason in English",
+      "reason_ja": "理由（日本語）",
+      "note_zh": "注意事項（選填）",
+      "steps": [
+        {
+          "role": "Step 1 · 主洗",
+          "name": "產品繁中名稱",
+          "name_en": "Product name EN",
+          "name_ja": "製品名 JA",
+          "dilution": "💧 稀釋 X:1",
+          "time": "⏱ 停留 X 分鐘後沖淨",
+          "tip": ""
+        }
+      ],
+      "confidence": "high/medium/low"
+    }
+  ],
+  "summary": "本次分析摘要（說明提取到了什麼）"
+}
+
+若文字資訊不足，對應陣列給 []。只輸出 JSON，不要任何說明文字。`;
+
+  const analyze=async()=>{
+    if(!text.trim()){showToast('⚠️ 請先貼入文字內容');return;}
+    if(text.trim().length<20){showToast('⚠️ 內容太短，請貼入更多資料');return;}
+    setLoading(true);setResult(null);
+    const steps=['🔍 解析文字內容...','🐾 識別品種資訊...','🧪 提取洗護配方...','✨ 整理分析結果...'];
+    let si=0;setStep(steps[0]);
+    const timer=setInterval(()=>{si=(si+1)%steps.length;setStep(steps[si]);},1200);
+    try{
+      // 透過後端 function 呼叫（避免 CORS，API key 不外露）
+      const token=localStorage.getItem('davis_admin_token')||'';
+      const resp=await fetch('/api/ai-assist',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({text})
+      });
+      const data=await resp.json();
+      if(!resp.ok)throw new Error(data?.error||'API 錯誤（'+resp.status+'）');
+      clearInterval(timer);setResult(data);
+      showToast('✅ '+(data.summary||'分析完成'));
+    }catch(err){
+      clearInterval(timer);showToast('❌ 分析失敗：'+err.message);
+    }finally{setLoading(false);setStep('');}
+  };
+
+  const saveBreed=async(b,idx)=>{
+    setSaving(p=>({...p,['b'+idx]:true}));
+    try{
+      await api('/breeds',{method:'POST',body:JSON.stringify({
+        name_zh:b.name_zh,name_en:b.name_en||'',name_ja:b.name_ja||'',
+        emoji:b.emoji||'🐾',coat_type:b.coat_type||'',
+        product_keys:b.product_keys||[],wangdefu_aliases:[],sort_order:0,active:true
+      })});
+      showToast('✅ 品種「'+b.name_zh+'」已儲存');
+      setResult(r=>({...r,breeds:r.breeds.map((x,i)=>i===idx?{...x,_saved:true}:x)}));
+    }catch(e){showToast('❌ 儲存失敗：'+e.message);}
+    setSaving(p=>({...p,['b'+idx]:false}));
+  };
+
+  const saveProduct=async(p,idx)=>{
+    setSaving(sv=>({...sv,['p'+idx]:true}));
+    try{
+      await api('/products',{method:'POST',body:JSON.stringify({
+        id:p.id,category:p.category||'coat_type',icon:p.icon||'🧪',color:'#1A6FD4',
+        tag_zh:p.tag_zh||'',tag_en:p.tag_en||'',tag_ja:p.tag_ja||'',
+        reason_zh:p.reason_zh||'',reason_en:p.reason_en||'',reason_ja:p.reason_ja||'',
+        note_zh:p.note_zh||'',note_en:'',note_ja:'',
+        steps:p.steps||[],sort_order:0,active:true
+      })});
+      showToast('✅ 配方「'+p.id+'」已儲存');
+      setResult(r=>({...r,products:r.products.map((x,i)=>i===idx?{...x,_saved:true}:x)}));
+    }catch(e){showToast('❌ 儲存失敗：'+e.message);}
+    setSaving(sv=>({...sv,['p'+idx]:false}));
+  };
+
+  const saveAll=async()=>{
+    if(!result)return;
+    const breeds=result.breeds||[];const products=result.products||[];
+    for(let i=0;i<breeds.length;i++){if(!breeds[i]._saved)await saveBreed(breeds[i],i);}
+    for(let i=0;i<products.length;i++){if(!products[i]._saved)await saveProduct(products[i],i);}
+    showToast('✅ 全部儲存完成');
+  };
+
+  const confColor={'high':'#2e7d32','medium':'#e65100','low':'#c62828'};
+  const confBg={'high':'#e8f5e9','medium':'#fff3e0','low':'#ffebee'};
+
+  return <div>
+    {/* Input Panel */}
+    <div className="card">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+        <h2 style={{margin:0}}>🤖 AI 配方分析</h2>
+        <div style={{fontSize:12,color:'#999'}}>貼入任何文字 → AI 自動提取配方與品種</div>
+      </div>
+
+      <textarea
+        value={text} onChange={e=>setText(e.target.value)}
+        style={{width:'100%',minHeight:220,padding:14,fontSize:13,fontFamily:'monospace',lineHeight:1.7,
+          border:'1px solid #ddd',borderRadius:8,resize:'vertical',outline:'none'}}
+        placeholder={'把對話紀錄、文章、培訓資料貼在這裡...\n\n例如：\n・客戶說她的柴犬最近換毛很嚴重，建議用輕盈洗劑配合輕盈乳液\n・貴賓犬泰迪剪後毛根需要蓬鬆，搭配質感洗劑效果最好\n・英國短毛貓油脂旺盛建議先用去油膏前置處理...'}
+      />
+
+      <div style={{display:'flex',gap:8,marginTop:10,alignItems:'center',flexWrap:'wrap'}}>
+        <button className="btn btn-outline btn-sm" onClick={()=>setText(TEMPLATES.chat)}>📋 對話範本</button>
+        <button className="btn btn-outline btn-sm" onClick={()=>setText(TEMPLATES.article)}>📄 文章範本</button>
+        <button className="btn btn-outline btn-sm" onClick={()=>setText(TEMPLATES.training)}>📚 培訓範本</button>
+        <button className="btn btn-outline btn-sm" onClick={()=>{setText('');setResult(null);}}>清除</button>
+        <span style={{marginLeft:'auto',fontSize:12,color:'#999'}}>{text.length} 字</span>
+      </div>
+
+      {loading&&<div style={{display:'flex',alignItems:'center',gap:10,marginTop:12,padding:'10px 14px',
+        background:'#e3f2fd',borderRadius:8,fontSize:13,color:'#1565c0'}}>
+        <span style={{animation:'spin 1s linear infinite',display:'inline-block'}}>⚙️</span>
+        {step}
+      </div>}
+
+      <button className="btn btn-primary btn-full" style={{marginTop:12,padding:12,fontSize:15}}
+        onClick={analyze} disabled={loading||!text.trim()}>
+        {loading?'AI 分析中...':'🔍 AI 分析並提取配方'}
+      </button>
+    </div>
+
+    {/* Results */}
+    {result&&<div>
+      {/* Summary bar */}
+      <div style={{background:'#e8f5e9',border:'1px solid #a5d6a7',borderRadius:8,padding:'10px 16px',
+        marginBottom:16,fontSize:13,color:'#1b5e20',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+        <span>✅ {result.summary||'分析完成'}</span>
+        {((result.breeds||[]).length+(result.products||[]).length>0)&&
+          <button className="btn btn-success btn-sm" onClick={saveAll}>💾 全部儲存</button>}
+      </div>
+
+      {/* Breeds */}
+      {(result.breeds||[]).length>0&&<div className="card">
+        <h2>🐕 提取到的品種（{result.breeds.length} 筆）</h2>
+        {result.breeds.map((b,i)=><div key={i} style={{
+          border:'1px solid #e0e0e0',borderRadius:10,padding:16,marginBottom:10,
+          background:b._saved?'#f1f8e9':'white',position:'relative'}}>
+          {b._saved&&<span style={{position:'absolute',top:10,right:12,fontSize:12,color:'#2e7d32',fontWeight:600}}>✓ 已儲存</span>}
+          <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
+            <div style={{fontSize:36,lineHeight:1}}>{b.emoji||'🐾'}</div>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,flexWrap:'wrap'}}>
+                <span style={{fontSize:16,fontWeight:700}}>{b.name_zh}</span>
+                {b.name_en&&<span style={{fontSize:12,color:'#666'}}>{b.name_en}</span>}
+                {b.name_ja&&<span style={{fontSize:12,color:'#666'}}>{b.name_ja}</span>}
+                <span style={{fontSize:11,padding:'2px 8px',borderRadius:10,
+                  background:confBg[b.confidence]||'#f5f5f5',color:confColor[b.confidence]||'#666',fontWeight:600}}>
+                  {b.confidence==='high'?'✓ 高確信':b.confidence==='medium'?'⚠ 中確信':'? 低確信'}
+                </span>
+              </div>
+              <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:6}}>
+                {(b.product_keys||[]).map((k,j)=><span key={j} style={{
+                  background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:10,fontSize:11,fontWeight:600}}>{k}</span>)}
+              </div>
+              {b.reason&&<div style={{fontSize:12,color:'#666'}}>{b.reason}</div>}
+            </div>
+          </div>
+          {!b._saved&&<div style={{marginTop:10,textAlign:'right'}}>
+            <button className="btn btn-primary btn-sm" disabled={saving['b'+i]} onClick={()=>saveBreed(b,i)}>
+              {saving['b'+i]?'儲存中...':'💾 儲存到品種DB'}
+            </button>
+          </div>}
+        </div>)}
+      </div>}
+
+      {/* Products */}
+      {(result.products||[]).length>0&&<div className="card">
+        <h2>🧴 提取到的洗護配方（{result.products.length} 筆）</h2>
+        {result.products.map((p,i)=><div key={i} style={{
+          border:'1px solid #e0e0e0',borderRadius:10,padding:16,marginBottom:10,
+          background:p._saved?'#f1f8e9':'white',position:'relative'}}>
+          {p._saved&&<span style={{position:'absolute',top:10,right:12,fontSize:12,color:'#2e7d32',fontWeight:600}}>✓ 已儲存</span>}
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,flexWrap:'wrap'}}>
+            <span style={{fontSize:20}}>{p.icon||'🧪'}</span>
+            <span style={{fontSize:15,fontWeight:700}}>{p.id}</span>
+            <span className="badge badge-blue">{p.category}</span>
+            <span style={{fontSize:11,padding:'2px 8px',borderRadius:10,
+              background:confBg[p.confidence]||'#f5f5f5',color:confColor[p.confidence]||'#666',fontWeight:600}}>
+              {p.confidence==='high'?'✓ 高確信':p.confidence==='medium'?'⚠ 中確信':'? 低確信'}
+            </span>
+          </div>
+          {p.tag_zh&&<div style={{fontSize:12,color:'#666',marginBottom:8}}>🏷️ {p.tag_zh}</div>}
+          <div style={{marginBottom:8}}>
+            {(p.steps||[]).map((s,j)=><div key={j} style={{
+              display:'flex',gap:10,alignItems:'flex-start',padding:'6px 0',
+              borderTop:j>0?'1px solid #f0f0f0':'none',fontSize:12}}>
+              <span style={{background:'#e3f2fd',color:'#1565c0',padding:'2px 8px',borderRadius:10,
+                fontWeight:600,whiteSpace:'nowrap',fontSize:11}}>{s.role}</span>
+              <div style={{color:'#333'}}>
+                <strong>{s.name}</strong>
+                <span style={{color:'#666'}}> · {s.dilution} · {s.time}</span>
+              </div>
+            </div>)}
+          </div>
+          {p.reason_zh&&<div style={{fontSize:12,color:'#555',padding:'8px 10px',background:'#f8f8f8',borderRadius:6}}>💡 {p.reason_zh}</div>}
+          {!p._saved&&<div style={{marginTop:10,textAlign:'right'}}>
+            <button className="btn btn-primary btn-sm" disabled={saving['p'+i]} onClick={()=>saveProduct(p,i)}>
+              {saving['p'+i]?'儲存中...':'💾 儲存到配方DB'}
+            </button>
+          </div>}
+        </div>)}
+      </div>}
+
+      {(result.breeds||[]).length===0&&(result.products||[]).length===0&&
+        <div className="card" style={{textAlign:'center',padding:40,color:'#999'}}>
+          <div style={{fontSize:40,marginBottom:12}}>🔍</div>
+          <div style={{fontWeight:600,marginBottom:6}}>沒有提取到資料</div>
+          <div style={{fontSize:13}}>文字中沒有足夠的品種或配方資訊，請貼入更多洗護相關的描述。</div>
+        </div>}
+    </div>}
+
+    <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+  </div>;
+}
+
+// ── Settings Tab (unchanged from v3, admin only) ──
+function SettingsTab({api,showToast}){
+  const [s,setS]=useState({});const [loading,setLoading]=useState(true);const [wl,setWl]=useState('');
+  useEffect(()=>{api('/settings').then(r=>{
+    const raw=r.settings||{};const parsed={};Object.entries(raw).forEach(([k,v])=>{try{parsed[k]=typeof v==='string'?JSON.parse(v):v;}catch{parsed[k]=v;}});
+    setS(parsed);setLoading(false);
+  });},[]);
+  const save=async(key,val)=>{await api('/settings',{method:'PUT',body:JSON.stringify({[key]:val})});setS(p=>({...p,[key]:val}));showToast('✅ 已儲存');};
+  const [keyInput,setKeyInput]=useState('');
+  useEffect(()=>{setKeyInput(s.anthropic_api_key||'');},[s.anthropic_api_key]);
+  const langs=s.enabled_languages||['zh-TW'];const whitelist=s.embed_whitelist||[];const useRealAi=s.embed_use_real_ai||false;const fakeDelay=s.embed_fake_delay_ms||2000;
+  const apiKey=s.anthropic_api_key||'';
+  if(loading)return <div className="card">載入中...</div>;
+  return <div>
+    <div className="card" style={{borderLeft:'4px solid #1A6FD4'}}>
+      <h2>🔑 Anthropic API Key（AI 助手必填）</h2>
+      <div style={{fontSize:12,color:'#666',marginBottom:10}}>
+        用於「AI 助手」Tab 分析文字內容。Key 存在資料庫，不會外露在前台。<br/>
+        取得方式：<a href="https://console.anthropic.com/settings/keys" target="_blank" style={{color:'#1A6FD4'}}>console.anthropic.com → API Keys</a>
+      </div>
+      <div style={{display:'flex',gap:8}}>
+        <input type="password" value={keyInput} onChange={e=>setKeyInput(e.target.value)}
+          placeholder="sk-ant-api03-..." style={{flex:1,marginBottom:0,fontFamily:'monospace'}}/>
+        <button className="btn btn-primary btn-sm" onClick={()=>save('anthropic_api_key',keyInput)} disabled={!keyInput.trim()}>
+          儲存
+        </button>
+        {apiKey&&<span style={{display:'flex',alignItems:'center',fontSize:12,color:'#2e7d32',gap:4}}>✓ 已設定</span>}
+      </div>
+    </div>
+    <div className="card"><h2>🌐 語言支援</h2>
+      {[['zh-TW','🇹🇼 繁體中文'],['zh-CN','🇨🇳 簡體中文'],['en','🇺🇸 English'],['ja','🇯🇵 日本語']].map(([code,label])=><div key={code} className="switch-row"><div><strong>{label}</strong><div style={{fontSize:11,color:'#999'}}>{code}</div></div><div className={`switch ${langs.includes(code)?'on':''}`} onClick={()=>{const next=langs.includes(code)?langs.filter(l=>l!==code):[...langs,code];if(!next.length){showToast('⚠️ 至少保留一個語言');return;}save('enabled_languages',next);}}/></div>)}
+    </div>
+    <div className="card"><h2>🔗 崁入模式設定</h2>
+      <div className="field"><label>白名單網址</label><div className="tag-list" style={{marginBottom:8}}>{whitelist.map((u,i)=><div key={i} className="tag-item">{u}<button onClick={()=>save('embed_whitelist',whitelist.filter((_,j)=>j!==i))}>×</button></div>)}</div>
+      <div style={{display:'flex',gap:6}}><input placeholder="https://example.com" value={wl} onChange={e=>setWl(e.target.value)} style={{marginBottom:0}} onKeyDown={e=>e.key==='Enter'&&wl.trim()&&(save('embed_whitelist',[...whitelist,wl.trim()]),setWl(''))}/><button className="btn btn-primary btn-sm" onClick={()=>{if(wl.trim()){save('embed_whitelist',[...whitelist,wl.trim()]);setWl('');}}}>新增</button></div></div>
+      <div className="switch-row"><div><strong>崁入模式使用真正 AI 分析</strong><div style={{fontSize:11,color:'#999'}}>關閉 = 用崁入端品種假裝分析（省 API 費）</div></div><div className={`switch ${useRealAi?'on':''}`} onClick={()=>save('embed_use_real_ai',!useRealAi)}/></div>
+      <div className="field" style={{marginTop:12}}><label>假裝分析延遲 (ms)</label><div style={{display:'flex',gap:8,alignItems:'center'}}><input type="range" min="500" max="5000" step="100" value={fakeDelay} onChange={e=>setS(p=>({...p,embed_fake_delay_ms:parseInt(e.target.value)}))} style={{flex:1,marginBottom:0}}/><input type="number" min="500" max="5000" step="100" style={{width:80,marginBottom:0,textAlign:'center'}} value={fakeDelay} onChange={e=>setS(p=>({...p,embed_fake_delay_ms:parseInt(e.target.value)||2000}))}/><span style={{fontSize:12,color:'#999'}}>ms</span><button className="btn btn-primary btn-sm" onClick={()=>save('embed_fake_delay_ms',fakeDelay)}>儲存</button></div></div>
+    </div>
+  </div>;
+}
+
+// ── Products Tab (same as v3) ──
+function ProductsTab({api,showToast}){
+  const [products,setProducts]=useState([]);const [loading,setLoading]=useState(true);const [editing,setEditing]=useState(null);const fileRef=useRef();
+  const load=()=>api('/products').then(r=>{setProducts(r.products||[]);setLoading(false);});
+  useEffect(()=>{load();},[]);
+  const saveProduct=async(p)=>{await api('/products',{method:'POST',body:JSON.stringify(p)});showToast('✅ 已儲存');setEditing(null);load();};
+  const deleteProduct=async(id)=>{if(!confirm(`確定刪除「${id}」？`))return;await api('/products/'+encodeURIComponent(id),{method:'DELETE'});showToast('🗑️ 已刪除');load();};
+  const handleExcel=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(evt)=>{const wb=XLSX.read(evt.target.result,{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);const mapped=rows.map(r=>({id:r.id||r['配方名稱']||'',category:r.category||'cleaning',icon:r.icon||'🧴',color:r.color||'#1A6FD4',tag_zh:r.tag_zh||'',tag_en:r.tag_en||'',tag_ja:r.tag_ja||'',reason_zh:r.reason_zh||'',reason_en:r.reason_en||'',reason_ja:r.reason_ja||'',note_zh:r.note_zh||'',note_en:r.note_en||'',note_ja:r.note_ja||'',steps:r.steps?(typeof r.steps==='string'?JSON.parse(r.steps):r.steps):[],sort_order:parseInt(r.sort_order)||0,active:r.active!==false&&r.active!=='false'})).filter(r=>r.id);if(!mapped.length){showToast('⚠️ 沒有有效資料');return;}api('/products/import',{method:'POST',body:JSON.stringify({rows:mapped})}).then(r=>{showToast(`✅ ${r.ok} 成功 / ${r.fail} 失敗`);load();});};reader.readAsArrayBuffer(file);e.target.value='';};
+  const exportExcel=()=>{const data=products.map(p=>({id:p.id,category:p.category,icon:p.icon,color:p.color,tag_zh:p.tag_zh,tag_en:p.tag_en,tag_ja:p.tag_ja,reason_zh:p.reason_zh,reason_en:p.reason_en,reason_ja:p.reason_ja,note_zh:p.note_zh,note_en:p.note_en,note_ja:p.note_ja,steps:JSON.stringify(p.steps||[]),sort_order:p.sort_order,active:p.active}));const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Products');XLSX.writeFile(wb,'davis_products.xlsx');};
+  if(loading)return <div className="card">載入中...</div>;
+  return <div><div className="card"><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}><h2 style={{margin:0}}>🧴 洗護配方 ({products.length})</h2><div style={{display:'flex',gap:6}}><button className="btn btn-outline btn-sm" onClick={exportExcel}>📥 匯出</button><button className="btn btn-outline btn-sm" onClick={()=>fileRef.current.click()}>📤 匯入</button><button className="btn btn-primary btn-sm" onClick={()=>setEditing({id:'',category:'cleaning',icon:'🧴',color:'#1A6FD4',tag_zh:'',tag_en:'',tag_ja:'',reason_zh:'',reason_en:'',reason_ja:'',note_zh:'',note_en:'',note_ja:'',steps:[],sort_order:0,active:true,_new:true})}>＋ 新增</button></div><input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={handleExcel}/></div>
+  <div style={{overflowX:'auto'}}><table><thead><tr><th>圖示</th><th>配方名稱</th><th>分類</th><th>標籤</th><th>Steps</th><th>狀態</th><th>操作</th></tr></thead><tbody>{products.map(p=><tr key={p.id}><td>{p.icon}</td><td style={{fontWeight:600,maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.id}</td><td><span className="badge badge-blue">{p.category}</span></td><td style={{fontSize:12,maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.tag_zh}</td><td>{(p.steps||[]).length}</td><td><span className={`badge ${p.active?'badge-green':'badge-red'}`}>{p.active?'啟用':'停用'}</span></td><td style={{whiteSpace:'nowrap'}}><button className="btn btn-outline btn-sm" onClick={()=>setEditing({...p})}>✏️</button>{' '}<button className="btn btn-danger btn-sm" onClick={()=>deleteProduct(p.id)}>🗑️</button></td></tr>)}{!products.length&&<tr><td colSpan="7" style={{textAlign:'center',color:'#999',padding:30}}>尚無配方</td></tr>}</tbody></table></div></div>
+  {editing&&<ProductModal product={editing} onSave={saveProduct} onClose={()=>setEditing(null)}/>}</div>;
+}
+function ProductModal({product:init,onSave,onClose}){const [p,setP]=useState(init);const u=(k,v)=>setP(pp=>({...pp,[k]:v}));const uStep=(i,k,v)=>setP(pp=>({...pp,steps:pp.steps.map((s,j)=>j===i?{...s,[k]:v}:s)}));const addStep=()=>setP(pp=>({...pp,steps:[...pp.steps,{role:'',name:'',name_en:'',name_ja:'',dilution:'',time:'',tip:''}]}));const rmStep=(i)=>setP(pp=>({...pp,steps:pp.steps.filter((_,j)=>j!==i)}));
+return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h2>{init._new?'新增':'編輯'}配方</h2><div className="row"><div className="field"><label>ID *</label><input value={p.id} onChange={e=>u('id',e.target.value)} disabled={!init._new}/></div><div className="field"><label>分類</label><select value={p.category} onChange={e=>u('category',e.target.value)}>{['cleaning','coat_type','coat_color','sensitive','spa','cat'].map(c=><option key={c}>{c}</option>)}</select></div></div><div className="row"><div className="field"><label>圖示</label><input value={p.icon} onChange={e=>u('icon',e.target.value)}/></div><div className="field"><label>顏色</label><input type="color" value={p.color} onChange={e=>u('color',e.target.value)} style={{height:38}}/></div><div className="field"><label>排序</label><input type="number" value={p.sort_order} onChange={e=>u('sort_order',parseInt(e.target.value)||0)}/></div></div>
+<h3 style={{fontSize:14,margin:'16px 0 8px',color:'#666'}}>🏷️ 標籤</h3><div className="row"><div className="field"><label>繁中</label><input value={p.tag_zh||''} onChange={e=>u('tag_zh',e.target.value)}/></div><div className="field"><label>EN</label><input value={p.tag_en||''} onChange={e=>u('tag_en',e.target.value)}/></div><div className="field"><label>JA</label><input value={p.tag_ja||''} onChange={e=>u('tag_ja',e.target.value)}/></div></div>
+<h3 style={{fontSize:14,margin:'16px 0 8px',color:'#666'}}>💡 推薦理由</h3><div className="field"><label>繁中</label><textarea value={p.reason_zh||''} onChange={e=>u('reason_zh',e.target.value)}/></div><div className="row"><div className="field"><label>EN</label><textarea value={p.reason_en||''} onChange={e=>u('reason_en',e.target.value)}/></div><div className="field"><label>JA</label><textarea value={p.reason_ja||''} onChange={e=>u('reason_ja',e.target.value)}/></div></div>
+<h3 style={{fontSize:14,margin:'16px 0 8px',color:'#666'}}>📝 備註</h3><div className="field"><label>繁中</label><input value={p.note_zh||''} onChange={e=>u('note_zh',e.target.value)}/></div><div className="row"><div className="field"><label>EN</label><input value={p.note_en||''} onChange={e=>u('note_en',e.target.value)}/></div><div className="field"><label>JA</label><input value={p.note_ja||''} onChange={e=>u('note_ja',e.target.value)}/></div></div>
+<h3 style={{fontSize:14,margin:'16px 0 8px',color:'#666'}}>🔧 步驟 ({(p.steps||[]).length})</h3>{(p.steps||[]).map((s,i)=><div key={i} style={{background:'#f8f8f8',borderRadius:8,padding:12,marginBottom:8,position:'relative'}}><button style={{position:'absolute',top:8,right:8,background:'none',border:'none',cursor:'pointer',fontSize:16,color:'#999'}} onClick={()=>rmStep(i)}>×</button><div style={{fontWeight:600,fontSize:12,color:'#666',marginBottom:6}}>步驟 {i+1}</div><div className="row"><div className="field"><label>角色</label><input value={s.role||''} onChange={e=>uStep(i,'role',e.target.value)}/></div><div className="field"><label>產品 繁中</label><input value={s.name||''} onChange={e=>uStep(i,'name',e.target.value)}/></div></div><div className="row"><div className="field"><label>EN</label><input value={s.name_en||''} onChange={e=>uStep(i,'name_en',e.target.value)}/></div><div className="field"><label>JA</label><input value={s.name_ja||''} onChange={e=>uStep(i,'name_ja',e.target.value)}/></div></div><div className="row"><div className="field"><label>稀釋</label><input value={s.dilution||''} onChange={e=>uStep(i,'dilution',e.target.value)}/></div><div className="field"><label>時間</label><input value={s.time||''} onChange={e=>uStep(i,'time',e.target.value)}/></div></div><div className="field"><label>提示</label><input value={s.tip||''} onChange={e=>uStep(i,'tip',e.target.value)}/></div></div>)}
+<button className="btn btn-outline btn-sm" onClick={addStep} style={{marginBottom:16}}>＋ 新增步驟</button>
+<div className="switch-row" style={{marginBottom:16}}><strong>啟用</strong><div className={`switch ${p.active!==false?'on':''}`} onClick={()=>u('active',!p.active)}/></div>
+<div style={{display:'flex',gap:8,justifyContent:'flex-end'}}><button className="btn btn-outline" onClick={onClose}>取消</button><button className="btn btn-primary" onClick={()=>onSave(p)} disabled={!p.id}>💾 儲存</button></div></div></div>;}
+
+// ── Breeds Tab (same as v3) ──
+function BreedsTab({api,showToast}){
+  const [breeds,setBreeds]=useState([]);const [loading,setLoading]=useState(true);const [editing,setEditing]=useState(null);const fileRef=useRef();
+  const load=()=>api('/breeds').then(r=>{setBreeds(r.breeds||[]);setLoading(false);});useEffect(()=>{load();},[]);
+  const saveBreed=async(b)=>{await api('/breeds',{method:'POST',body:JSON.stringify(b)});showToast('✅ 已儲存');setEditing(null);load();};
+  const deleteBreed=async(n)=>{if(!confirm(`確定刪除「${n}」？`))return;await api('/breeds/'+encodeURIComponent(n),{method:'DELETE'});showToast('🗑️ 已刪除');load();};
+  const handleExcel=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(evt)=>{const wb=XLSX.read(evt.target.result,{type:'array'});const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);const mapped=rows.map(r=>({name_zh:r.name_zh||r['品種_繁中']||'',name_en:r.name_en||'',name_ja:r.name_ja||'',emoji:r.emoji||'',coat_type:r.coat_type||'',product_keys:(r.product_keys||'').toString().split(',').map(s=>s.trim()).filter(Boolean),wangdefu_aliases:(r.wangdefu_aliases||'').toString().split(',').map(s=>s.trim()).filter(Boolean),sort_order:parseInt(r.sort_order)||0,active:r.active!==false&&r.active!=='false'})).filter(r=>r.name_zh);api('/breeds/import',{method:'POST',body:JSON.stringify({rows:mapped})}).then(r=>{showToast(`✅ ${r.ok} 成功 / ${r.fail} 失敗`);load();});};reader.readAsArrayBuffer(file);e.target.value='';};
+  const exportExcel=()=>{const data=breeds.map(b=>({name_zh:b.name_zh,name_en:b.name_en,name_ja:b.name_ja,emoji:b.emoji,coat_type:b.coat_type,product_keys:(b.product_keys||[]).join(','),wangdefu_aliases:(b.wangdefu_aliases||[]).join(','),sort_order:b.sort_order,active:b.active}));const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Breeds');XLSX.writeFile(wb,'davis_breeds.xlsx');};
+  if(loading)return <div className="card">載入中...</div>;
+  return <div><div className="card"><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}><h2 style={{margin:0}}>🐕 品種 ({breeds.length})</h2><div style={{display:'flex',gap:6}}><button className="btn btn-outline btn-sm" onClick={exportExcel}>📥 匯出</button><button className="btn btn-outline btn-sm" onClick={()=>fileRef.current.click()}>📤 匯入</button><button className="btn btn-primary btn-sm" onClick={()=>setEditing({name_zh:'',name_en:'',name_ja:'',emoji:'',coat_type:'',product_keys:[],wangdefu_aliases:[],sort_order:0,active:true,_new:true})}>＋ 新增</button></div><input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" hidden onChange={handleExcel}/></div>
+  <div style={{overflowX:'auto'}}><table><thead><tr><th></th><th>繁中</th><th>EN</th><th>JA</th><th>毛質</th><th>配方</th><th>狀態</th><th>操作</th></tr></thead><tbody>{breeds.map(b=><tr key={b.name_zh}><td>{b.emoji}</td><td style={{fontWeight:600}}>{b.name_zh}</td><td>{b.name_en}</td><td>{b.name_ja}</td><td><span className="badge badge-blue">{b.coat_type||'-'}</span></td><td style={{fontSize:11}}>{(b.product_keys||[]).join(', ')||'-'}</td><td><span className={`badge ${b.active?'badge-green':'badge-red'}`}>{b.active?'啟用':'停用'}</span></td><td style={{whiteSpace:'nowrap'}}><button className="btn btn-outline btn-sm" onClick={()=>setEditing({...b})}>✏️</button>{' '}<button className="btn btn-danger btn-sm" onClick={()=>deleteBreed(b.name_zh)}>🗑️</button></td></tr>)}{!breeds.length&&<tr><td colSpan="8" style={{textAlign:'center',color:'#999',padding:30}}>尚無品種</td></tr>}</tbody></table></div></div>
+  {editing&&<BreedModal breed={editing} onSave={saveBreed} onClose={()=>setEditing(null)}/>}</div>;
+}
+function BreedModal({breed:init,onSave,onClose}){const [b,setB]=useState(init);const u=(k,v)=>setB(bb=>({...bb,[k]:v}));const [newPk,setNewPk]=useState('');const [newAlias,setNewAlias]=useState('');
+return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()}><h2>{init._new?'新增':'編輯'}品種</h2><div className="row"><div className="field"><label>繁中 *</label><input value={b.name_zh} onChange={e=>u('name_zh',e.target.value)} disabled={!init._new}/></div><div className="field"><label>Emoji</label><input value={b.emoji||''} onChange={e=>u('emoji',e.target.value)}/></div></div><div className="row"><div className="field"><label>EN</label><input value={b.name_en||''} onChange={e=>u('name_en',e.target.value)}/></div><div className="field"><label>JA</label><input value={b.name_ja||''} onChange={e=>u('name_ja',e.target.value)}/></div></div><div className="row"><div className="field"><label>毛質</label><select value={b.coat_type||''} onChange={e=>u('coat_type',e.target.value)}><option value="">未指定</option>{['double','single','wire','curly','long','short','flat_face','shedding'].map(c=><option key={c}>{c}</option>)}</select></div><div className="field"><label>排序</label><input type="number" value={b.sort_order||0} onChange={e=>u('sort_order',parseInt(e.target.value)||0)}/></div></div>
+<div className="field"><label>對應配方</label><div className="tag-list" style={{marginBottom:6}}>{(b.product_keys||[]).map((pk,i)=><div key={i} className="tag-item">{pk}<button onClick={()=>u('product_keys',(b.product_keys||[]).filter((_,j)=>j!==i))}>×</button></div>)}</div><div style={{display:'flex',gap:6}}><input value={newPk} onChange={e=>setNewPk(e.target.value)} placeholder="配方 ID" style={{marginBottom:0}} onKeyDown={e=>e.key==='Enter'&&newPk.trim()&&(u('product_keys',[...(b.product_keys||[]),newPk.trim()]),setNewPk(''))}/><button className="btn btn-outline btn-sm" onClick={()=>{if(newPk.trim()){u('product_keys',[...(b.product_keys||[]),newPk.trim()]);setNewPk('');}}}>加入</button></div></div>
+<div className="field"><label>汪得福別名</label><div className="tag-list" style={{marginBottom:6}}>{(b.wangdefu_aliases||[]).map((a,i)=><div key={i} className="tag-item">{a}<button onClick={()=>u('wangdefu_aliases',(b.wangdefu_aliases||[]).filter((_,j)=>j!==i))}>×</button></div>)}</div><div style={{display:'flex',gap:6}}><input value={newAlias} onChange={e=>setNewAlias(e.target.value)} placeholder="汪得福品種名" style={{marginBottom:0}} onKeyDown={e=>e.key==='Enter'&&newAlias.trim()&&(u('wangdefu_aliases',[...(b.wangdefu_aliases||[]),newAlias.trim()]),setNewAlias(''))}/><button className="btn btn-outline btn-sm" onClick={()=>{if(newAlias.trim()){u('wangdefu_aliases',[...(b.wangdefu_aliases||[]),newAlias.trim()]);setNewAlias('');}}}>加入</button></div></div>
+<div className="switch-row" style={{marginBottom:16}}><strong>啟用</strong><div className={`switch ${b.active!==false?'on':''}`} onClick={()=>u('active',!b.active)}/></div>
+<div style={{display:'flex',gap:8,justifyContent:'flex-end'}}><button className="btn btn-outline" onClick={onClose}>取消</button><button className="btn btn-primary" onClick={()=>onSave(b)} disabled={!b.name_zh}>💾 儲存</button></div></div></div>;}
+
+// ── Users Tab (admin only) ──
+function UsersTab({api,showToast}){
+  const [users,setUsers]=useState([]);const [loading,setLoading]=useState(true);const [showAdd,setShowAdd]=useState(false);
+  const [newUser,setNewUser]=useState('');const [newPw,setNewPw]=useState('');const [newRole,setNewRole]=useState('viewer');const [newName,setNewName]=useState('');
+  const load=()=>api('/users').then(r=>{setUsers(r.users||[]);setLoading(false);});
+  useEffect(()=>{load();},[]);
+  const addUser=async()=>{
+    if(!newUser||!newPw){showToast('⚠️ 請填寫帳號和密碼');return;}
+    const r=await api('/users',{method:'POST',body:JSON.stringify({username:newUser,password:newPw,role:newRole,display_name:newName||newUser})});
+    if(r.ok){showToast('✅ 帳號已建立');setShowAdd(false);setNewUser('');setNewPw('');setNewName('');load();}else showToast('❌ '+(r.error||'失敗'));
+  };
+  const deleteUser=async(u)=>{if(!confirm(`確定刪除帳號「${u}」？`))return;await api('/users/'+encodeURIComponent(u),{method:'DELETE'});showToast('🗑️ 已刪除');load();};
+  const resetPw=async(u)=>{const pw=prompt(`為「${u}」設定新密碼：`);if(!pw)return;await api('/users/reset-password',{method:'POST',body:JSON.stringify({username:u,new_password:pw})});showToast('✅ 密碼已重設');};
+
+  if(loading)return <div className="card">載入中...</div>;
+  return <div>
+    <div className="card">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+        <h2 style={{margin:0}}>👥 帳號管理</h2>
+        <button className="btn btn-primary btn-sm" onClick={()=>setShowAdd(true)}>＋ 新增帳號</button>
+      </div>
+      <div style={{fontSize:12,color:'#999',marginBottom:12,padding:8,background:'#f8f8f8',borderRadius:8}}>
+        💡 主管理員帳號由 Netlify 環境變數控制（DAVIS_ADMIN_USERNAME / DAVIS_ADMIN_PASSWORD），不會顯示在此列表。
+        以下帳號存在資料庫，可以在此管理。
+      </div>
+      <table>
+        <thead><tr><th>帳號</th><th>顯示名稱</th><th>角色</th><th>建立時間</th><th>操作</th></tr></thead>
+        <tbody>
+          {users.map(u=><tr key={u.username}>
+            <td style={{fontWeight:600}}>{u.username}</td>
+            <td>{u.display_name}</td>
+            <td><span className={`badge ${u.role==='admin'?'badge-blue':'badge-orange'}`}>{u.role==='admin'?'管理員':'檢視者'}</span></td>
+            <td style={{fontSize:12,color:'#999'}}>{u.created_at?.slice(0,10)}</td>
+            <td style={{whiteSpace:'nowrap'}}>
+              <button className="btn btn-outline btn-sm" onClick={()=>resetPw(u.username)}>🔑 重設密碼</button>{' '}
+              <button className="btn btn-danger btn-sm" onClick={()=>deleteUser(u.username)}>🗑️</button>
+            </td>
+          </tr>)}
+          {!users.length && <tr><td colSpan="5" style={{textAlign:'center',color:'#999',padding:30}}>尚未建立額外帳號</td></tr>}
+        </tbody>
+      </table>
+    </div>
+
+    {showAdd && <div className="modal-overlay" onClick={()=>setShowAdd(false)}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:450}}>
+      <h2>新增帳號</h2>
+      <div className="field"><label>帳號 *</label><input value={newUser} onChange={e=>setNewUser(e.target.value)} autoComplete="off"/></div>
+      <div className="field"><label>密碼 *</label><input type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} autoComplete="new-password"/></div>
+      <div className="field"><label>顯示名稱</label><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="選填"/></div>
+      <div className="field"><label>角色</label>
+        <select value={newRole} onChange={e=>setNewRole(e.target.value)}>
+          <option value="viewer">檢視者（只能看 Dashboard）</option>
+          <option value="admin">管理員（完整權限）</option>
+        </select>
+      </div>
+      <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+        <button className="btn btn-outline" onClick={()=>setShowAdd(false)}>取消</button>
+        <button className="btn btn-primary" onClick={addUser}>建立帳號</button>
+      </div>
+    </div></div>}
+  </div>;
+}
+
+ReactDOM.render(<App/>,document.getElementById('root'));
+</script>
+</body>
+</html>

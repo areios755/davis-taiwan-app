@@ -1,0 +1,89 @@
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors *"
+    X-Content-Type-Options = "nosniff"
+
+# Admin 後台禁止被嵌入
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors 'self'"
+    X-Content-Type-Options = "nosniff"
+
+[[redirects]]
+  from = "/api/analyze"
+  to = "/.netlify/functions/analyze"
+  status = 200
+
+[[redirects]]
+  from = "/api/ping"
+  to = "/.netlify/functions/ping"
+  status = 200
+
+[[redirects]]
+  from = "/api/config"
+  to = "/.netlify/functions/davis-config"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/*"
+  to = "/.netlify/functions/admin/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/log"
+  to = "/.netlify/functions/log"
+  status = 200
+
+[[redirects]]
+  from = "/api/ai-assist"
+  to = "/.netlify/functions/ai-assist"
+  status = 200
+
+[[redirects]]
+  from = "/api/share"
+  to = "/.netlify/functions/share"
+  status = 200
+
+# 短連結 /r/abc123 → 前台（JS 處理載入）
+[[redirects]]
+  from = "/r/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/api/certify"
+  to = "/.netlify/functions/certify"
+  status = 200
+
+[[redirects]]
+  from = "/api/certify/*"
+  to = "/.netlify/functions/certify/:splat"
+  status = 200
+
+# 認證相關頁面 → 前台 HTML 處理
+[[redirects]]
+  from = "/certify"
+  to = "/certify.html"
+  status = 200
+
+[[redirects]]
+  from = "/verify/*"
+  to = "/verify.html"
+  status = 200
+
+[[redirects]]
+  from = "/badge/*"
+  to = "/badge.html"
+  status = 200
+
+# Badge pages can be embedded in any website
+[[headers]]
+  for = "/badge/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors *"
+    X-Content-Type-Options = "nosniff"

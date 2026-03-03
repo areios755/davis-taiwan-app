@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>認證查驗 | Davis Taiwan</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#091830 0%,#0B1E3D 60%,#112554 100%);
+  min-height:100vh;color:#EEF4FF;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(168,204,255,0.2);
+  border-radius:20px;padding:32px;max-width:460px;width:100%;text-align:center}
+.logo{width:48px;height:48px;border-radius:12px;margin-bottom:12px}
+.loading{color:rgba(168,204,255,0.5);font-size:14px;padding:20px}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(168,204,255,0.2);
+  border-top-color:#1A6FD4;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Valid cert */
+.cert-valid .badge-icon{font-size:64px;margin-bottom:8px}
+.cert-valid .badge-name{font-size:22px;font-weight:900;margin-bottom:4px}
+.cert-valid .badge-sub{font-size:13px;color:rgba(168,204,255,0.6);margin-bottom:20px}
+.cert-valid .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left;margin-bottom:20px}
+.info-item{background:rgba(255,255,255,0.05);border-radius:10px;padding:12px}
+.info-item .label{font-size:11px;color:rgba(168,204,255,0.5);margin-bottom:3px}
+.info-item .value{font-size:14px;font-weight:600;color:#EEF4FF}
+.valid-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(74,222,128,0.15);
+  border:1px solid rgba(74,222,128,0.4);border-radius:20px;padding:6px 14px;
+  font-size:13px;font-weight:700;color:#4ade80;margin-bottom:20px}
+.expired-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(248,113,113,0.15);
+  border:1px solid rgba(248,113,113,0.4);border-radius:20px;padding:6px 14px;
+  font-size:13px;font-weight:700;color:#f87171;margin-bottom:20px}
+.social-links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.social-link{padding:7px 14px;background:rgba(26,106,212,0.2);border:1px solid rgba(168,204,255,0.2);
+  border-radius:8px;color:#A8CCFF;text-decoration:none;font-size:12px;font-weight:600}
+.social-link:hover{background:rgba(26,106,212,0.35)}
+.cta-btn{display:inline-block;padding:12px 24px;background:#1A6FD4;color:white;
+  border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;margin-top:4px}
+.divider{border:none;border-top:1px solid rgba(168,204,255,0.1);margin:16px 0}
+
+/* Error */
+.cert-error .icon{font-size:48px;margin-bottom:12px}
+.cert-error h2{font-size:20px;font-weight:700;color:#f87171;margin-bottom:8px}
+.cert-error p{font-size:13px;color:rgba(168,204,255,0.6);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <img src="/logo.png" class="logo" alt="Davis">
+  <div class="loading"><div class="spinner"></div><br>查驗認證中...</div>
+</div>
+
+<script>
+
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+function safeUrl(u) {
+  if (!u) return '#';
+  const s = String(u).trim().toLowerCase();
+  return (s.startsWith('https://') || s.startsWith('http://')) ? String(u).trim() : '#';
+}
+
+const BADGE_INFO = {
+  certified: { icon:'🏅', name:'Davis 認證美容師', color:'#1A6FD4' },
+  advanced:  { icon:'🥈', name:'Davis 進階認證美容師', color:'#5AABF0' },
+  master:    { icon:'👑', name:'Davis 大師認證美容師', color:'#FFD700' },
+};
+
+async function load() {
+  const id = location.pathname.split('/').pop();
+  if (!id) { showError('缺少認證編號'); return; }
+
+  try {
+    const r = await fetch(`/api/certify?id=${encodeURIComponent(id)}`);
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || '查無此認證');
+    renderCert(d.cert);
+  } catch(e) {
+    showError(e.message);
+  }
+}
+
+function renderCert(c) {
+  const badge = BADGE_INFO[c.badge_level] || BADGE_INFO.certified;
+  const isApproved = c.status === 'approved';
+  const isExpired = c.expires_at && new Date(c.expires_at) < new Date();
+  const validUntil = c.expires_at ? new Date(c.expires_at).toLocaleDateString('zh-TW') : '—';
+  const approvedDate = c.approved_at ? new Date(c.approved_at).toLocaleDateString('zh-TW') : '—';
+
+  let statusBadge = '';
+  if (!isApproved) {
+    statusBadge = `<div class="expired-badge">⏳ 審核中</div>`;
+  } else if (isExpired) {
+    statusBadge = `<div class="expired-badge">❌ 認證已過期</div>`;
+  } else {
+    statusBadge = `<div class="valid-badge">✓ 認證有效</div>`;
+  }
+
+  let socials = '';
+  if (c.ig_url) socials += `<a class="social-link" href="${safeUrl(c.ig_url)}" target="_blank" rel="noopener noreferrer">📸 Instagram</a>`;
+  if (c.fb_url) socials += `<a class="social-link" href="${safeUrl(c.fb_url)}" target="_blank" rel="noopener noreferrer">👍 Facebook</a>`;
+  if (c.line_id) socials += `<a class="social-link" href="https://line.me/ti/p/${esc(c.line_id.replace('@',''))}" target="_blank" rel="noopener noreferrer">💬 LINE</a>`;
+
+  document.getElementById('card').innerHTML = `
+    <div class="cert-valid">
+      <img src="/logo.png" class="logo" alt="Davis">
+      <div class="badge-icon">${badge.icon}</div>
+      <div class="badge-name" style="color:${badge.color}">${badge.name}</div>
+      <div class="badge-sub">Davis Taiwan 官方認證</div>
+      ${statusBadge}
+      <div class="info-grid">
+        <div class="info-item"><div class="label">店名</div><div class="value">${esc(c.shop_name)}</div></div>
+        <div class="info-item"><div class="label">美容師</div><div class="value">${esc(c.owner_name)}</div></div>
+        <div class="info-item"><div class="label">地區</div><div class="value">${esc(c.city || '—')}</div></div>
+        <div class="info-item"><div class="label">認證效期</div><div class="value">${isApproved ? validUntil : '—'}</div></div>
+        <div class="info-item"><div class="label">認證日期</div><div class="value">${approvedDate}</div></div>
+        <div class="info-item"><div class="label">認證編號</div><div class="value" style="font-size:11px;font-family:monospace">${esc(c.id)}</div></div>
+      </div>
+      ${socials ? `<div class="social-links">${socials}</div>` : ''}
+      <hr class="divider">
+      <a href="/" class="cta-btn">📷 免費 AI 洗護分析</a>
+    </div>`;
+}
+
+function showError(msg) {
+  document.getElementById('card').innerHTML = `
+    <div class="cert-error">
+      <img src="/logo.png" class="logo" alt="Davis">
+      <div class="icon">❌</div>
+      <h2>查無此認證</h2>
+      <p>${msg}</p>
+      <p style="margin-top:12px">如有疑問請聯繫 Davis Taiwan</p>
+    </div>`;
+}
+
+load();
+</script>
+</body>
+</html>

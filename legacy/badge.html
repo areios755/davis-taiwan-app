@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Davis 認證標章</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:transparent;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+
+/* 標章樣式 — 三種尺寸 */
+.badge{display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+  background:linear-gradient(135deg,#091830,#0B1E3D);
+  border-radius:12px;padding:12px 18px;text-decoration:none;
+  border:1px solid rgba(168,204,255,0.3);transition:all .2s;
+  box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.badge:hover{border-color:#1A6FD4;box-shadow:0 4px 20px rgba(26,106,212,0.4)}
+.badge-logo{width:36px;height:36px;border-radius:8px;object-fit:contain;flex-shrink:0}
+.badge-text{}
+.badge-top{font-size:11px;color:rgba(168,204,255,0.6);font-weight:600;letter-spacing:0.05em;text-transform:uppercase}
+.badge-main{font-size:14px;font-weight:800;color:#A8CCFF;line-height:1.2}
+.badge-sub{font-size:10px;color:rgba(168,204,255,0.5);margin-top:1px}
+.badge-icon{font-size:22px;flex-shrink:0}
+
+/* Small variant */
+.badge.sm{padding:7px 12px;gap:7px;border-radius:9px}
+.badge.sm .badge-logo{width:26px;height:26px;border-radius:6px}
+.badge.sm .badge-top{font-size:9px}
+.badge.sm .badge-main{font-size:12px}
+.badge.sm .badge-icon{font-size:16px}
+
+/* Large variant */
+.badge.lg{padding:16px 22px;gap:14px;border-radius:14px;flex-direction:column;text-align:center;min-width:160px}
+.badge.lg .badge-logo{width:52px;height:52px;border-radius:12px}
+.badge.lg .badge-main{font-size:16px}
+.badge.lg .badge-icon{font-size:36px}
+
+/* Loading/error */
+.loading{color:rgba(168,204,255,0.4);font-size:12px;padding:8px}
+.invalid{color:#f87171;font-size:12px;padding:8px}
+</style>
+</head>
+<body>
+<div id="root"><div class="loading">載入中...</div></div>
+
+<script>
+
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+function safeUrl(u) {
+  if (!u) return '#';
+  const s = String(u).trim().toLowerCase();
+  return (s.startsWith('https://') || s.startsWith('http://')) ? String(u).trim() : '#';
+}
+
+const BADGE_INFO = {
+  certified: { icon:'🏅', label:'認證美容師' },
+  advanced:  { icon:'🥈', label:'進階認證美容師' },
+  master:    { icon:'👑', label:'大師認證美容師' },
+};
+
+async function init() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id') || location.pathname.split('/').pop();
+  const size = params.get('size') || 'md'; // sm / md / lg
+
+  if (!id || id === 'badge.html') {
+    document.getElementById('root').innerHTML = '<div class="invalid">缺少認證 ID</div>';
+    return;
+  }
+
+  try {
+    const r = await fetch(`/api/certify?id=${encodeURIComponent(id)}`);
+    const d = await r.json();
+    if (!d.ok || d.cert.status !== 'approved') throw new Error('無效');
+    if (d.cert.expires_at && new Date(d.cert.expires_at) < new Date()) throw new Error('已過期');
+
+    const c = d.cert;
+    const b = BADGE_INFO[c.badge_level] || BADGE_INFO.certified;
+    const verifyUrl = `${location.origin}/verify/${id}`;
+    const sizeClass = size === 'sm' ? 'sm' : size === 'lg' ? 'lg' : '';
+
+    document.getElementById('root').innerHTML = `
+      <a class="badge ${sizeClass}" href="${verifyUrl}" target="_blank" title="點擊查驗 Davis 官方認證">
+        <span class="badge-icon">${b.icon}</span>
+        <img class="badge-logo" src="${location.origin}/logo.png" alt="Davis">
+        <div class="badge-text">
+          <div class="badge-top">Davis Taiwan 官方認證</div>
+          <div class="badge-main">${esc(c.shop_name)}</div>
+          <div class="badge-sub">${b.label} · 點擊查驗</div>
+        </div>
+      </a>`;
+
+    // 通知父頁面尺寸（嵌入用）
+    const el = document.querySelector('.badge');
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      window.parent.postMessage({ type: 'davis_badge_size', w: rect.width, h: rect.height }, '*');
+    }
+  } catch {
+    document.getElementById('root').innerHTML = '<div class="invalid">認證無效或已過期</div>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>申請 Davis 認證美容師 | Davis Taiwan</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#091830 0%,#0B1E3D 60%,#112554 100%);
+  min-height:100vh;color:#EEF4FF;padding:20px}
+.wrap{max-width:600px;margin:0 auto}
+.logo{text-align:center;padding:32px 0 24px}
+.logo img{width:56px;height:56px;border-radius:14px;margin-bottom:10px}
+.logo h1{font-size:20px;font-weight:900;color:#A8CCFF}
+.logo p{font-size:13px;color:rgba(168,204,255,0.6);margin-top:4px}
+.badge-preview{display:flex;gap:12px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
+.badge-item{background:rgba(26,106,212,0.15);border:1px solid rgba(168,204,255,0.2);
+  border-radius:12px;padding:14px 20px;text-align:center;flex:1;min-width:140px}
+.badge-item .icon{font-size:28px;margin-bottom:6px}
+.badge-item .name{font-size:13px;font-weight:700;color:#A8CCFF}
+.badge-item .desc{font-size:11px;color:rgba(168,204,255,0.5);margin-top:3px}
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(168,204,255,0.15);
+  border-radius:16px;padding:24px;margin-bottom:16px}
+.card h2{font-size:15px;font-weight:700;color:#A8CCFF;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:rgba(168,204,255,0.7);margin-bottom:5px}
+.field label span{color:#f87171;margin-left:2px}
+input,select,textarea{width:100%;padding:10px 14px;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(168,204,255,0.2);
+  border-radius:8px;color:#EEF4FF;font-size:14px;font-family:inherit;outline:none;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:#1A6FD4}
+input::placeholder,textarea::placeholder{color:rgba(168,204,255,0.3)}
+select option{background:#0B1E3D;color:#EEF4FF}
+textarea{resize:vertical;min-height:80px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.row{grid-template-columns:1fr}}
+.btn{width:100%;padding:14px;background:#1A6FD4;color:white;border:none;
+  border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px}
+.btn:hover{background:#155bb5}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.benefits{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.benefit{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:rgba(220,235,255,0.8)}
+.benefit .icon{font-size:18px;flex-shrink:0;margin-top:-1px}
+.success{text-align:center;padding:40px 20px;display:none}
+.success .icon{font-size:64px;margin-bottom:16px}
+.success h2{font-size:22px;font-weight:900;color:#4ade80;margin-bottom:8px}
+.success p{color:rgba(168,204,255,0.7);font-size:14px;line-height:1.6;margin-bottom:6px}
+.success .id-box{background:rgba(26,106,212,0.2);border:1px solid rgba(168,204,255,0.3);
+  border-radius:10px;padding:14px;margin:16px 0;font-family:monospace;font-size:18px;
+  color:#A8CCFF;letter-spacing:2px;font-weight:700}
+.err{color:#f87171;font-size:12px;margin-top:4px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <img src="/logo.png" alt="Davis">
+    <h1>申請 Davis 認證美容師</h1>
+    <p>取得官方認證標章，提升專業形象</p>
+  </div>
+
+  <!-- 標章等級說明 -->
+  <div class="badge-preview">
+    <div class="badge-item">
+      <div class="icon">🏅</div>
+      <div class="name">Certified</div>
+      <div class="desc">基礎認證<br>使用 Davis 產品</div>
+    </div>
+    <div class="badge-item">
+      <div class="icon">🥈</div>
+      <div class="name">Advanced</div>
+      <div class="desc">進階認證<br>完成培訓課程</div>
+    </div>
+    <div class="badge-item">
+      <div class="icon">👑</div>
+      <div class="name">Master</div>
+      <div class="desc">大師認證<br>最高榮譽</div>
+    </div>
+  </div>
+
+  <!-- 申請表單 -->
+  <div id="formSection">
+    <div class="card">
+      <h2>✦ 認證效益</h2>
+      <div class="benefits">
+        <div class="benefit"><span class="icon">🔖</span><span>取得官方數位認證標章，可貼在 LINE 名片、IG 簡介、官網</span></div>
+        <div class="benefit"><span class="icon">🔍</span><span>收錄於 Davis Taiwan 認證美容師名錄，讓飼主搜尋到你</span></div>
+        <div class="benefit"><span class="icon">📷</span><span>免費使用 Davis AI 洗護顧問，為客人提供專屬分析報告</span></div>
+        <div class="benefit"><span class="icon">📦</span><span>享有認證合作折扣與新品優先試用資格</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📋 店家資料</h2>
+      <div class="field">
+        <label>店名 / 工作室名稱<span>*</span></label>
+        <input id="shopName" placeholder="例：汪汪美容工作室" maxlength="50">
+        <div class="err" id="errShop">請填寫店名</div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>負責美容師姓名<span>*</span></label>
+          <input id="ownerName" placeholder="姓名" maxlength="20">
+          <div class="err" id="errOwner">請填寫姓名</div>
+        </div>
+        <div class="field">
+          <label>聯絡電話</label>
+          <input id="phone" placeholder="0912-345-678" type="tel" maxlength="20">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>縣市</label>
+          <select id="city">
+            <option value="">選擇縣市</option>
+            <option>台北市</option><option>新北市</option><option>桃園市</option>
+            <option>台中市</option><option>台南市</option><option>高雄市</option>
+            <option>基隆市</option><option>新竹市</option><option>新竹縣</option>
+            <option>苗栗縣</option><option>彰化縣</option><option>南投縣</option>
+            <option>雲林縣</option><option>嘉義市</option><option>嘉義縣</option>
+            <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
+            <option>台東縣</option><option>澎湖縣</option><option>金門縣</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>地址（選填）</label>
+          <input id="address" placeholder="路/街/號" maxlength="100">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔗 社群資料（選填，提高審核通過率）</h2>
+      <div class="field">
+        <label>Instagram</label>
+        <input id="igUrl" placeholder="https://instagram.com/yourshop" type="url">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Facebook 粉絲專頁</label>
+          <input id="fbUrl" placeholder="https://fb.com/yourpage" type="url">
+        </div>
+        <div class="field">
+          <label>LINE ID</label>
+          <input id="lineId" placeholder="@yourlineid" maxlength="30">
+        </div>
+      </div>
+      <div class="field">
+        <label>申請說明（使用 Davis 的經歷、客戶類型等）</label>
+        <textarea id="note" placeholder="例：已使用 Davis 產品 2 年，主要服務貴賓犬和貓咪，熟悉色素保護洗護..."></textarea>
+      </div>
+    </div>
+
+    <div id="errGeneral" class="err" style="text-align:center;font-size:13px;margin-bottom:8px"></div>
+    <button class="btn" id="submitBtn" onclick="submitForm()">🏅 送出認證申請</button>
+    <p style="text-align:center;font-size:11px;color:rgba(168,204,255,0.4);margin-top:12px">
+      審核通常需要 3-5 個工作天，通過後會以電話或 LINE 通知您
+    </p>
+  </div>
+
+  <!-- 成功畫面 -->
+  <div class="success" id="successSection">
+    <div class="icon">🎉</div>
+    <h2>申請已送出！</h2>
+    <p>我們收到您的認證申請，審核通過後將立即通知您。</p>
+    <p style="margin-top:4px">審核通常需要 <strong>3-5 個工作天</strong></p>
+    <div class="id-box" id="successId"></div>
+    <p style="font-size:12px;color:rgba(168,204,255,0.5)">請保存此申請編號，以便後續查詢</p>
+    <button class="btn" style="margin-top:20px" onclick="window.location.href='/'">回到 AI 洗護顧問</button>
+  </div>
+</div>
+
+<script>
+async function submitForm() {
+  const shopName = document.getElementById('shopName').value.trim();
+  const ownerName = document.getElementById('ownerName').value.trim();
+  let valid = true;
+
+  document.querySelectorAll('.err').forEach(e => e.style.display = 'none');
+
+  if (!shopName) { document.getElementById('errShop').style.display = 'block'; valid = false; }
+  if (!ownerName) { document.getElementById('errOwner').style.display = 'block'; valid = false; }
+  if (!valid) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '送出中...';
+
+  try {
+    const r = await fetch('/api/certify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shop_name: shopName,
+        owner_name: ownerName,
+        phone: document.getElementById('phone').value.trim(),
+        city: document.getElementById('city').value,
+        address: document.getElementById('address').value.trim(),
+        ig_url: document.getElementById('igUrl').value.trim(),
+        fb_url: document.getElementById('fbUrl').value.trim(),
+        line_id: document.getElementById('lineId').value.trim(),
+        note: document.getElementById('note').value.trim(),
+      })
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || '申請失敗');
+
+    document.getElementById('formSection').style.display = 'none';
+    document.getElementById('successSection').style.display = 'block';
+    document.getElementById('successId').textContent = d.id;
+  } catch(e) {
+    const err = document.getElementById('errGeneral');
+    err.textContent = '❌ ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '🏅 送出認證申請';
+  }
+}
+</script>
+</body>
+</html>
