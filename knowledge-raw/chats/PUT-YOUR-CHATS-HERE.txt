@@ -1,0 +1,14 @@
+=== Customer Chat Records ===
+
+Put your LINE/WeChat chat exports here:
+- Customer consultation records
+- Grooming advice conversations
+- Product recommendation discussions
+
+Supported formats:
+- Text exports from LINE (.txt)
+- Screenshots (.jpg .png) 
+- WeChat backup files
+- Any text-based chat logs
+
+Claude Code will extract grooming knowledge from these conversations.

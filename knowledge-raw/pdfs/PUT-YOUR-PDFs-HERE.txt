@@ -1,0 +1,10 @@
+=== Davis PDF Training Materials ===
+
+Put your Davis training PDFs here:
+- Product training slides
+- Breed coat knowledge documents  
+- Grooming technique guides
+- Any Davis related documents
+
+Claude Code will automatically read all files in this folder.
+Supported: .pdf .txt .md .jpg .png .docx
