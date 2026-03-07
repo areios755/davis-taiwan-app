@@ -1,26 +1,7 @@
 import type { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
-
-// ============================================================
-// CORS
-// ============================================================
-const ALLOWED_ORIGINS = [
-  'https://davis-taiwan.netlify.app',
-  'https://davis-taiwan.com',
-  'http://localhost:5173',
-  'http://localhost:8888',
-];
-
-function corsHeaders(origin?: string) {
-  const allowed = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o)) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Content-Type': 'application/json',
-  };
-}
+import { corsHeaders } from './lib/cors';
 
 // ============================================================
 // Rate Limiting

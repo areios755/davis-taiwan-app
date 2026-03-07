@@ -1,21 +1,9 @@
 import type { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
-
-const ALLOWED_ORIGINS = [
-  'https://davis-taiwan.netlify.app',
-  'https://davis-taiwan.com',
-  'http://localhost:5173',
-  'http://localhost:8888',
-];
+import { corsHeaders as _corsHeaders } from './lib/cors';
 
 function corsHeaders(origin?: string) {
-  const allowed = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o)) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-    'Cache-Control': 'no-store, no-cache, must-revalidate',
-  };
+  return { ..._corsHeaders(origin), 'Cache-Control': 'no-store, no-cache, must-revalidate' };
 }
 
 const handler: Handler = async (event) => {
