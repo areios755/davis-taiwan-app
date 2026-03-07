@@ -9,6 +9,7 @@ import HomePage from '@/pages/HomePage';
 import AnalyzePage from '@/pages/AnalyzePage';
 import ProductsPage from '@/pages/ProductsPage';
 import ProductDetailPage from '@/pages/ProductDetailPage';
+import CombosPage from '@/pages/CombosPage';
 import GroomersPage from '@/pages/GroomersPage';
 import CertifyPage from '@/pages/CertifyPage';
 import VerifyPage from '@/pages/VerifyPage';
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/analyze" element={<AnalyzePage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
+        <Route path="/combos" element={<CombosPage />} />
         <Route path="/groomers" element={<GroomersPage />} />
         <Route path="/groomers/:id" element={<VerifyPage />} />
         <Route path="/certify" element={<CertifyPage />} />

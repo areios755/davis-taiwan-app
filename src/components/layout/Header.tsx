@@ -7,6 +7,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 const NAV_ITEMS = [
   { path: '/analyze', key: 'nav.analyze' },
   { path: '/products', key: 'nav.products' },
+  { path: '/combos', key: 'nav.combos' },
   { path: '/groomers', key: 'nav.groomers' },
   { path: '/certify', key: 'nav.certify' },
 ];

@@ -24,7 +24,7 @@ export interface DavisProduct {
   name_en: string;
   name_ja: string;
   name_cn: string;
-  category: 'shampoo' | 'conditioner' | 'spa' | 'specialty';
+  category: 'shampoo' | 'conditioner' | 'spa' | 'specialty' | 'skin_care' | 'ear_care';
   tag_zh: string;
   tag_en: string;
   tag_ja: string;
@@ -40,6 +40,9 @@ export interface DavisProduct {
   dilution: string;        // e.g. "12:1"
   dwell_time: string;      // e.g. "5-8min"
   image_url?: string;
+  description_zh?: string;
+  ingredients?: string;
+  series?: 'salon' | 'show_beauty' | 'skin_care' | 'ear_care';
 }
 
 export interface DavisBreed {
@@ -53,6 +56,8 @@ export interface DavisBreed {
   emoji?: string;
   /** Product keys for tier building: [firstWash, secondWash?, conditioner, spaWash?] */
   product_keys: string[];
+  grooming_tips?: string[];
+  coat_characteristics?: string;
 }
 
 // ============================================================

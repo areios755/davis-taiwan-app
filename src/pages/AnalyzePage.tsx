@@ -371,21 +371,32 @@ export default function AnalyzePage() {
             if (comboProducts.length === 0) return null;
             return (
               <div className="mt-8 border-t border-gray-100 pt-6">
-                <h3 className="text-lg font-bold text-davis-navy mb-1">推薦組合：{combo.name}</h3>
+                <h3 className="text-lg font-bold text-davis-navy mb-1">為您推薦的洗護組合</h3>
+                <p className="text-sm text-davis-gold font-medium mb-1">{combo.name}</p>
                 <p className="text-sm text-gray-500 mb-4">{combo.description}</p>
                 <div className="space-y-3">
-                  {comboProducts.map((p) => (
-                    <div key={p.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
-                      {p.image_url && (
-                        <img src={p.image_url} alt={p.name_zh} className="w-14 h-14 object-contain rounded-lg flex-shrink-0" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-davis-navy text-sm">{p.name_zh}</p>
-                        <p className="text-xs text-gray-400 line-clamp-1">{p.tag_zh}</p>
+                  {combo.steps.map((step) => {
+                    const p = comboProducts.find((pr) => pr.id === step.product_key);
+                    return (
+                      <div key={step.step} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+                        <div className="w-7 h-7 rounded-full bg-davis-blue text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                          {step.step}
+                        </div>
+                        {p?.image_url && (
+                          <img src={p.image_url} alt={p.name_zh} className="w-12 h-12 object-contain rounded-lg flex-shrink-0" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs text-davis-blue font-medium">{step.role}</span>
+                          <p className="font-medium text-davis-navy text-sm">{p?.name_zh ?? step.product_key}</p>
+                          {step.note && <p className="text-xs text-gray-400">{step.note}</p>}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
+                {combo.tips && (
+                  <p className="text-xs text-davis-gold bg-yellow-50 rounded-lg p-2 mt-3">💡 {combo.tips}</p>
+                )}
                 <a
                   href="https://davistaiwan.com"
                   target="_blank"

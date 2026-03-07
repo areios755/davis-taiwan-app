@@ -1,0 +1,209 @@
+[
+  {
+    "breed_zh": "貴賓犬",
+    "breed_en": "Poodle",
+    "pet_type": "dog",
+    "coat_type": "curly",
+    "coat_characteristics": "捲毛，需要蓬鬆立體毛根支撐，定期造型修剪",
+    "common_issues": ["毛髮打結", "需要造型支撐", "油脂堆積"],
+    "washing_frequency": "每2-4週",
+    "recommended_products": {
+      "basic": ["強效洗劑", "滋潤護毛素"],
+      "advanced": ["質感洗劑", "純粹護毛素"],
+      "signature": ["竹節花洗劑", "純粹護毛素"]
+    },
+    "grooming_tips": [
+      "第二洗使用質感洗劑提供毛根支撐力",
+      "吹整時搭配圓梳由內向外梳開，蓬鬆效果更顯著",
+      "SPA進階選擇竹節花系列適合蓬鬆升級"
+    ],
+    "seasonal_notes": {
+      "spring": "換毛季加強梳理，搭配輕盈洗劑",
+      "summer": "潮濕季節注意控油，可搭配茶樹油洗劑",
+      "autumn": "乾燥季節補充滋潤，搭配滋潤護毛素",
+      "winter": "深層滋養，搭配高級皮毛調理霜"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, Davis培訓講義繁體 2026.pdf"
+  },
+  {
+    "breed_zh": "比熊犬",
+    "breed_en": "Bichon Frise",
+    "pet_type": "dog",
+    "coat_type": "curly",
+    "coat_characteristics": "白色捲毛，需要蓬鬆造型，容易氧化變黃",
+    "common_issues": ["白毛氧化變黃", "需要蓬鬆造型", "淚痕"],
+    "washing_frequency": "每2-4週",
+    "recommended_products": {
+      "basic": ["強效洗劑", "滋潤護毛素"],
+      "advanced": ["質感洗劑", "高級炫彩洗劑", "純粹護毛素"],
+      "signature": ["竹節花洗劑", "高級炫彩洗劑", "純粹護毛素"]
+    },
+    "grooming_tips": [
+      "白色比熊搭配高級炫彩洗劑抗氧化提亮",
+      "蓬鬆造型選擇竹節花系列或質感洗劑",
+      "面部清潔使用潔面乳去淚痕"
+    ],
+    "seasonal_notes": {
+      "spring": "換毛季加強底層護理",
+      "summer": "高溫潮濕注重清潔除臭",
+      "autumn": "乾燥補充滋潤保濕",
+      "winter": "深層滋養護理"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, Davis培訓講義繁體 2026.pdf"
+  },
+  {
+    "breed_zh": "博美犬",
+    "breed_en": "Pomeranian",
+    "pet_type": "dog",
+    "coat_type": "long",
+    "coat_characteristics": "長毛雙層毛，蓬鬆感重要，需要造型支撐",
+    "common_issues": ["換毛季掉毛", "需要蓬鬆造型"],
+    "washing_frequency": "每2-4週",
+    "recommended_products": {
+      "basic": ["強效洗劑", "滋潤護毛素"],
+      "advanced": ["質感洗劑", "純粹護毛素"],
+      "signature": ["竹節花洗劑", "純粹護毛素"]
+    },
+    "grooming_tips": [
+      "蓬鬆造型選擇竹節花系列",
+      "換毛季搭配輕盈洗劑和輕盈乳液"
+    ],
+    "seasonal_notes": {
+      "spring": "換毛季重點去廢毛",
+      "summer": "注重清潔控油",
+      "autumn": "補充滋潤",
+      "winter": "深層滋養"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, Davis培訓講義繁體 2026.pdf"
+  },
+  {
+    "breed_zh": "馬爾濟斯",
+    "breed_en": "Maltese",
+    "pet_type": "dog",
+    "coat_type": "long",
+    "coat_characteristics": "絲質長毛，容易打結纏繞，需要柔順護理",
+    "common_issues": ["毛髮打結", "毛髮乾燥", "淚痕"],
+    "washing_frequency": "每1-2週",
+    "recommended_products": {
+      "basic": ["強效洗劑", "滋潤護毛素"],
+      "advanced": ["柔順洗劑", "滋潤護毛素"],
+      "signature": ["魔力薰衣草洗劑", "滋潤護毛素"]
+    },
+    "grooming_tips": [
+      "SPA進階選擇魔力薰衣草系列柔順升級",
+      "嚴重打結先手動輕柔解開再下水",
+      "波斯系、馬爾濟斯等類似毛質適合薰衣草系列"
+    ],
+    "seasonal_notes": {
+      "spring": "換毛季注意梳理",
+      "summer": "保持清爽避免打結",
+      "autumn": "補充滋潤防乾燥",
+      "winter": "加強護毛素使用"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, Davis培訓講義繁體 2026.pdf"
+  },
+  {
+    "breed_zh": "波斯貓",
+    "breed_en": "Persian",
+    "pet_type": "cat",
+    "coat_type": "long",
+    "coat_characteristics": "長毛，容易打結，扁臉容易有淚痕",
+    "common_issues": ["毛髮打結", "淚痕", "扁臉清潔"],
+    "washing_frequency": "每2-4週",
+    "recommended_products": {
+      "basic": ["強效洗劑（貓30:1）", "滋潤護毛素（貓不稀釋）"],
+      "advanced": ["柔順洗劑", "潔面乳", "滋潤護毛素"],
+      "signature": ["魔力薰衣草洗劑", "潔面乳", "滋潤護毛素"]
+    },
+    "grooming_tips": [
+      "扁臉貓使用潔面乳清除淚痕",
+      "波斯系毛質適合薰衣草系列柔順升級",
+      "貓使用滋潤護毛素不稀釋"
+    ],
+    "seasonal_notes": {
+      "spring": "換毛季加強梳理",
+      "summer": "注重清潔和淚痕護理",
+      "autumn": "補充滋潤",
+      "winter": "深層護理"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, DAVIS公开分享课讲义.pdf"
+  },
+  {
+    "breed_zh": "英國短毛貓",
+    "breed_en": "British Shorthair",
+    "pet_type": "cat",
+    "coat_type": "short",
+    "coat_characteristics": "短毛雙層毛，藍貓類型毛質，換毛季掉毛明顯",
+    "common_issues": ["換毛季掉毛", "底層毛密集"],
+    "washing_frequency": "每3-4週",
+    "recommended_products": {
+      "basic": ["強效洗劑（貓30:1）", "燕麥護毛素"],
+      "advanced": ["輕盈洗劑（貓）", "櫻桃漿果洗劑", "燕麥護毛素"],
+      "signature": ["輕盈洗劑（貓）", "卡瓦卡瓦洗劑", "燕麥護毛素"]
+    },
+    "grooming_tips": [
+      "藍貓類型毛質適合輕盈洗劑（貓）搭配櫻桃漿果洗劑",
+      "PH值和香味更偏向貓，更低敏",
+      "短毛品種首選燕麥護毛素"
+    ],
+    "seasonal_notes": {
+      "spring": "換毛季使用輕盈洗劑和輕盈乳液",
+      "summer": "保持清爽",
+      "autumn": "補充滋潤",
+      "winter": "深層滋養"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, DAVIS公开分享课讲义.pdf, Davis培訓講義繁體 2026.pdf"
+  },
+  {
+    "breed_zh": "柯基",
+    "breed_en": "Corgi",
+    "pet_type": "dog",
+    "coat_type": "double",
+    "coat_characteristics": "雙層毛，換毛季掉毛嚴重",
+    "common_issues": ["換毛季大量掉毛", "底層毛密集"],
+    "washing_frequency": "每3-4週",
+    "recommended_products": {
+      "basic": ["強效洗劑", "燕麥護毛素"],
+      "advanced": ["輕盈洗劑", "輕盈乳液"],
+      "signature": ["輕盈洗劑", "卡瓦卡瓦洗劑", "輕盈乳液"]
+    },
+    "grooming_tips": [
+      "換毛季使用輕盈洗劑搭配輕盈乳液效果加倍",
+      "非常髒可前置強效洗劑做底層預清潔",
+      "富含泛醇、氨基酸強化健康毛囊"
+    ],
+    "seasonal_notes": {
+      "spring": "換毛高峰期，必用輕盈洗劑",
+      "summer": "控油止癢",
+      "autumn": "補充滋潤",
+      "winter": "深層護理"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, DAVIS公开分享课讲义.pdf"
+  },
+  {
+    "breed_zh": "法國鬥牛犬",
+    "breed_en": "French Bulldog",
+    "pet_type": "dog",
+    "coat_type": "short",
+    "coat_characteristics": "短毛，扁臉，皮膚容易出油和敏感",
+    "common_issues": ["皮膚摺皺容易感染", "淚痕", "皮膚敏感", "體味"],
+    "washing_frequency": "每2-3週",
+    "recommended_products": {
+      "basic": ["泡沫柑橘洗劑", "燕麥護毛素"],
+      "advanced": ["泡沫柑橘洗劑", "潔面乳", "燕麥護毛素"],
+      "signature": ["奢華洗劑", "潔面乳", "燕麥護毛素"]
+    },
+    "grooming_tips": [
+      "扁臉犬使用潔面乳清潔面部",
+      "皮膚摺皺處需要特別清潔",
+      "體味重可用奢華洗劑分解體味"
+    ],
+    "seasonal_notes": {
+      "spring": "過敏季注意皮膚狀態",
+      "summer": "潮濕季控油止癢",
+      "autumn": "補充滋潤",
+      "winter": "注意皮膚乾燥"
+    },
+    "source_file": "DAVIS公開課講義繁體.pdf, Davis培訓講義繁體 2026.pdf"
+  }
+]

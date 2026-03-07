@@ -8,7 +8,7 @@ export interface Review {
 
 /** Only a subset of products have reviews — keeps it authentic */
 export const PRODUCT_REVIEWS: Record<string, Review[]> = {
-  deshed_cat: [
+  degrease_pretreat: [
     { author: '陳美容師', shop: '台北', rating: 5, text: '貓咪油尾巴救星，洗完乾爽蓬鬆，客人都很滿意', date: '2025-12' },
   ],
   humid_oil_control: [
