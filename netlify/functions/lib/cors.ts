@@ -9,6 +9,7 @@ export const ALLOWED_ORIGINS: string[] = ENV_ORIGINS
   ? ENV_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)
   : [
       'https://davistaiwan.netlify.app',
+      'https://fur-angel.netlify.app',
       'https://davistaiwan.com',
       'https://www.davistaiwan.com',
       'http://localhost:5173',
