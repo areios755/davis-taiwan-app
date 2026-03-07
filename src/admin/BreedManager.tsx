@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AdminApp';
 import { adminApi } from '@/lib/api';
-import { Pencil, X, Lock } from 'lucide-react';
+import { Pencil, X, Info } from 'lucide-react';
 
 interface Breed {
   id: number;
@@ -45,9 +45,15 @@ export default function BreedManager() {
     if (!editing) return;
     setSaving(true);
     setMsg('');
-    // Only send Davis-editable fields
     const payload = {
       name: editing.name,
+      name_en: editing.name_en,
+      name_ja: editing.name_ja,
+      name_cn: editing.name_cn,
+      species: editing.species,
+      size_range: editing.size_range,
+      weight_range: editing.weight_range,
+      coat_types: editing.coat_types,
       davis_breed_id: editing.davis_breed_id,
       davis_product_keys: editing.davis_product_keys,
       coat_characteristics: editing.coat_characteristics,
@@ -83,10 +89,10 @@ export default function BreedManager() {
         </div>
       </div>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-4 text-sm flex items-center gap-2">
-        <Lock size={16} className="text-yellow-600 shrink-0" />
-        <span className="text-yellow-700">
-          品種名稱、體型等欄位由毛安住系統管理（唯讀）。Davis 欄位（品種ID、配方、美容提示）可編輯。
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-sm flex items-center gap-2">
+        <Info size={16} className="text-blue-500 shrink-0" />
+        <span className="text-blue-700">
+          品種資料與毛安住共用，修改將同步影響兩個系統。
         </span>
       </div>
 
@@ -139,24 +145,68 @@ export default function BreedManager() {
               <button onClick={() => setEditing(null)}><X size={20} className="text-gray-400" /></button>
             </div>
 
-            {/* Read-only section */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-4">
-              <p className="text-xs text-gray-400 font-medium flex items-center gap-1 mb-2">
-                <Lock size={12} /> 毛安住欄位（唯讀）
-              </p>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-gray-400">名稱:</span> {editing.name}</div>
-                <div><span className="text-gray-400">English:</span> {editing.name_en}</div>
-                <div><span className="text-gray-400">Species:</span> {editing.species === 'dog' ? '犬' : '貓'}</div>
-                <div><span className="text-gray-400">體型:</span> {editing.size_range || '—'}</div>
-                <div><span className="text-gray-400">體重:</span> {editing.weight_range || '—'}</div>
-                <div><span className="text-gray-400">毛質:</span> {(editing.coat_types || []).join(', ') || '—'}</div>
-              </div>
-            </div>
-
-            {/* Editable section */}
             <div className="space-y-3">
-              <p className="text-xs text-davis-blue font-medium">Davis 欄位（可編輯）</p>
+              {/* Basic info */}
+              <p className="text-xs text-davis-blue font-medium">基本資料</p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">品種名稱（繁中）</label>
+                  <input value={editing.name || ''} onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">English Name</label>
+                  <input value={editing.name_en || ''} onChange={(e) => setEditing({ ...editing, name_en: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">日文名</label>
+                  <input value={editing.name_ja || ''} onChange={(e) => setEditing({ ...editing, name_ja: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">簡中名</label>
+                  <input value={editing.name_cn || ''} onChange={(e) => setEditing({ ...editing, name_cn: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Species</label>
+                  <select value={editing.species || 'dog'} onChange={(e) => setEditing({ ...editing, species: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm">
+                    <option value="dog">犬</option>
+                    <option value="cat">貓</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">體型</label>
+                  <input value={editing.size_range || ''} onChange={(e) => setEditing({ ...editing, size_range: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="小型 / 中型 / 大型" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">體重範圍</label>
+                  <input value={editing.weight_range || ''} onChange={(e) => setEditing({ ...editing, weight_range: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-sm" placeholder="3-6kg" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-500 block mb-1">毛質類型（逗號分隔）</label>
+                <input
+                  value={(editing.coat_types || []).join(', ')}
+                  onChange={(e) => setEditing({ ...editing, coat_types: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
+                  className="w-full px-3 py-2 border rounded-lg text-sm"
+                  placeholder="捲毛, 長毛"
+                />
+              </div>
+
+              {/* Davis fields */}
+              <div className="border-t pt-3 mt-3">
+                <p className="text-xs text-davis-blue font-medium mb-3">Davis 洗護欄位</p>
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -212,7 +262,7 @@ export default function BreedManager() {
             <div className="flex gap-3 mt-6">
               <button onClick={() => setEditing(null)} className="btn-davis-outline flex-1">取消</button>
               <button onClick={handleSave} disabled={saving} className="btn-davis flex-1 disabled:opacity-50">
-                {saving ? '儲存中...' : '儲存 Davis 欄位'}
+                {saving ? '儲存中...' : '儲存'}
               </button>
             </div>
           </div>
