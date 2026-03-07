@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AdminApp';
 import { adminApi } from '@/lib/api';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { exportExcel, downloadTemplate, parseExcel } from '@/lib/excel';
 
 interface Product {
   product_key: string;
@@ -38,6 +39,12 @@ const EMPTY_PRODUCT: Product = {
 const CATEGORIES = ['shampoo', 'conditioner', 'spa', 'specialty'];
 const CAT_LABELS: Record<string, string> = { shampoo: '洗劑', conditioner: '護毛素', spa: 'SPA', specialty: '特殊護理' };
 
+const EXPORT_COLUMNS = [
+  'product_key', 'name_zh', 'name_en', 'name_cn', 'name_ja',
+  'category', 'dilution', 'dwell_time',
+  'tag_zh', 'reason_zh', 'note_zh',
+];
+
 export default function ProductManager() {
   const { token, role } = useAuth();
   const canEdit = role === 'admin' || role === 'editor';
@@ -46,6 +53,12 @@ export default function ProductManager() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+
+  // Import state
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [importRows, setImportRows] = useState<Record<string, unknown>[] | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -78,16 +91,122 @@ export default function ProductManager() {
     load();
   };
 
+  const handleExport = () => {
+    const date = new Date().toISOString().slice(0, 10);
+    exportExcel(products as unknown as Record<string, unknown>[], EXPORT_COLUMNS, `davis-products-${date}.xlsx`);
+  };
+
+  const handleTemplate = () => {
+    downloadTemplate(EXPORT_COLUMNS, 'davis-products-template.xlsx');
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const rows = await parseExcel(file);
+      setImportRows(rows);
+      setImportMsg('');
+    } catch {
+      setImportMsg('Excel 檔案解析失敗');
+    }
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const existingKeys = new Set(products.map(p => p.product_key));
+
+  const handleImport = async () => {
+    if (!importRows) return;
+    setImporting(true);
+    setImportMsg('');
+    const res = await adminApi.importProducts(token, importRows);
+    setImporting(false);
+    if (res.success && res.data) {
+      setImportMsg(`匯入完成: 成功 ${res.data.ok} / 失敗 ${res.data.fail} / 共 ${res.data.total}`);
+      setImportRows(null);
+      load();
+    } else {
+      setImportMsg(res.error || '匯入失敗');
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-davis-navy">產品管理</h1>
-        {canEdit && (
-          <button onClick={() => setEditing({ ...EMPTY_PRODUCT })} className="btn-davis flex items-center gap-1 text-sm">
-            <Plus size={16} /> 新增
+        <div className="flex gap-2 items-center flex-wrap">
+          <button onClick={handleExport} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+            <Download size={14} /> 匯出 Excel
           </button>
-        )}
+          <button onClick={handleTemplate} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+            <FileSpreadsheet size={14} /> 下載範本
+          </button>
+          {canEdit && (
+            <>
+              <button onClick={() => fileRef.current?.click()} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                <Upload size={14} /> 匯入 Excel
+              </button>
+              <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFileSelect} className="hidden" />
+              <button onClick={() => setEditing({ ...EMPTY_PRODUCT })} className="btn-davis flex items-center gap-1 text-sm">
+                <Plus size={16} /> 新增
+              </button>
+            </>
+          )}
+        </div>
       </div>
+
+      {importMsg && <p className={`text-sm mb-3 ${importMsg.includes('失敗') ? 'text-red-500' : 'text-green-600'}`}>{importMsg}</p>}
+
+      {/* Import Preview Modal */}
+      {importRows && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setImportRows(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-davis-navy">匯入預覽 ({importRows.length} 筆)</h2>
+              <button onClick={() => setImportRows(null)}><X size={20} className="text-gray-400" /></button>
+            </div>
+            <div className="overflow-x-auto max-h-[50vh] overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="px-2 py-2 text-left">狀態</th>
+                    <th className="px-2 py-2 text-left">product_key</th>
+                    <th className="px-2 py-2 text-left">name_zh</th>
+                    <th className="px-2 py-2 text-left">category</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {importRows.map((row, i) => {
+                    const key = String(row.product_key || '');
+                    const isNew = key && !existingKeys.has(key);
+                    const isUpdate = key && existingKeys.has(key);
+                    return (
+                      <tr key={i} className="border-b">
+                        <td className="px-2 py-1.5">
+                          {!key ? <span className="text-gray-400">略過</span>
+                            : isNew ? <span className="text-green-600 font-medium">新增</span>
+                            : isUpdate ? <span className="text-blue-600 font-medium">更新</span>
+                            : null}
+                        </td>
+                        <td className="px-2 py-1.5 font-mono">{key || '—'}</td>
+                        <td className="px-2 py-1.5">{String(row.name_zh || '')}</td>
+                        <td className="px-2 py-1.5">{String(row.category || '')}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {importMsg && <p className="text-red-500 text-sm mt-3">{importMsg}</p>}
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setImportRows(null)} className="btn-davis-outline flex-1">取消</button>
+              <button onClick={handleImport} disabled={importing} className="btn-davis flex-1 disabled:opacity-50">
+                {importing ? '匯入中...' : '確認匯入'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <p className="text-gray-400 text-center py-12">載入中...</p>

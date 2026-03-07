@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AdminApp';
 import { adminApi } from '@/lib/api';
-import { Pencil, X, Info, Plus, Trash2 } from 'lucide-react';
+import { Pencil, X, Info, Plus, Trash2, Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { exportExcel, downloadTemplate, parseExcel } from '@/lib/excel';
 
 interface Breed {
   id: number;
@@ -40,6 +41,12 @@ const EMPTY_BREED: Omit<Breed, 'id'> = {
   is_active: true,
 };
 
+const EXPORT_COLUMNS = [
+  'name', 'name_en', 'name_cn', 'name_ja', 'species',
+  'coat_types', 'emoji', 'davis_breed_id', 'davis_product_keys',
+  'coat_characteristics',
+];
+
 export default function BreedManager() {
   const { token, role } = useAuth();
   const canEdit = role === 'admin' || role === 'editor';
@@ -51,6 +58,12 @@ export default function BreedManager() {
   const [msg, setMsg] = useState('');
   const [filter, setFilter] = useState<'all' | 'dog' | 'cat'>('all');
   const [deleting, setDeleting] = useState<Breed | null>(null);
+
+  // Import state
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [importRows, setImportRows] = useState<Record<string, unknown>[] | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState('');
 
   const load = () => {
     setLoading(true);
@@ -118,6 +131,55 @@ export default function BreedManager() {
       load();
     } else {
       setMsg(res.error || '刪除失敗');
+    }
+  };
+
+  const handleExport = () => {
+    const date = new Date().toISOString().slice(0, 10);
+    exportExcel(breeds as unknown as Record<string, unknown>[], EXPORT_COLUMNS, `davis-breeds-${date}.xlsx`);
+  };
+
+  const handleTemplate = () => {
+    downloadTemplate(EXPORT_COLUMNS, 'davis-breeds-template.xlsx');
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const rows = await parseExcel(file);
+      // Convert comma-separated strings to arrays for coat_types and davis_product_keys
+      for (const row of rows) {
+        if (typeof row.coat_types === 'string') {
+          row.coat_types = (row.coat_types as string).split(',').map(s => s.trim()).filter(Boolean);
+        }
+        if (typeof row.davis_product_keys === 'string') {
+          row.davis_product_keys = (row.davis_product_keys as string).split(',').map(s => s.trim()).filter(Boolean);
+        }
+      }
+      setImportRows(rows);
+      setImportMsg('');
+    } catch {
+      setImportMsg('Excel 檔案解析失敗');
+    }
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const existingNames = new Set(breeds.map(b => b.name));
+  const existingBreedIds = new Set(breeds.filter(b => b.davis_breed_id).map(b => b.davis_breed_id));
+
+  const handleImport = async () => {
+    if (!importRows) return;
+    setImporting(true);
+    setImportMsg('');
+    const res = await adminApi.importBreeds(token, importRows);
+    setImporting(false);
+    if (res.success && res.data) {
+      setImportMsg(`匯入完成: 成功 ${res.data.ok} / 失敗 ${res.data.fail} / 共 ${res.data.total}`);
+      setImportRows(null);
+      load();
+    } else {
+      setImportMsg(res.error || '匯入失敗');
     }
   };
 
@@ -240,7 +302,7 @@ export default function BreedManager() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-davis-navy">品種管理</h1>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
           {(['all', 'dog', 'cat'] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-full text-xs ${filter === f ? 'bg-davis-blue text-white' : 'bg-gray-100 text-gray-600'}`}
@@ -248,14 +310,26 @@ export default function BreedManager() {
               {f === 'all' ? '全部' : f === 'dog' ? '狗' : '貓'}
             </button>
           ))}
+          <button onClick={handleExport} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+            <Download size={14} /> 匯出
+          </button>
+          <button onClick={handleTemplate} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+            <FileSpreadsheet size={14} /> 範本
+          </button>
           {canEdit && (
-            <button
-              onClick={() => { setCreating({ ...EMPTY_BREED }); setMsg(''); }}
-              className="text-sm flex items-center gap-1 ml-2 px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: '#D4A843' }}
-            >
-              <Plus size={16} /> 新增品種
-            </button>
+            <>
+              <button onClick={() => fileRef.current?.click()} className="flex items-center gap-1 px-3 py-1.5 border rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                <Upload size={14} /> 匯入
+              </button>
+              <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFileSelect} className="hidden" />
+              <button
+                onClick={() => { setCreating({ ...EMPTY_BREED }); setMsg(''); }}
+                className="text-sm flex items-center gap-1 px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: '#D4A843' }}
+              >
+                <Plus size={16} /> 新增品種
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -267,7 +341,58 @@ export default function BreedManager() {
         </span>
       </div>
 
+      {importMsg && <p className={`text-sm mb-3 ${importMsg.includes('失敗') ? 'text-red-500' : 'text-green-600'}`}>{importMsg}</p>}
       {msg && !editing && !creating && <p className="text-red-500 text-sm mb-3">{msg}</p>}
+
+      {/* Import Preview Modal */}
+      {importRows && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setImportRows(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-davis-navy">匯入預覽 ({importRows.length} 筆)</h2>
+              <button onClick={() => setImportRows(null)}><X size={20} className="text-gray-400" /></button>
+            </div>
+            <div className="overflow-x-auto max-h-[50vh] overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="px-2 py-2 text-left">狀態</th>
+                    <th className="px-2 py-2 text-left">name</th>
+                    <th className="px-2 py-2 text-left">species</th>
+                    <th className="px-2 py-2 text-left">davis_breed_id</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {importRows.map((row, i) => {
+                    const name = String(row.name || '');
+                    const bid = String(row.davis_breed_id || '');
+                    const isExisting = (bid && existingBreedIds.has(bid)) || existingNames.has(name);
+                    return (
+                      <tr key={i} className="border-b">
+                        <td className="px-2 py-1.5">
+                          {!name ? <span className="text-gray-400">略過</span>
+                            : isExisting ? <span className="text-blue-600 font-medium">更新</span>
+                            : <span className="text-green-600 font-medium">新增</span>}
+                        </td>
+                        <td className="px-2 py-1.5">{name || '—'}</td>
+                        <td className="px-2 py-1.5">{String(row.species || '')}</td>
+                        <td className="px-2 py-1.5 font-mono">{bid || '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {importMsg && <p className="text-red-500 text-sm mt-3">{importMsg}</p>}
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setImportRows(null)} className="btn-davis-outline flex-1">取消</button>
+              <button onClick={handleImport} disabled={importing} className="btn-davis flex-1 disabled:opacity-50">
+                {importing ? '匯入中...' : '確認匯入'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <p className="text-gray-400 text-center py-12">載入中...</p>

@@ -1,5 +1,5 @@
 import type { Handler } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { corsHeaders } from './lib/cors';
 
@@ -66,6 +66,35 @@ function getSupa() {
 }
 
 // ============================================================
+// Audit Log Helper
+// ============================================================
+async function auditLog(
+  sb: SupabaseClient,
+  user: { username: string; role: string },
+  action: string,
+  targetType: string,
+  targetId: string | null,
+  targetName: string | null,
+  changes: { before?: unknown; after?: unknown } | null,
+  ip: string,
+) {
+  try {
+    await sb.from('davis_audit_log').insert({
+      username: user.username,
+      role: user.role,
+      action,
+      target_type: targetType,
+      target_id: targetId,
+      target_name: targetName,
+      changes,
+      ip_address: ip,
+    });
+  } catch {
+    // Never let audit log failure break main operation
+  }
+}
+
+// ============================================================
 // Handler
 // ============================================================
 const handler: Handler = async (event) => {
@@ -96,6 +125,7 @@ const handler: Handler = async (event) => {
     const adminPw = process.env.DAVIS_ADMIN_PASSWORD || '';
 
     if (adminUser && username === adminUser && password === adminPw) {
+      auditLog(sb, { username: String(username), role: 'admin' }, 'login', 'user', String(username), null, null, clientIp);
       return json(200, {
         ok: true,
         token: makeToken(String(username), 'admin'),
@@ -110,6 +140,7 @@ const handler: Handler = async (event) => {
       .eq('username', String(username));
     const user = users?.[0];
     if (user && user.password_hash === hashPw(String(password))) {
+      auditLog(sb, { username: String(username), role: user.role }, 'login', 'user', String(username), null, null, clientIp);
       return json(200, {
         ok: true,
         token: makeToken(String(username), user.role),
@@ -126,7 +157,7 @@ const handler: Handler = async (event) => {
   if (!currentUser) return json(401, { error: '未授權' }, headers);
   const isAdmin = currentUser.role === 'admin';
   const isEditor = currentUser.role === 'editor';
-  const canEdit = isAdmin || isEditor; // admin & editor can CRUD products/breeds/certs
+  const canEdit = isAdmin || isEditor;
 
   // ── Me ──
   if (path === '/me' && method === 'GET') {
@@ -172,6 +203,29 @@ const handler: Handler = async (event) => {
     return json(200, { breeds: data || [] }, headers);
   }
 
+  // ── Audit Log ──
+  if (path === '/audit-log' && method === 'GET') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const limit = parseInt(event.queryStringParameters?.limit || '100') || 100;
+    const offset = parseInt(event.queryStringParameters?.offset || '0') || 0;
+    const action = event.queryStringParameters?.action || '';
+    const user = event.queryStringParameters?.user || '';
+    const from = event.queryStringParameters?.from || '';
+    const to = event.queryStringParameters?.to || '';
+
+    let query = sb.from('davis_audit_log').select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (action) query = query.eq('action', action);
+    if (user) query = query.eq('username', user);
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to + 'T23:59:59.999Z');
+
+    const { data, count } = await query;
+    return json(200, { logs: data || [], total: count || 0 }, headers);
+  }
+
   // ── Analytics summary ──
   if (path === '/analytics/summary' && method === 'GET') {
     const days = parseInt(event.queryStringParameters?.days || '30') || 30;
@@ -187,7 +241,6 @@ const handler: Handler = async (event) => {
       sb.from('davis_analytics').select('tokens_in,tokens_out').gte('created_at', yearStart),
     ]);
 
-    // Daily counts
     const dailyMap: Record<string, number> = {};
     (dailyR.data || []).forEach((r: { created_at: string }) => {
       const d = r.created_at.slice(0, 10);
@@ -195,7 +248,6 @@ const handler: Handler = async (event) => {
     });
     const daily = Object.entries(dailyMap).map(([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date));
 
-    // Top breeds
     const breedMap: Record<string, number> = {};
     (breedR.data || []).forEach((r: { breed: string }) => {
       const b = r.breed || '未知';
@@ -230,20 +282,37 @@ const handler: Handler = async (event) => {
     return json(200, { users: data || [] }, headers);
   }
 
-  // ══ Editor + Admin: Products, Breeds, Certs CRUD ══
+  // ══ Editor + Admin: Products, Breeds CRUD ══
 
   // ── Products CRUD ──
   if (path === '/products' && method === 'POST') {
     if (!canEdit) return json(403, { error: '權限不足' }, headers);
     if (!body.product_key) return json(400, { error: '缺少 product_key' }, headers);
+
+    // Fetch existing for diff
+    const { data: existing } = await sb.from('davis_products').select('*').eq('product_key', String(body.product_key)).maybeSingle();
+    const isCreate = !existing;
+
     const { error } = await sb.from('davis_products').upsert(body, { onConflict: 'product_key' });
+    if (!error) {
+      auditLog(sb, currentUser,
+        isCreate ? 'create_product' : 'update_product',
+        'product', String(body.product_key), String(body.name_zh || body.product_key),
+        { before: existing || null, after: body },
+        clientIp,
+      );
+    }
     return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
   }
 
   if (path.startsWith('/products/') && method === 'DELETE') {
     if (!canEdit) return json(403, { error: '權限不足' }, headers);
     const productKey = decodeURIComponent(path.split('/products/')[1]);
+
+    const { data: existing } = await sb.from('davis_products').select('*').eq('product_key', productKey).maybeSingle();
     await sb.from('davis_products').delete().eq('product_key', productKey);
+    auditLog(sb, currentUser, 'delete_product', 'product', productKey, existing?.name_zh || productKey,
+      { before: existing || null, after: null }, clientIp);
     return json(200, { ok: true }, headers);
   }
 
@@ -256,6 +325,8 @@ const handler: Handler = async (event) => {
       const { error } = await sb.from('davis_products').upsert(row, { onConflict: 'product_key' });
       if (error) fail++; else ok++;
     }
+    auditLog(sb, currentUser, 'import_products', 'product', null, null,
+      { before: null, after: { total: rows.length, ok, fail } }, clientIp);
     return json(200, { ok, fail, total: rows.length }, headers);
   }
 
@@ -263,18 +334,42 @@ const handler: Handler = async (event) => {
   if (path === '/breeds' && method === 'POST') {
     if (!canEdit) return json(403, { error: '權限不足' }, headers);
     if (!body.name) return json(400, { error: '缺少 name' }, headers);
+
+    const lookupKey = body.davis_breed_id ? String(body.davis_breed_id) : null;
+    let existing = null;
+    if (lookupKey) {
+      const r = await sb.from('breed_groups').select('*').eq('davis_breed_id', lookupKey).maybeSingle();
+      existing = r.data;
+    }
+    const isCreate = !existing;
+
     const { error } = await sb.from('breed_groups').upsert(body, { onConflict: 'davis_breed_id' });
+    if (!error) {
+      auditLog(sb, currentUser,
+        isCreate ? 'create_breed' : 'update_breed',
+        'breed', lookupKey || String(body.name), String(body.name),
+        { before: existing || null, after: body },
+        clientIp,
+      );
+    }
     return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
   }
 
   if (path.startsWith('/breeds/') && method === 'DELETE') {
     if (!canEdit) return json(403, { error: '權限不足' }, headers);
     const breedId = decodeURIComponent(path.split('/breeds/')[1]);
-    // Support both numeric id and davis_breed_id
     const isNumeric = /^\d+$/.test(breedId);
+
+    const { data: existing } = isNumeric
+      ? await sb.from('breed_groups').select('*').eq('id', Number(breedId)).maybeSingle()
+      : await sb.from('breed_groups').select('*').eq('davis_breed_id', breedId).maybeSingle();
+
     const { error } = isNumeric
       ? await sb.from('breed_groups').delete().eq('id', Number(breedId))
       : await sb.from('breed_groups').delete().eq('davis_breed_id', breedId);
+
+    auditLog(sb, currentUser, 'delete_breed', 'breed', breedId, existing?.name || breedId,
+      { before: existing || null, after: null }, clientIp);
     return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
   }
 
@@ -287,6 +382,8 @@ const handler: Handler = async (event) => {
       const { error } = await sb.from('breed_groups').upsert(row, { onConflict: 'davis_breed_id' });
       if (error) fail++; else ok++;
     }
+    auditLog(sb, currentUser, 'import_breeds', 'breed', null, null,
+      { before: null, after: { total: rows.length, ok, fail } }, clientIp);
     return json(200, { ok, fail, total: rows.length }, headers);
   }
 
@@ -300,23 +397,24 @@ const handler: Handler = async (event) => {
       'ai_pricing', 'site_title', 'site_description',
       'contact_line', 'contact_email', 'certify_enabled', 'share_enabled',
     ];
+    const changedKeys: string[] = [];
     for (const [key, value] of Object.entries(body)) {
       if (!ALLOWED_KEYS.includes(key)) continue;
+      changedKeys.push(key);
       await sb.from('davis_settings').upsert({
         key,
         value: JSON.stringify(value),
         updated_at: new Date().toISOString(),
       }, { onConflict: 'key' });
     }
+    auditLog(sb, currentUser, 'update_settings', 'settings', null, changedKeys.join(', '),
+      { before: null, after: body }, clientIp);
     return json(200, { ok: true }, headers);
   }
 
   // ── User CRUD ──
   if (path === '/users' && method === 'POST') {
     const { username, password, role, display_name } = body;
-    console.log('[admin] Create user request:', JSON.stringify({ username, role, display_name, hasPassword: !!password }));
-    console.log('[admin] Supabase URL exists:', !!process.env.SUPABASE_URL);
-    console.log('[admin] Service role key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
     if (!username || !password) return json(400, { error: '缺少帳號或密碼' }, headers);
     if (String(password).length < 8) return json(400, { error: '密碼至少 8 字元' }, headers);
     if (username === process.env.DAVIS_ADMIN_USERNAME) return json(400, { error: '不可建立與主管理員相同的帳號' }, headers);
@@ -328,22 +426,25 @@ const handler: Handler = async (event) => {
       display_name: String(display_name || username),
       updated_at: new Date().toISOString(),
     };
-    console.log('[admin] Inserting user:', JSON.stringify({ ...insertData, password_hash: '[HIDDEN]' }));
     const { error } = await sb.from('davis_users').insert(insertData);
     if (error) {
-      console.error('[admin] Create user error:', JSON.stringify(error));
       const msg = error.code === '23505' ? '使用者名稱已存在'
         : error.code === '42P01' ? 'davis_users 資料表不存在，請先建立'
         : error.message || '建立使用者失敗';
       return json(500, { error: msg }, headers);
     }
+    auditLog(sb, currentUser, 'create_user', 'user', String(username), String(display_name || username),
+      { before: null, after: { username, role: safeRole, display_name: display_name || username } }, clientIp);
     return json(200, { ok: true }, headers);
   }
 
   if (path.startsWith('/users/') && !path.includes('reset-password') && method === 'DELETE') {
     const username = decodeURIComponent(path.split('/users/')[1]);
     if (username === process.env.DAVIS_ADMIN_USERNAME) return json(400, { error: '不可刪除主管理員' }, headers);
+    const { data: existing } = await sb.from('davis_users').select('username,role,display_name').eq('username', username).maybeSingle();
     await sb.from('davis_users').delete().eq('username', username);
+    auditLog(sb, currentUser, 'delete_user', 'user', username, existing?.display_name || username,
+      { before: existing || null, after: null }, clientIp);
     return json(200, { ok: true }, headers);
   }
 
@@ -355,6 +456,8 @@ const handler: Handler = async (event) => {
       password_hash: hashPw(String(new_password)),
       updated_at: new Date().toISOString(),
     }).eq('username', String(username));
+    auditLog(sb, currentUser, 'update_user', 'user', String(username), null,
+      { before: null, after: { action: 'reset_password' } }, clientIp);
     return json(200, { ok: true }, headers);
   }
 

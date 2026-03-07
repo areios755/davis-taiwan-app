@@ -190,6 +190,25 @@ export const adminApi = {
     });
   },
 
+  // Breed import
+  importBreeds(token: string, rows: Record<string, unknown>[]) {
+    return adminFetch<{ ok: number; fail: number; total: number }>('/breeds/import', token, {
+      method: 'POST', body: JSON.stringify({ rows }),
+    });
+  },
+
+  // Audit Log
+  getAuditLog(token: string, params?: { limit?: number; offset?: number; action?: string; user?: string; from?: string; to?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.offset) qs.set('offset', String(params.offset));
+    if (params?.action) qs.set('action', params.action);
+    if (params?.user) qs.set('user', params.user);
+    if (params?.from) qs.set('from', params.from);
+    if (params?.to) qs.set('to', params.to);
+    return adminFetch<{ logs: Record<string, unknown>[]; total: number }>(`/audit-log?${qs.toString()}`, token);
+  },
+
   // AI Assist
   aiAssist(token: string, text: string) {
     return apiFetch<{ breeds: unknown[]; products: unknown[]; summary: string }>('/ai-assist', {
