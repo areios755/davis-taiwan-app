@@ -300,17 +300,30 @@ const handler: Handler = async (event) => {
   // ── User CRUD ──
   if (path === '/users' && method === 'POST') {
     const { username, password, role, display_name } = body;
+    console.log('[admin] Create user request:', JSON.stringify({ username, role, display_name, hasPassword: !!password }));
+    console.log('[admin] Supabase URL exists:', !!process.env.SUPABASE_URL);
+    console.log('[admin] Service role key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
     if (!username || !password) return json(400, { error: '缺少帳號或密碼' }, headers);
+    if (String(password).length < 8) return json(400, { error: '密碼至少 8 字元' }, headers);
     if (username === process.env.DAVIS_ADMIN_USERNAME) return json(400, { error: '不可建立與主管理員相同的帳號' }, headers);
-    const safeRole = ['viewer', 'editor'].includes(String(role)) ? String(role) : 'viewer';
-    const { error } = await sb.from('davis_users').insert({
+    const safeRole = ['viewer', 'editor', 'admin'].includes(String(role)) ? String(role) : 'viewer';
+    const insertData = {
       username: String(username),
       password_hash: hashPw(String(password)),
       role: safeRole,
       display_name: String(display_name || username),
       updated_at: new Date().toISOString(),
-    });
-    return json(error ? 500 : 200, { ok: !error }, headers);
+    };
+    console.log('[admin] Inserting user:', JSON.stringify({ ...insertData, password_hash: '[HIDDEN]' }));
+    const { error } = await sb.from('davis_users').insert(insertData);
+    if (error) {
+      console.error('[admin] Create user error:', JSON.stringify(error));
+      const msg = error.code === '23505' ? '使用者名稱已存在'
+        : error.code === '42P01' ? 'davis_users 資料表不存在，請先建立'
+        : error.message || '建立使用者失敗';
+      return json(500, { error: msg }, headers);
+    }
+    return json(200, { ok: true }, headers);
   }
 
   if (path.startsWith('/users/') && !path.includes('reset-password') && method === 'DELETE') {
