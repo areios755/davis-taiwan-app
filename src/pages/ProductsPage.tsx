@@ -26,6 +26,7 @@ export default function ProductsPage() {
   const { t, i18n } = useTranslation();
   const [category, setCategory] = useState<Category>('all');
   const [products, setProducts] = useState<DavisProduct[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const url = import.meta.env.VITE_SUPABASE_URL;
@@ -57,17 +58,21 @@ export default function ProductsPage() {
                 note_en: (r.note_en as string) || undefined,
                 note_ja: (r.note_ja as string) || undefined,
                 note_cn: (r.note_cn as string) || undefined,
+                image_url: (r.image_url as string) || undefined,
                 dilution: (r.dilution as string) || '',
                 dwell_time: (r.dwell_time as string) || '',
               })),
             );
+            setLoaded(true);
             return;
           }
           setProducts(Object.values(PRODUCTS));
+          setLoaded(true);
         })
-        .catch(() => setProducts(Object.values(PRODUCTS)));
+        .catch(() => { setProducts(Object.values(PRODUCTS)); setLoaded(true); });
     } else {
       setProducts(Object.values(PRODUCTS));
+      setLoaded(true);
     }
   }, []);
 
@@ -75,6 +80,12 @@ export default function ProductsPage() {
     () => (category === 'all' ? products : products.filter((p) => p.category === category)),
     [products, category],
   );
+
+  // Only show category tabs that have at least one product
+  const availableCategories = useMemo(() => {
+    const cats = new Set(products.map((p) => p.category));
+    return CATEGORIES.filter((c) => c === 'all' || cats.has(c));
+  }, [products]);
 
   const lang = i18n.language;
 
@@ -84,7 +95,7 @@ export default function ProductsPage() {
 
       {/* Category tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
-        {CATEGORIES.map((cat) => (
+        {availableCategories.map((cat) => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
@@ -100,24 +111,35 @@ export default function ProductsPage() {
       </div>
 
       {/* Product grid */}
-      {filtered.length === 0 ? (
+      {!loaded ? (
         <p className="text-gray-400 text-center py-12">{t('common.loading')}</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-gray-400 text-center py-12">此分類暫無產品</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((p) => (
             <Link
               key={p.id}
               to={`/products/${p.id}`}
-              className="card-davis hover:shadow-md transition-shadow"
+              className="card-davis hover:shadow-md transition-shadow flex gap-4"
             >
-              <p className="text-xs text-davis-blue font-medium mb-1">
-                {t(`products.${p.category}`)}
-              </p>
-              <h3 className="font-bold text-davis-navy">{getLocaleName(p, lang)}</h3>
-              <p className="text-sm text-gray-500 mt-1 line-clamp-2">{getLocaleTag(p, lang)}</p>
-              <div className="flex gap-3 text-xs text-gray-400 mt-2">
-                <span>稀釋 {p.dilution}</span>
-                <span>停留 {p.dwell_time}</span>
+              {p.image_url && (
+                <img
+                  src={p.image_url}
+                  alt={getLocaleName(p, lang)}
+                  className="w-20 h-20 object-contain rounded-lg flex-shrink-0"
+                />
+              )}
+              <div className="min-w-0 flex-1">
+                <span className="inline-block text-xs text-davis-blue font-medium bg-davis-light rounded-full px-2 py-0.5 mb-1">
+                  {t(`products.${p.category}`)}
+                </span>
+                <h3 className="font-bold text-davis-navy">{getLocaleName(p, lang)}</h3>
+                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{getLocaleTag(p, lang)}</p>
+                <div className="flex gap-3 text-xs text-gray-400 mt-2">
+                  <span>{t('step.dilution')} {p.dilution}</span>
+                  <span>{t('step.dwell_time')} {p.dwell_time}</span>
+                </div>
               </div>
             </Link>
           ))}

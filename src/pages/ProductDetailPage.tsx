@@ -33,6 +33,16 @@ export default function ProductDetailPage() {
         {t('common.back')}
       </Link>
 
+      {product.image_url && (
+        <div className="flex justify-center mb-6">
+          <img
+            src={product.image_url}
+            alt={l(product, 'name', lang)}
+            className="h-48 object-contain rounded-xl"
+          />
+        </div>
+      )}
+
       <div className="bg-davis-light rounded-lg px-3 py-1 inline-block text-xs text-davis-blue font-medium mb-2">
         {t(`products.${product.category}`)}
       </div>

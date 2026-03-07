@@ -41,6 +41,36 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Official Links */}
+      <section className="py-8 px-4 max-w-4xl mx-auto">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="https://davistaiwan.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 card-davis p-4 hover:shadow-md transition-shadow flex-1"
+          >
+            <span className="text-2xl">🌐</span>
+            <div>
+              <p className="font-bold text-davis-navy">davistaiwan.com</p>
+              <p className="text-xs text-gray-500">{t('footer.powered')}</p>
+            </div>
+          </a>
+          <a
+            href="https://line.me/R/ti/p/@davistaiwan"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 card-davis p-4 hover:shadow-md transition-shadow flex-1"
+          >
+            <span className="text-2xl">💬</span>
+            <div>
+              <p className="font-bold text-davis-navy">LINE @davistaiwan</p>
+              <p className="text-xs text-gray-500">{t('cert.description')}</p>
+            </div>
+          </a>
+        </div>
+      </section>
+
       {/* Certification */}
       <section className="bg-davis-light py-16 px-4 text-center">
         <Award className="mx-auto text-davis-gold mb-4" size={48} />
