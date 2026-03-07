@@ -10,9 +10,11 @@ import { getCurrentSeason } from '@/data/seasons';
 import { fetchBreeds } from '@/data/breeds';
 import type { AnalysisResult, TierLevel, AppLocale, DavisBreed } from '@/types';
 import { getBreedCombo, getComboProducts } from '@/lib/breed-combos';
-import { Camera, Search, Share2, ExternalLink, MessageCircle } from 'lucide-react';
+import { generateShareCard, shareOrDownload, compressPhotoForShare } from '@/lib/share-card-generator';
+import { Camera, Search, ExternalLink, MessageCircle, Image, Link2, Download, X } from 'lucide-react';
 
 type Phase = 'upload' | 'analyzing' | 'result' | 'error';
+type CardSize = 'post' | 'story';
 
 export default function AnalyzePage() {
   const { t, i18n } = useTranslation();
@@ -23,6 +25,7 @@ export default function AnalyzePage() {
   const [selectedTier, setSelectedTier] = useState<TierLevel>('advanced');
   const [error, setError] = useState<string>('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [breedQuery, setBreedQuery] = useState(embed.breed ?? '');
   const [analyzingStep, setAnalyzingStep] = useState(0);
   const [dragOver, setDragOver] = useState(false);
@@ -30,6 +33,10 @@ export default function AnalyzePage() {
   const [sharing, setSharing] = useState(false);
   const [breeds, setBreeds] = useState<DavisBreed[]>([]);
   const [breedTab, setBreedTab] = useState<'dog' | 'cat'>('dog');
+  const [cardBlob, setCardBlob] = useState<Blob | null>(null);
+  const [cardPreview, setCardPreview] = useState<string | null>(null);
+  const [cardSize, setCardSize] = useState<CardSize>('post');
+  const [generatingCard, setGeneratingCard] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load breeds dynamically
@@ -51,6 +58,11 @@ export default function AnalyzePage() {
       const preview = URL.createObjectURL(file);
       setImagePreview(preview);
       setPhase('analyzing');
+
+      // Keep full-res data URL for share card generation
+      const reader = new FileReader();
+      reader.onload = () => setPhotoDataUrl(reader.result as string);
+      reader.readAsDataURL(file);
 
       const base64 = await processImage(file);
       const season = getCurrentSeason();
@@ -119,22 +131,69 @@ export default function AnalyzePage() {
     postEmbedResult(result, selectedTier, embed.hotel, embed.weight ?? null, embed.breed_group_id);
   }, [result, selectedTier, embed]);
 
-  // Share result
-  const handleShare = useCallback(async () => {
+  // Generate share card
+  const handleGenerateCard = useCallback(async (size: CardSize) => {
+    if (!result) return;
+    setGeneratingCard(true);
+    setCardSize(size);
+    try {
+      const combo = getBreedCombo(result.breed, result.color);
+      const blob = await generateShareCard({
+        breed: result.breed,
+        petType: result.pet_type,
+        color: result.color,
+        coatAnalysis: result.coat_analysis,
+        combo,
+        photoDataUrl: photoDataUrl,
+      }, size);
+      setCardBlob(blob);
+      const url = URL.createObjectURL(blob);
+      setCardPreview(url);
+    } catch {
+      // Fallback: generate without photo
+      const combo = getBreedCombo(result.breed, result.color);
+      const blob = await generateShareCard({
+        breed: result.breed,
+        petType: result.pet_type,
+        color: result.color,
+        coatAnalysis: result.coat_analysis,
+        combo,
+      }, size);
+      setCardBlob(blob);
+      setCardPreview(URL.createObjectURL(blob));
+    }
+    setGeneratingCard(false);
+  }, [result, photoDataUrl]);
+
+  // Share link (copy)
+  const handleCopyLink = useCallback(async () => {
     if (!result) return;
     setSharing(true);
-    const res = await createShare({ result, breed: result.breed, tier: selectedTier });
+
+    // Include compressed photo in result_data
+    let shareResult: Record<string, unknown> = { ...result };
+    if (photoDataUrl) {
+      try {
+        const compressed = await compressPhotoForShare(photoDataUrl);
+        shareResult = { ...result, photo_data: compressed };
+      } catch { /* skip photo */ }
+    }
+
+    const res = await createShare({ result: shareResult, breed: result.breed, tier: selectedTier });
     if (res.success && res.data) {
       const url = `${window.location.origin}/r/${res.data.id}`;
       setShareUrl(url);
-      if (navigator.share) {
-        navigator.share({ title: `Davis AI - ${result.breed}`, url }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(url).catch(() => {});
-      }
+      await navigator.clipboard.writeText(url).catch(() => {});
     }
     setSharing(false);
-  }, [result, selectedTier]);
+  }, [result, selectedTier, photoDataUrl]);
+
+  // Save / share card
+  const handleSaveCard = useCallback(async () => {
+    if (!cardBlob) return;
+    const filename = `davis-${result?.breed ?? 'pet'}-${cardSize}.jpg`;
+    await shareOrDownload(cardBlob, filename, `Davis AI - ${result?.breed ?? ''}`);
+  }, [cardBlob, cardSize, result]);
 
   // Drag & drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragOver(true); }, []);
@@ -346,21 +405,93 @@ export default function AnalyzePage() {
               </button>
             ) : (
               <>
-                <button onClick={() => { setPhase('upload'); setResult(null); setShareUrl(null); }} className="btn-davis-outline flex-1">
+                <button onClick={() => { setPhase('upload'); setResult(null); setShareUrl(null); setCardPreview(null); setCardBlob(null); setPhotoDataUrl(null); }} className="btn-davis-outline flex-1">
                   {t('analyze.retry')}
                 </button>
-                <button onClick={handleShare} disabled={sharing} className="btn-davis flex-1 disabled:opacity-50">
-                  <Share2 className="mr-2" size={16} />
-                  {sharing ? '...' : t('analyze.share')}
+                <button
+                  onClick={() => handleGenerateCard('post')}
+                  disabled={generatingCard}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white transition-all disabled:opacity-50"
+                  style={{ backgroundColor: '#D4A843' }}
+                >
+                  <Image size={16} />
+                  {generatingCard ? '生成中...' : '製作分享卡片'}
                 </button>
               </>
             )}
           </div>
 
+          {/* Secondary: copy link */}
+          {!embed.isEmbed && (
+            <div className="flex gap-3">
+              <button
+                onClick={handleCopyLink}
+                disabled={sharing}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-davis-blue border border-davis-blue/20 hover:bg-davis-light transition-colors disabled:opacity-50"
+              >
+                <Link2 size={14} />
+                {sharing ? '...' : shareUrl ? '已複製連結' : '複製連結'}
+              </button>
+            </div>
+          )}
+
           {shareUrl && (
             <div className="bg-davis-light rounded-xl p-3 text-center text-sm">
               <p className="text-davis-navy font-medium mb-1">分享連結已複製</p>
               <p className="text-davis-blue break-all text-xs">{shareUrl}</p>
+            </div>
+          )}
+
+          {/* Card preview modal */}
+          {cardPreview && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setCardPreview(null); setCardBlob(null); }}>
+              <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                  <h3 className="font-bold text-davis-navy">分享卡片預覽</h3>
+                  <button onClick={() => { setCardPreview(null); setCardBlob(null); }} className="text-gray-400 hover:text-gray-600">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {/* Size toggle */}
+                <div className="flex gap-2 justify-center p-3">
+                  {(['post', 'story'] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => handleGenerateCard(s)}
+                      disabled={generatingCard}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        cardSize === s ? 'bg-davis-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {s === 'post' ? 'IG 貼文 (4:5)' : 'IG 限動 (9:16)'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Preview image */}
+                <div className="px-4 pb-3">
+                  {generatingCard ? (
+                    <div className="flex items-center justify-center py-16">
+                      <div className="animate-spin w-8 h-8 border-2 border-davis-gold border-t-transparent rounded-full" />
+                    </div>
+                  ) : (
+                    <img src={cardPreview} alt="Share card" className="w-full rounded-lg shadow-md" />
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-3 p-4 pt-0">
+                  <button
+                    onClick={handleSaveCard}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white transition-all hover:brightness-110"
+                    style={{ backgroundColor: '#D4A843' }}
+                  >
+                    <Download size={16} />
+                    儲存 / 分享
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

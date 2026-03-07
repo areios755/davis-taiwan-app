@@ -80,7 +80,7 @@ const handler: Handler = async (event) => {
     if (!result) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing result' }) };
 
     const payloadSize = JSON.stringify(result).length;
-    if (payloadSize > 50_000) return { statusCode: 413, headers, body: JSON.stringify({ error: '結果資料過大' }) };
+    if (payloadSize > 500_000) return { statusCode: 413, headers, body: JSON.stringify({ error: '結果資料過大' }) };
 
     // Generate unique ID (retry up to 3x)
     let id = '';
