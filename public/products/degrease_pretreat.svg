@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <rect width="200" height="200" rx="16" fill="#0B1E3D"/>
-  <text x="100" y="85" text-anchor="middle" fill="#D4A843" font-size="16" font-family="sans-serif" font-weight="bold">DAVIS</text>
-  <text x="100" y="115" text-anchor="middle" fill="#FFFFFF" font-size="14" font-family="sans-serif">去油膏前置處理</text>
-  <rect x="60" y="135" width="80" height="3" rx="1.5" fill="#D4A843" opacity="0.5"/>
-</svg>
