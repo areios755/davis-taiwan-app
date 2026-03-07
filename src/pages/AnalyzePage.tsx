@@ -9,7 +9,7 @@ import { postEmbedResult, postEmbedReady } from '@/lib/embed-messaging';
 import { getCurrentSeason } from '@/data/seasons';
 import { fetchBreeds } from '@/data/breeds';
 import type { AnalysisResult, TierLevel, AppLocale, DavisBreed } from '@/types';
-import { getBreedCombo, getComboProducts } from '@/lib/breed-combos';
+import { fetchCombos, getBreedCombo, getComboProducts } from '@/lib/breed-combos';
 import { PRODUCTS, PRODUCT_NAME_MAP } from '@/data/products';
 import { getProductImageSrc } from '@/lib/product-image';
 import { generateShareCard, shareOrDownload, compressPhotoForShare } from '@/lib/share-card-generator';
@@ -41,9 +41,10 @@ export default function AnalyzePage() {
   const [generatingCard, setGeneratingCard] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load breeds dynamically
+  // Load breeds + combos dynamically
   useEffect(() => {
     fetchBreeds().then(setBreeds);
+    fetchCombos();
   }, []);
 
   // Notify parent that embed is ready

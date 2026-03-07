@@ -195,6 +195,24 @@ export const adminApi = {
     });
   },
 
+  // Combos
+  getCombos(token: string) {
+    return adminFetch<{ combos: Record<string, unknown>[] }>('/combos', token);
+  },
+  createCombo(token: string, combo: Record<string, unknown>) {
+    return adminFetch<{ ok: boolean; combo: Record<string, unknown> }>('/combos', token, {
+      method: 'POST', body: JSON.stringify(combo),
+    });
+  },
+  updateCombo(token: string, id: number, data: Record<string, unknown>) {
+    return adminFetch<{ ok: boolean }>(`/combos/${id}`, token, {
+      method: 'PATCH', body: JSON.stringify(data),
+    });
+  },
+  deleteCombo(token: string, id: number) {
+    return adminFetch<{ ok: boolean }>(`/combos/${id}`, token, { method: 'DELETE' });
+  },
+
   // Breed import
   importBreeds(token: string, rows: Record<string, unknown>[]) {
     return adminFetch<{ ok: number; fail: number; total: number }>('/breeds/import', token, {

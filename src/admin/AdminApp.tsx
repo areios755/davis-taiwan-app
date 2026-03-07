@@ -8,10 +8,11 @@ import AnalyticsView from './AnalyticsView';
 import UserManager from './UserManager';
 import AiAssistant from './AiAssistant';
 import CertManager from './CertManager';
+import ComboManager from './ComboManager';
 import AuditLogPage from './AuditLogPage';
 import {
   LayoutDashboard, Package, Dog, Settings, BarChart3,
-  Users, Bot, Award, LogOut, Menu, X, ClipboardList,
+  Users, Bot, Award, LogOut, Menu, X, ClipboardList, Layers,
 } from 'lucide-react';
 
 interface AuthCtx {
@@ -23,12 +24,13 @@ interface AuthCtx {
 const AuthContext = createContext<AuthCtx>({ token: '', role: '', username: '' });
 export function useAuth() { return useContext(AuthContext); }
 
-type Page = 'dashboard' | 'products' | 'breeds' | 'settings' | 'analytics' | 'users' | 'ai' | 'certs' | 'audit';
+type Page = 'dashboard' | 'products' | 'breeds' | 'combos' | 'settings' | 'analytics' | 'users' | 'ai' | 'certs' | 'audit';
 
 const NAV: { id: Page; label: string; icon: typeof LayoutDashboard; minRole?: 'editor' | 'admin' }[] = [
   { id: 'dashboard', label: '儀表板', icon: LayoutDashboard },
   { id: 'products', label: '產品管理', icon: Package },
   { id: 'breeds', label: '品種管理', icon: Dog },
+  { id: 'combos', label: '組合推薦', icon: Layers },
   { id: 'certs', label: '認證審核', icon: Award },
   { id: 'analytics', label: '數據分析', icon: BarChart3 },
   { id: 'ai', label: 'AI 助手', icon: Bot, minRole: 'editor' },
@@ -129,6 +131,7 @@ export default function AdminApp() {
       case 'dashboard': return <Dashboard onNavigate={setPage} />;
       case 'products': return <ProductManager />;
       case 'breeds': return <BreedManager />;
+      case 'combos': return <ComboManager />;
       case 'settings': return <SettingsManager />;
       case 'analytics': return <AnalyticsView />;
       case 'users': return <UserManager />;

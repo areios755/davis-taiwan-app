@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getShare } from '@/lib/api';
-import { getBreedCombo, getComboProducts } from '@/lib/breed-combos';
+import { fetchCombos, getBreedCombo, getComboProducts } from '@/lib/breed-combos';
 import { getProductImageSrc } from '@/lib/product-image';
 import { ExternalLink, MessageCircle } from 'lucide-react';
 import type { AnalysisResult, TierLevel } from '@/types';
@@ -17,6 +17,7 @@ export default function ShareViewPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchCombos();
     if (!id) { setError('缺少分享 ID'); setLoading(false); return; }
 
     getShare(id).then((res) => {

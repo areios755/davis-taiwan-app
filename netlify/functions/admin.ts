@@ -203,6 +203,11 @@ const handler: Handler = async (event) => {
     return json(200, { breeds: data || [] }, headers);
   }
 
+  if (path === '/combos' && method === 'GET') {
+    const { data } = await sb.from('davis_combos').select('*').order('sort_order').order('created_at');
+    return json(200, { combos: data || [] }, headers);
+  }
+
   // ── Audit Log ──
   if (path === '/audit-log' && method === 'GET') {
     if (!canEdit) return json(403, { error: '權限不足' }, headers);
@@ -403,6 +408,65 @@ const handler: Handler = async (event) => {
     return json(200, { ok, fail, total: rows.length }, headers);
   }
 
+  // ── Combos CRUD ──
+  if (path === '/combos' && method === 'POST') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    if (!body.name) return json(400, { error: '缺少 name' }, headers);
+
+    const insertData = {
+      combo_key: body.combo_key || String(body.name).replace(/\s+/g, '_').toLowerCase(),
+      name: body.name,
+      description: body.description || '',
+      target_breeds: body.target_breeds || [],
+      target_needs: body.target_needs || '',
+      products: body.products || [],
+      tips: body.tips || '',
+      is_active: body.is_active !== false,
+      sort_order: typeof body.sort_order === 'number' ? body.sort_order : 0,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await sb.from('davis_combos').insert(insertData).select().single();
+    if (!error) {
+      auditLog(sb, currentUser, 'create_combo', 'combo', data?.id?.toString() || null, String(body.name),
+        { before: null, after: insertData }, clientIp);
+    }
+    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true, combo: data }, headers);
+  }
+
+  if (path.startsWith('/combos/') && method === 'PATCH') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const comboId = parseInt(path.split('/combos/')[1]);
+    if (isNaN(comboId)) return json(400, { error: '無效 ID' }, headers);
+
+    const { data: existing } = await sb.from('davis_combos').select('*').eq('id', comboId).maybeSingle();
+    if (!existing) return json(404, { error: '組合不存在' }, headers);
+
+    const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    for (const key of ['combo_key', 'name', 'description', 'target_breeds', 'target_needs', 'products', 'tips', 'is_active', 'sort_order']) {
+      if (body[key] !== undefined) updateData[key] = body[key];
+    }
+
+    const { error } = await sb.from('davis_combos').update(updateData).eq('id', comboId);
+    if (!error) {
+      auditLog(sb, currentUser, 'update_combo', 'combo', String(comboId), existing.name,
+        { before: existing, after: updateData }, clientIp);
+    }
+    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
+  }
+
+  if (path.startsWith('/combos/') && method === 'DELETE') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const comboId = parseInt(path.split('/combos/')[1]);
+    if (isNaN(comboId)) return json(400, { error: '無效 ID' }, headers);
+
+    const { data: existing } = await sb.from('davis_combos').select('*').eq('id', comboId).maybeSingle();
+    await sb.from('davis_combos').delete().eq('id', comboId);
+    auditLog(sb, currentUser, 'delete_combo', 'combo', String(comboId), existing?.name || '',
+      { before: existing || null, after: null }, clientIp);
+    return json(200, { ok: true }, headers);
+  }
+
   // ══ Admin only: Settings, Users, Seed ══
   if (!isAdmin) return json(403, { error: '僅管理員可執行此操作' }, headers);
 
@@ -479,8 +543,8 @@ const handler: Handler = async (event) => {
 
   // ── Seed ──
   if (path === '/seed' && method === 'POST') {
-    const { products, breeds } = body;
-    let pOk = 0, bOk = 0;
+    const { products, breeds, combos } = body;
+    let pOk = 0, bOk = 0, cOk = 0;
     if (Array.isArray(products)) {
       for (const p of products) {
         const { error } = await sb.from('davis_products').upsert(p as Record<string, unknown>, { onConflict: 'product_key' });
@@ -493,7 +557,13 @@ const handler: Handler = async (event) => {
         if (!error) bOk++;
       }
     }
-    return json(200, { products_seeded: pOk, breeds_seeded: bOk }, headers);
+    if (Array.isArray(combos)) {
+      for (const c of combos) {
+        const { error } = await sb.from('davis_combos').upsert(c as Record<string, unknown>, { onConflict: 'combo_key' });
+        if (!error) cOk++;
+      }
+    }
+    return json(200, { products_seeded: pOk, breeds_seeded: bOk, combos_seeded: cOk }, headers);
   }
 
   return json(404, { error: 'Not found: ' + path }, headers);

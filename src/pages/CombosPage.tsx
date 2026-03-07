@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BREEDS } from '@/data/breeds';
 import { PRODUCTS } from '@/data/products';
 import { getProductImageSrc } from '@/lib/product-image';
-import { getAllCombos, getCombosForBreed } from '@/lib/breed-combos';
+import { fetchCombos, getAllCombos, getCombosForBreed } from '@/lib/breed-combos';
 import type { ProductCombo } from '@/lib/breed-combos';
 import { ExternalLink, MessageCircle, Search } from 'lucide-react';
 
@@ -66,6 +66,9 @@ export default function CombosPage() {
   const [selectedBreed, setSelectedBreed] = useState<string | null>(null);
   const [tab, setTab] = useState<'dog' | 'cat'>('dog');
   const [query, setQuery] = useState('');
+  const [, setReady] = useState(false);
+
+  useEffect(() => { fetchCombos().then(() => setReady(true)); }, []);
 
   const allCombos = getAllCombos();
   const breeds = Object.values(BREEDS).filter((b) => b.pet_type === (tab === 'dog' ? '狗' : '貓'));
@@ -86,10 +89,16 @@ export default function CombosPage() {
       );
     }
     // Show dog or cat combos based on tab
+    const catBreedIds = new Set(Object.values(BREEDS).filter(b => b.pet_type === '貓').map(b => b.id));
+    const isCatCombo = (c: ProductCombo) => {
+      if (c.id.startsWith('cat_')) return true;
+      if (c.target_breeds.length === 0) return false;
+      return c.target_breeds.some(b => catBreedIds.has(b));
+    };
     if (tab === 'cat') {
-      return allCombos.filter((c) => c.id.startsWith('cat_'));
+      return allCombos.filter(isCatCombo);
     }
-    return allCombos.filter((c) => !c.id.startsWith('cat_'));
+    return allCombos.filter(c => !isCatCombo(c));
   }, [selectedBreed, tab, allCombos]);
 
   return (

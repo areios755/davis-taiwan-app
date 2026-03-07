@@ -1,8 +1,9 @@
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PRODUCTS } from '@/data/products';
 import { PRODUCT_REVIEWS } from '@/data/reviews';
-import { getPairedProducts } from '@/lib/breed-combos';
+import { fetchCombos, getPairedProducts } from '@/lib/breed-combos';
 import { getProductImageSrc } from '@/lib/product-image';
 import { ArrowLeft, ExternalLink, Star, MessageCircle } from 'lucide-react';
 import type { DavisProduct } from '@/types';
@@ -16,6 +17,8 @@ export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+
+  useEffect(() => { fetchCombos(); }, []);
 
   const product = id ? PRODUCTS[id] : undefined;
   const reviews = id ? PRODUCT_REVIEWS[id] ?? [] : [];
