@@ -85,7 +85,13 @@ const handler: Handler = async (event: HandlerEvent) => {
 
   try {
     const body = JSON.parse(event.body ?? '{}');
-    const { imageBase64, mediaType, lang, source, is_embed: isEmbed } = body;
+    // Accept both "image" (frontend) and "imageBase64" (legacy) field names
+    const imageBase64 = body.image || body.imageBase64;
+    const { mediaType, lang, source, is_embed: isEmbed } = body;
+
+    console.log('[analyze] Request origin:', origin);
+    console.log('[analyze] Has image:', !!imageBase64, imageBase64 ? `length: ${imageBase64.length}` : 'MISSING');
+    console.log('[analyze] Body keys:', Object.keys(body).join(', '));
 
     if (!imageBase64) return { statusCode: 400, headers, body: JSON.stringify({ error: '缺少圖片' }) };
     if (imageBase64.length > 750_000) return { statusCode: 413, headers, body: JSON.stringify({ error: '圖片太大' }) };
@@ -213,13 +219,15 @@ ${langRule}
       }).then(() => {}, () => {});
     }
 
-    // Return result (matches legacy format for frontend compatibility)
+    // Return result wrapped in { result, tokens } to match frontend AnalyzeResponse type
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        ...parsed,
-        source: isEmbed ? (source || 'embed') : 'direct',
+        result: {
+          ...parsed,
+          source: isEmbed ? (source || 'embed') : 'direct',
+        },
         tokens: { input: tokensIn, output: tokensOut },
       }),
     };
