@@ -502,31 +502,48 @@ export default function AnalyzePage() {
             if (comboProducts.length === 0) return null;
             return (
               <div className="mt-8 border-t border-gray-100 pt-6">
-                <h3 className="text-lg font-bold text-davis-navy mb-1">為您推薦的洗護組合</h3>
-                <p className="text-sm text-davis-gold font-medium mb-1">{combo.name}</p>
-                <p className="text-sm text-gray-500 mb-4">{combo.description}</p>
+                <h3 className="text-lg font-bold text-davis-navy mb-2">為您推薦的洗護組合</h3>
+                <div className="mb-4">
+                  <p className="text-sm font-bold text-[#D4A843]">{combo.name}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">{combo.description}</p>
+                </div>
                 <div className="space-y-3">
                   {combo.steps.map((step) => {
                     const p = comboProducts.find((pr) => pr.id === step.product_key);
                     return (
-                      <div key={step.step} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
-                        <div className="w-7 h-7 rounded-full bg-davis-blue text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                          {step.step}
+                      <div key={step.step} className="flex items-start gap-3 bg-gray-50 border border-gray-100 rounded-xl p-4 shadow-sm">
+                        <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-davis-navy text-[#D4A843] flex items-center justify-center text-sm font-bold">
+                            {step.step}
+                          </div>
+                          {p?.image_url && (
+                            <img src={p.image_url} alt={p.name_zh} className="w-[72px] h-[72px] object-contain rounded-lg bg-white border border-gray-100" />
+                          )}
                         </div>
-                        {p?.image_url && (
-                          <img src={p.image_url} alt={p.name_zh} className="w-12 h-12 object-contain rounded-lg flex-shrink-0" />
-                        )}
                         <div className="min-w-0 flex-1">
                           <span className="text-xs text-davis-blue font-medium">{step.role}</span>
-                          <p className="font-medium text-davis-navy text-sm">{p?.name_zh ?? step.product_key}</p>
-                          {step.note && <p className="text-xs text-gray-400">{step.note}</p>}
+                          <p className="font-bold text-davis-navy text-base leading-tight mt-0.5">{p?.name_zh ?? step.product_key}</p>
+                          {p?.name_en && (
+                            <p className="text-xs text-gray-400 mt-0.5">{p.name_en}</p>
+                          )}
+                          <div className="flex gap-3 mt-1.5 text-xs">
+                            {p?.dilution && (
+                              <span className="text-[#D4A843] font-medium">稀釋 {p.dilution}</span>
+                            )}
+                            {p?.dwell_time && (
+                              <span className="text-[#D4A843] font-medium">停留 {p.dwell_time}</span>
+                            )}
+                          </div>
+                          {step.note && <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{step.note}</p>}
                         </div>
                       </div>
                     );
                   })}
                 </div>
                 {combo.tips && (
-                  <p className="text-xs text-davis-gold bg-yellow-50 rounded-lg p-2 mt-3">💡 {combo.tips}</p>
+                  <div className="mt-3 bg-[#FDF8EF] rounded-xl px-4 py-3">
+                    <p className="text-sm text-[#5D4E37]">💡 {combo.tips}</p>
+                  </div>
                 )}
                 <a
                   href="https://davistaiwan.com"

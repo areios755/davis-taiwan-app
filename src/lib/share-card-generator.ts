@@ -1,12 +1,15 @@
 import type { ProductCombo } from '@/lib/breed-combos';
 import { PRODUCTS } from '@/data/products';
 
-const FONT = "'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif";
+const FONT_ZH = "'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif";
+const FONT_EN = "-apple-system, 'Helvetica Neue', Arial, sans-serif";
 const NAVY = '#0B1E3D';
 const BLUE = '#1A4A9E';
 const GOLD = '#D4A843';
 const WHITE = '#FFFFFF';
 const LIGHT_BG = '#F8F9FA';
+const TIP_BG = '#FDF8EF';
+const TIP_COLOR = '#5D4E37';
 
 type CardSize = 'post' | 'story';
 
@@ -16,7 +19,7 @@ interface CardData {
   color?: string;
   coatAnalysis: string;
   combo: ProductCombo;
-  photoDataUrl?: string | null; // data:image/jpeg;base64,...
+  photoDataUrl?: string | null;
 }
 
 const SIZES: Record<CardSize, { w: number; h: number }> = {
@@ -24,7 +27,6 @@ const SIZES: Record<CardSize, { w: number; h: number }> = {
   story: { w: 1080, h: 1920 },
 };
 
-/** Load an image from a URL and return an HTMLImageElement */
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -35,7 +37,10 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Draw rounded rectangle */
+function tryLoadImage(src: string): Promise<HTMLImageElement | null> {
+  return loadImage(src).catch(() => null);
+}
+
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -50,7 +55,6 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-/** Word-wrap text and return lines */
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   let line = '';
@@ -67,216 +71,314 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines;
 }
 
-/**
- * Generate a share card as a Blob.
- */
+function drawCenterCrop(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  dx: number, dy: number, dw: number, dh: number,
+) {
+  const srcAspect = img.width / img.height;
+  const dstAspect = dw / dh;
+  let sx = 0, sy = 0, sw = img.width, sh = img.height;
+  if (srcAspect > dstAspect) {
+    sw = img.height * dstAspect;
+    sx = (img.width - sw) / 2;
+  } else {
+    sh = img.width / dstAspect;
+    sy = (img.height - sh) / 2;
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+}
+
 export async function generateShareCard(
   data: CardData,
   size: CardSize = 'post',
 ): Promise<Blob> {
   const { w, h } = SIZES[size];
+  const isStory = size === 'story';
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
 
-  // Background
+  // Preload images in parallel
+  const [logoImg, petPhoto, ...productImgs] = await Promise.all([
+    tryLoadImage('/logo.png'),
+    data.photoDataUrl ? tryLoadImage(data.photoDataUrl) : Promise.resolve(null),
+    ...data.combo.steps.map((step) => {
+      const p = PRODUCTS[step.product_key];
+      return p?.image_url ? tryLoadImage(p.image_url) : Promise.resolve(null);
+    }),
+  ]);
+
+  // ── White background ──
   ctx.fillStyle = WHITE;
   ctx.fillRect(0, 0, w, h);
 
-  // ── Top bar (navy) ──
-  const topBarH = 120;
-  ctx.fillStyle = NAVY;
-  ctx.fillRect(0, 0, w, topBarH);
+  // ── Header (gradient bar, 100px) ──
+  const headerH = 100;
+  const headerGrad = ctx.createLinearGradient(0, 0, w, 0);
+  headerGrad.addColorStop(0, NAVY);
+  headerGrad.addColorStop(1, BLUE);
+  ctx.fillStyle = headerGrad;
+  ctx.fillRect(0, 0, w, headerH);
 
-  // Logo
-  try {
-    const logo = await loadImage('/logo.png');
-    const logoH = 50;
-    const logoW = (logo.width / logo.height) * logoH;
-    ctx.drawImage(logo, 40, (topBarH - logoH) / 2, logoW, logoH);
-  } catch {
-    // Draw text fallback
+  // Logo left
+  if (logoImg) {
+    const logoH = 40;
+    const logoW = (logoImg.width / logoImg.height) * logoH;
+    ctx.drawImage(logoImg, 40, (headerH - logoH) / 2, logoW, logoH);
+  } else {
     ctx.fillStyle = WHITE;
-    ctx.font = `bold 32px ${FONT}`;
-    ctx.fillText('Davis', 40, topBarH / 2 + 12);
+    ctx.font = `bold 30px ${FONT_ZH}`;
+    ctx.textAlign = 'left';
+    ctx.fillText('DAVIS', 40, headerH / 2 + 10);
   }
 
+  // Title right
   ctx.fillStyle = WHITE;
-  ctx.font = `24px ${FONT}`;
+  ctx.font = `20px ${FONT_ZH}`;
   ctx.textAlign = 'right';
-  ctx.fillText('AI 寵物洗護分析報告', w - 40, topBarH / 2 + 8);
+  ctx.fillText('AI 寵物洗護分析', w - 40, headerH / 2 + 7);
   ctx.textAlign = 'left';
 
-  let y = topBarH + 40;
+  let y = headerH + 30;
 
   // ── Pet photo ──
-  if (data.photoDataUrl) {
-    try {
-      const photo = await loadImage(data.photoDataUrl);
-      const photoW = w * 0.6;
-      const photoH = photoW; // square crop
-      const photoX = (w - photoW) / 2;
+  if (petPhoto) {
+    const photoW = Math.round(w * 0.75);
+    const photoH = isStory ? Math.round(h * 0.35) : photoW;
+    const photoX = (w - photoW) / 2;
 
-      // Gold border
-      ctx.save();
-      roundRect(ctx, photoX - 4, y - 4, photoW + 8, photoH + 8, 24);
-      ctx.fillStyle = GOLD;
-      ctx.fill();
+    // Gold border
+    ctx.save();
+    roundRect(ctx, photoX - 4, y - 4, photoW + 8, photoH + 8, 24);
+    ctx.fillStyle = GOLD;
+    ctx.fill();
+    ctx.restore();
 
-      // Photo clipped with rounded corners
-      roundRect(ctx, photoX, y, photoW, photoH, 20);
-      ctx.clip();
+    // Photo clipped
+    ctx.save();
+    roundRect(ctx, photoX, y, photoW, photoH, 20);
+    ctx.clip();
+    drawCenterCrop(ctx, petPhoto, photoX, y, photoW, photoH);
+    ctx.restore();
 
-      // Center-crop the photo
-      const srcAspect = photo.width / photo.height;
-      let sx = 0, sy = 0, sw = photo.width, sh = photo.height;
-      if (srcAspect > 1) {
-        sw = photo.height;
-        sx = (photo.width - sw) / 2;
-      } else {
-        sh = photo.width;
-        sy = (photo.height - sh) / 2;
-      }
-      ctx.drawImage(photo, sx, sy, sw, sh, photoX, y, photoW, photoH);
-      ctx.restore();
+    // Bottom gradient shadow
+    ctx.save();
+    const shadowGrad = ctx.createLinearGradient(0, y + photoH - 40, 0, y + photoH);
+    shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    shadowGrad.addColorStop(1, 'rgba(0,0,0,0.08)');
+    ctx.fillStyle = shadowGrad;
+    roundRect(ctx, photoX, y + photoH - 40, photoW, 40, 0);
+    ctx.fill();
+    ctx.restore();
 
-      // Shadow effect
-      ctx.save();
-      const gradient = ctx.createLinearGradient(0, y + photoH - 30, 0, y + photoH + 20);
-      gradient.addColorStop(0, 'rgba(0,0,0,0)');
-      gradient.addColorStop(1, 'rgba(0,0,0,0.05)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(photoX, y + photoH - 30, photoW, 50);
-      ctx.restore();
-
-      y += photoH + 30;
-    } catch {
-      // Skip photo if loading fails
-    }
+    y += photoH + 30;
   }
 
   // ── Breed info ──
-  ctx.fillStyle = NAVY;
-  ctx.font = `bold 32px ${FONT}`;
   ctx.textAlign = 'center';
-  const breedLine = [data.breed, data.petType, data.color].filter(Boolean).join(' . ');
-  ctx.fillText(breedLine, w / 2, y + 10);
+  ctx.fillStyle = NAVY;
+  ctx.font = `bold 36px ${FONT_ZH}`;
+  const breedParts = [data.breed, data.petType, data.color].filter(Boolean);
+  ctx.fillText(breedParts.join(' · '), w / 2, y + 10);
   y += 20;
 
   // Coat analysis
-  ctx.font = `22px ${FONT}`;
+  ctx.font = `18px ${FONT_ZH}`;
   ctx.fillStyle = '#666666';
-  const analysisLines = wrapText(ctx, data.coatAnalysis, w - 120);
+  const analysisLines = wrapText(ctx, data.coatAnalysis, w - 160);
   for (const line of analysisLines.slice(0, 2)) {
-    y += 30;
+    y += 28;
     ctx.fillText(line, w / 2, y);
   }
   y += 30;
 
-  // ── Recommended combo ──
-  // Gold divider
+  // ── Decorated divider ──
+  const divY = y;
   ctx.strokeStyle = GOLD;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(60, y);
-  ctx.lineTo(w - 60, y);
-  ctx.stroke();
-  y += 15;
-
-  ctx.fillStyle = NAVY;
-  ctx.font = `bold 28px ${FONT}`;
-  ctx.fillText('推薦洗護方案', w / 2, y + 10);
-  y += 15;
+  ctx.lineWidth = 1.5;
+  const divPad = 80;
+  const divTextWidth = ctx.measureText('推薦洗護方案').width;
 
   ctx.fillStyle = GOLD;
-  ctx.font = `22px ${FONT}`;
+  ctx.font = `bold 14px ${FONT_EN}`;
+  ctx.fillText('◆', divPad + 10, divY + 5);
+  ctx.fillText('◆', w - divPad - 10, divY + 5);
+
+  ctx.beginPath();
+  ctx.moveTo(divPad + 24, divY);
+  ctx.lineTo(w / 2 - divTextWidth / 2 - 16, divY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(w / 2 + divTextWidth / 2 + 16, divY);
+  ctx.lineTo(w - divPad - 24, divY);
+  ctx.stroke();
+
+  ctx.fillStyle = NAVY;
+  ctx.font = `bold 24px ${FONT_ZH}`;
+  ctx.fillText('推薦洗護方案', w / 2, divY + 8);
+  y = divY + 20;
+
+  // Combo name
+  ctx.fillStyle = GOLD;
+  ctx.font = `bold 20px ${FONT_ZH}`;
   ctx.fillText(data.combo.name, w / 2, y + 10);
   y += 30;
 
   ctx.textAlign = 'left';
 
-  // Steps
-  const stepPad = 50;
-  const stepW = w - stepPad * 2;
-  for (const step of data.combo.steps) {
-    const stepH = 72;
-    // Step background
-    roundRect(ctx, stepPad, y, stepW, stepH, 12);
-    ctx.fillStyle = LIGHT_BG;
-    ctx.fill();
+  // ── Steps ──
+  const stepPadX = 60;
+  const stepW = w - stepPadX * 2;
+  const productImgSize = 64;
 
-    // Step number circle
+  for (let i = 0; i < data.combo.steps.length; i++) {
+    const step = data.combo.steps[i];
+    const product = PRODUCTS[step.product_key];
+    const prodImg = productImgs[i];
+    const hasImg = !!prodImg;
+
+    // Step height calculation
+    const stepH = 90;
+    const bgColor = i % 2 === 0 ? LIGHT_BG : WHITE;
+
+    // Step background
+    ctx.save();
+    roundRect(ctx, stepPadX, y, stepW, stepH, 12);
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+    // Subtle border
+    ctx.strokeStyle = '#E8E8E8';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+
+    // Step number circle (deep navy bg, gold text)
     const circleR = 18;
-    const circleX = stepPad + 30;
+    const circleX = stepPadX + 28;
     const circleY = y + stepH / 2;
     ctx.beginPath();
     ctx.arc(circleX, circleY, circleR, 0, Math.PI * 2);
-    ctx.fillStyle = GOLD;
+    ctx.fillStyle = NAVY;
     ctx.fill();
-    ctx.fillStyle = WHITE;
-    ctx.font = `bold 20px ${FONT}`;
+    ctx.fillStyle = GOLD;
+    ctx.font = `bold 20px ${FONT_EN}`;
     ctx.textAlign = 'center';
     ctx.fillText(String(step.step), circleX, circleY + 7);
-
-    // Role label
     ctx.textAlign = 'left';
-    ctx.fillStyle = BLUE;
-    ctx.font = `18px ${FONT}`;
-    ctx.fillText(step.role, stepPad + 60, y + 28);
 
-    // Product name
-    const product = PRODUCTS[step.product_key];
+    // Text area (after circle, before product image)
+    const textX = stepPadX + 60;
+    const textMaxW = stepW - 70 - (hasImg ? productImgSize + 20 : 0);
+
+    // Product Chinese name
     ctx.fillStyle = NAVY;
-    ctx.font = `bold 24px ${FONT}`;
-    ctx.fillText(product?.name_zh ?? step.product_key, stepPad + 60, y + 56);
+    ctx.font = `bold 22px ${FONT_ZH}`;
+    const nameZh = product?.name_zh ?? step.product_key;
+    ctx.fillText(nameZh, textX, y + 30);
+
+    // Product English name
+    ctx.fillStyle = '#999999';
+    ctx.font = `14px ${FONT_EN}`;
+    const nameEn = product?.name_en ?? '';
+    if (nameEn) {
+      const truncEn = ctx.measureText(nameEn).width > textMaxW
+        ? nameEn.substring(0, 30) + '...'
+        : nameEn;
+      ctx.fillText(truncEn, textX, y + 48);
+    }
+
+    // Dilution + dwell time
+    ctx.fillStyle = GOLD;
+    ctx.font = `bold 16px ${FONT_ZH}`;
+    const dilution = product?.dilution ?? '';
+    const dwell = product?.dwell_time ?? '';
+    const infoLine = [
+      dilution ? `稀釋 ${dilution}` : '',
+      dwell ? `停留 ${dwell}` : '',
+    ].filter(Boolean).join(' · ');
+    if (infoLine) {
+      ctx.fillText(infoLine, textX, y + 72);
+    }
+
+    // Product photo (right side)
+    if (prodImg) {
+      const imgX = stepPadX + stepW - productImgSize - 16;
+      const imgY = y + (stepH - productImgSize) / 2;
+      ctx.save();
+      roundRect(ctx, imgX, imgY, productImgSize, productImgSize, 8);
+      ctx.clip();
+      drawCenterCrop(ctx, prodImg, imgX, imgY, productImgSize, productImgSize);
+      ctx.restore();
+    }
 
     y += stepH + 10;
   }
 
   // ── Tips ──
   if (data.combo.tips) {
-    y += 5;
-    const tipPad = 50;
+    y += 4;
+    const tipPad = 60;
     const tipW = w - tipPad * 2;
-    const tipH = 56;
-    roundRect(ctx, tipPad, y, tipW, tipH, 10);
-    ctx.fillStyle = '#FFF9E6';
+
+    ctx.font = `16px ${FONT_ZH}`;
+    const tipTextContent = data.combo.tips;
+    const tipLines = wrapText(ctx, tipTextContent, tipW - 50);
+    const tipH = Math.max(50, tipLines.length * 24 + 26);
+
+    ctx.save();
+    roundRect(ctx, tipPad, y, tipW, tipH, 12);
+    ctx.fillStyle = TIP_BG;
     ctx.fill();
-    ctx.fillStyle = '#8B7000';
-    ctx.font = `20px ${FONT}`;
-    const tipText = `💡 ${data.combo.tips}`;
-    const tipLines = wrapText(ctx, tipText, tipW - 30);
-    ctx.fillText(tipLines[0], tipPad + 15, y + 34);
+    ctx.restore();
+
+    ctx.fillStyle = TIP_COLOR;
+    ctx.font = `16px ${FONT_ZH}`;
+    let tipTextY = y + 24;
+    // Lightbulb icon
+    ctx.fillText('💡', tipPad + 14, tipTextY);
+    for (const tl of tipLines) {
+      ctx.fillText(tl, tipPad + 40, tipTextY);
+      tipTextY += 24;
+    }
     y += tipH + 10;
   }
 
-  // ── Bottom bar ──
-  const bottomH = size === 'story' ? Math.max(h - y - 10, 200) : Math.max(h - y - 10, 160);
-  const bottomY = h - bottomH;
-  ctx.fillStyle = NAVY;
-  ctx.fillRect(0, bottomY, w, bottomH);
+  // ── Footer ──
+  const footerH = isStory ? Math.max(h - y - 10, 220) : Math.max(h - y - 10, 160);
+  const footerY = h - footerH;
 
-  let by = bottomY + 35;
+  // Fill any gap between content and footer with white
+  if (footerY > y) {
+    ctx.fillStyle = WHITE;
+    ctx.fillRect(0, y, w, footerY - y);
+  }
+
+  ctx.fillStyle = NAVY;
+  ctx.fillRect(0, footerY, w, footerH);
+
   ctx.textAlign = 'center';
+  let fy = footerY + 36;
 
   ctx.fillStyle = WHITE;
-  ctx.font = `22px ${FONT}`;
-  ctx.fillText('🌐  davistaiwan.com', w / 2, by);
-  by += 34;
-  ctx.fillText('💬  LINE @davistaiwan', w / 2, by);
-  by += 50;
+  ctx.font = `22px ${FONT_ZH}`;
+  ctx.fillText('🌐  davistaiwan.com', w / 2, fy);
+  fy += 36;
+  ctx.fillText('💬  LINE @davistaiwan', w / 2, fy);
+  fy += 50;
 
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.font = `20px ${FONT}`;
-  ctx.fillText('自己也想試試？', w / 2, by);
-  by += 32;
+  ctx.font = `16px ${FONT_ZH}`;
+  ctx.fillText('自己也想試試？', w / 2, fy);
+  fy += 32;
 
   ctx.fillStyle = GOLD;
-  ctx.font = `bold 24px ${FONT}`;
-  ctx.fillText('davistaiwan.netlify.app', w / 2, by);
+  ctx.font = `bold 20px ${FONT_ZH}`;
+  ctx.fillText('davistaiwan.netlify.app', w / 2, fy);
 
-  // Convert to blob
+  ctx.textAlign = 'left';
+
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error('Canvas toBlob failed'))),
@@ -288,7 +390,6 @@ export async function generateShareCard(
 
 /**
  * Compress a photo data URL to a smaller base64 for sharing storage.
- * Target: <200KB base64 string.
  */
 export function compressPhotoForShare(dataUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -321,9 +422,6 @@ export function compressPhotoForShare(dataUrl: string): Promise<string> {
   });
 }
 
-/**
- * Download a blob as a file.
- */
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -335,9 +433,6 @@ export function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-/**
- * Share a blob via navigator.share if supported, otherwise download.
- */
 export async function shareOrDownload(blob: Blob, filename: string, title: string): Promise<'shared' | 'downloaded'> {
   const file = new File([blob], filename, { type: 'image/jpeg' });
 
@@ -346,7 +441,7 @@ export async function shareOrDownload(blob: Blob, filename: string, title: strin
       await navigator.share({ title, files: [file] });
       return 'shared';
     } catch {
-      // User cancelled or error — fall through to download
+      // User cancelled or error
     }
   }
 
