@@ -127,6 +127,11 @@ export const adminApi = {
   deleteProduct(token: string, productKey: string) {
     return adminFetch<{ ok: boolean }>(`/products/${encodeURIComponent(productKey)}`, token, { method: 'DELETE' });
   },
+  uploadProductImage(token: string, product_key: string, image_data: string) {
+    return adminFetch<{ ok: boolean }>('/products/upload-image', token, {
+      method: 'POST', body: JSON.stringify({ product_key, image_data }),
+    });
+  },
   importProducts(token: string, rows: Record<string, unknown>[]) {
     return adminFetch<{ ok: number; fail: number; total: number }>('/products/import', token, {
       method: 'POST', body: JSON.stringify({ rows }),

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AdminApp';
 import { adminApi } from '@/lib/api';
-import { Plus, Pencil, Trash2, X, Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Download, Upload, FileSpreadsheet, Camera } from 'lucide-react';
 import { exportExcel, downloadTemplate, parseExcel } from '@/lib/excel';
+import { compressProductImage, formatFileSize } from '@/lib/image-compressor';
 
 interface Product {
   product_key: string;
@@ -25,6 +26,8 @@ interface Product {
   note_cn: string;
   dilution: string;
   dwell_time: string;
+  image_url?: string;
+  image_data?: string;
 }
 
 const EMPTY_PRODUCT: Product = {
@@ -45,6 +48,13 @@ const EXPORT_COLUMNS = [
   'tag_zh', 'reason_zh', 'note_zh',
 ];
 
+/** Get the best available image src for a product */
+function getProductImageSrc(p: Product): string | null {
+  if (p.image_data) return `data:image/jpeg;base64,${p.image_data}`;
+  if (p.image_url) return p.image_url;
+  return null;
+}
+
 export default function ProductManager() {
   const { token, role } = useAuth();
   const canEdit = role === 'admin' || role === 'editor';
@@ -53,6 +63,13 @@ export default function ProductManager() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+
+  // Image upload state
+  const imgRef = useRef<HTMLInputElement>(null);
+  const [imgPreview, setImgPreview] = useState<string | null>(null);
+  const [imgBase64, setImgBase64] = useState<string | null>(null);
+  const [imgInfo, setImgInfo] = useState<{ original: number; compressed: number } | null>(null);
+  const [uploadingImg, setUploadingImg] = useState(false);
 
   // Import state
   const fileRef = useRef<HTMLInputElement>(null);
@@ -70,15 +87,39 @@ export default function ProductManager() {
 
   useEffect(load, [token]);
 
+  const resetImgState = () => {
+    setImgPreview(null);
+    setImgBase64(null);
+    setImgInfo(null);
+  };
+
   const handleSave = async () => {
     if (!editing) return;
     if (!editing.product_key.trim()) { setMsg('product_key 必填'); return; }
     setSaving(true);
     setMsg('');
-    const res = await adminApi.saveProduct(token, editing as unknown as Record<string, unknown>);
+
+    // Save product data (without image_data — that goes separately)
+    const payload = { ...editing };
+    delete (payload as Record<string, unknown>).image_data;
+    const res = await adminApi.saveProduct(token, payload as unknown as Record<string, unknown>);
+
+    if (res.success && imgBase64 && editing.product_key) {
+      // Upload image
+      setUploadingImg(true);
+      const imgRes = await adminApi.uploadProductImage(token, editing.product_key, imgBase64);
+      setUploadingImg(false);
+      if (!imgRes.success) {
+        setMsg(imgRes.error || '圖片上傳失敗');
+        setSaving(false);
+        return;
+      }
+    }
+
     setSaving(false);
     if (res.success) {
       setEditing(null);
+      resetImgState();
       load();
     } else {
       setMsg(res.error || '儲存失敗');
@@ -89,6 +130,20 @@ export default function ProductManager() {
     if (!confirm(`確定刪除 ${key}？`)) return;
     await adminApi.deleteProduct(token, key);
     load();
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await compressProductImage(file);
+      setImgBase64(result.base64);
+      setImgPreview(`data:image/jpeg;base64,${result.base64}`);
+      setImgInfo({ original: result.originalSize, compressed: result.compressedSize });
+    } catch {
+      setMsg('圖片處理失敗');
+    }
+    if (imgRef.current) imgRef.current.value = '';
   };
 
   const handleExport = () => {
@@ -130,6 +185,15 @@ export default function ProductManager() {
     }
   };
 
+  const openEdit = (p: Product) => {
+    setEditing({ ...p });
+    resetImgState();
+    setMsg('');
+  };
+
+  // Current image to display in modal
+  const currentImgSrc = imgPreview || (editing ? getProductImageSrc(editing) : null);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -147,7 +211,7 @@ export default function ProductManager() {
                 <Upload size={14} /> 匯入 Excel
               </button>
               <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFileSelect} className="hidden" />
-              <button onClick={() => setEditing({ ...EMPTY_PRODUCT })} className="btn-davis flex items-center gap-1 text-sm">
+              <button onClick={() => { setEditing({ ...EMPTY_PRODUCT }); resetImgState(); setMsg(''); }} className="btn-davis flex items-center gap-1 text-sm">
                 <Plus size={16} /> 新增
               </button>
             </>
@@ -215,6 +279,7 @@ export default function ProductManager() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-gray-50 text-left">
+                <th className="px-4 py-3 font-medium w-12">照片</th>
                 <th className="px-4 py-3 font-medium">Key</th>
                 <th className="px-4 py-3 font-medium">名稱 (中)</th>
                 <th className="px-4 py-3 font-medium">分類</th>
@@ -223,36 +288,86 @@ export default function ProductManager() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
-                <tr key={p.product_key} className={`border-b hover:bg-gray-50 ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && setEditing({ ...p })}>
-                  <td className="px-4 py-3 font-mono text-xs">{p.product_key}</td>
-                  <td className="px-4 py-3">{p.name_zh}</td>
-                  <td className="px-4 py-3"><span className="bg-davis-light text-davis-blue text-xs px-2 py-0.5 rounded-full">{CAT_LABELS[p.category] || p.category}</span></td>
-                  <td className="px-4 py-3 text-gray-500">{p.dilution}</td>
-                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                    {canEdit && (
-                      <div className="flex gap-1">
-                        <button onClick={() => setEditing({ ...p })} className="p-1 text-gray-400 hover:text-davis-blue"><Pencil size={14} /></button>
-                        <button onClick={() => handleDelete(p.product_key)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {products.map((p) => {
+                const imgSrc = getProductImageSrc(p);
+                return (
+                  <tr key={p.product_key} className={`border-b hover:bg-gray-50 ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && openEdit(p)}>
+                    <td className="px-4 py-2">
+                      {imgSrc ? (
+                        <img src={imgSrc} alt="" className="w-10 h-10 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <Camera size={14} className="text-gray-300" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs">{p.product_key}</td>
+                    <td className="px-4 py-3">{p.name_zh}</td>
+                    <td className="px-4 py-3"><span className="bg-davis-light text-davis-blue text-xs px-2 py-0.5 rounded-full">{CAT_LABELS[p.category] || p.category}</span></td>
+                    <td className="px-4 py-3 text-gray-500">{p.dilution}</td>
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      {canEdit && (
+                        <div className="flex gap-1">
+                          <button onClick={() => openEdit(p)} className="p-1 text-gray-400 hover:text-davis-blue"><Pencil size={14} /></button>
+                          <button onClick={() => handleDelete(p.product_key)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit / Create Modal */}
       {editing && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => { setEditing(null); resetImgState(); }}>
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-davis-navy">
                 {editing.product_key ? '編輯產品' : '新增產品'}
               </h2>
-              <button onClick={() => setEditing(null)}><X size={20} className="text-gray-400" /></button>
+              <button onClick={() => { setEditing(null); resetImgState(); }}><X size={20} className="text-gray-400" /></button>
+            </div>
+
+            {/* Product Image Section */}
+            <div className="flex flex-col items-center mb-4">
+              {currentImgSrc ? (
+                <img src={currentImgSrc} alt="產品照片"
+                  className="w-[200px] h-[200px] rounded-xl object-cover border border-gray-200" />
+              ) : (
+                <div className="w-[200px] h-[200px] rounded-xl bg-gray-100 border border-gray-200 flex flex-col items-center justify-center">
+                  <Camera size={32} className="text-gray-300 mb-1" />
+                  <span className="text-xs text-gray-400">尚無產品照片</span>
+                </div>
+              )}
+
+              {imgInfo && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {formatFileSize(imgInfo.original)} → {formatFileSize(imgInfo.compressed)}
+                  {imgInfo.compressed < imgInfo.original && (
+                    <span className="text-green-600 ml-1">
+                      (-{Math.round((1 - imgInfo.compressed / imgInfo.original) * 100)}%)
+                    </span>
+                  )}
+                </p>
+              )}
+
+              {canEdit && (
+                <>
+                  <button
+                    onClick={() => imgRef.current?.click()}
+                    className="mt-2 px-4 py-1.5 text-xs border rounded-lg text-gray-600 hover:bg-gray-50 flex items-center gap-1"
+                    disabled={uploadingImg}
+                  >
+                    <Camera size={12} />
+                    {currentImgSrc ? '更換照片' : '上傳照片'}
+                  </button>
+                  <input ref={imgRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+                </>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -299,9 +414,9 @@ export default function ProductManager() {
             {msg && <p className="text-red-500 text-sm mt-3">{msg}</p>}
 
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setEditing(null)} className="btn-davis-outline flex-1">取消</button>
-              <button onClick={handleSave} disabled={saving} className="btn-davis flex-1 disabled:opacity-50">
-                {saving ? '儲存中...' : '儲存'}
+              <button onClick={() => { setEditing(null); resetImgState(); }} className="btn-davis-outline flex-1">取消</button>
+              <button onClick={handleSave} disabled={saving || uploadingImg} className="btn-davis flex-1 disabled:opacity-50">
+                {uploadingImg ? '上傳圖片中...' : saving ? '儲存中...' : '儲存'}
               </button>
             </div>
           </div>

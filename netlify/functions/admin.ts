@@ -305,6 +305,22 @@ const handler: Handler = async (event) => {
     return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
   }
 
+  // ── Product Image Upload ──
+  if (path === '/products/upload-image' && method === 'POST') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const { product_key, image_data } = body;
+    if (!product_key || !image_data) return json(400, { error: '缺少 product_key 或 image_data' }, headers);
+    const b64str = String(image_data);
+    // Validate size (~200KB base64 ≈ 150KB binary)
+    if (b64str.length > 300_000) return json(400, { error: '圖片過大，請壓縮後再上傳 (上限 200KB)' }, headers);
+    const { error } = await sb.from('davis_products').update({ image_data: b64str }).eq('product_key', String(product_key));
+    if (!error) {
+      auditLog(sb, currentUser, 'update_product', 'product', String(product_key), null,
+        { before: null, after: { action: 'upload_image' } }, clientIp);
+    }
+    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
+  }
+
   if (path.startsWith('/products/') && method === 'DELETE') {
     if (!canEdit) return json(403, { error: '權限不足' }, headers);
     const productKey = decodeURIComponent(path.split('/products/')[1]);
