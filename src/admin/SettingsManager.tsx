@@ -9,10 +9,15 @@ export default function SettingsManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [whitelistText, setWhitelistText] = useState('');
 
   useEffect(() => {
     adminApi.getSettings(token).then((res) => {
-      if (res.success && res.data) setSettings(res.data.settings);
+      if (res.success && res.data) {
+        setSettings(res.data.settings);
+        const wl = res.data.settings.embed_whitelist;
+        setWhitelistText(Array.isArray(wl) ? (wl as string[]).join('\n') : '');
+      }
       setLoading(false);
     });
   }, [token]);
@@ -20,7 +25,8 @@ export default function SettingsManager() {
   const handleSave = async () => {
     setSaving(true);
     setMsg('');
-    const res = await adminApi.updateSettings(token, settings);
+    const urls = whitelistText.split('\n').map(s => s.trim()).filter(Boolean);
+    const res = await adminApi.updateSettings(token, { ...settings, embed_whitelist: urls });
     setSaving(false);
     setMsg(res.success ? '已儲存' : (res.error || '儲存失敗'));
   };
@@ -33,7 +39,6 @@ export default function SettingsManager() {
     return <div className="text-center py-12 text-gray-400">載入中...</div>;
   }
 
-  const embedWhitelist = Array.isArray(settings.embed_whitelist) ? (settings.embed_whitelist as string[]).join('\n') : '';
   const aiPricing = (settings.ai_pricing || { model: 'claude-sonnet-4-5-20250929', input_per_mtok: 3, output_per_mtok: 15, currency: 'USD' }) as {
     model: string; input_per_mtok: number; output_per_mtok: number; currency: string;
   };
@@ -58,11 +63,11 @@ export default function SettingsManager() {
         {/* Embed whitelist */}
         <Section title="Embed 白名單" desc="允許嵌入 iframe 的網域（每行一個）">
           <textarea
-            value={embedWhitelist}
-            onChange={(e) => setSettings({ ...settings, embed_whitelist: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })}
-            rows={4}
+            value={whitelistText}
+            onChange={(e) => setWhitelistText(e.target.value)}
+            rows={5}
             className="w-full px-3 py-2 border rounded-lg text-sm font-mono"
-            placeholder="https://example.com"
+            placeholder={"https://example.com\nhttps://another.com"}
           />
         </Section>
 
