@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AdminApp';
 import { adminApi } from '@/lib/api';
 
-const INPUT_PRICE = 3;
-const OUTPUT_PRICE = 15;
-
 interface Summary {
   days: number;
   periodTotal: number;
@@ -21,6 +18,18 @@ export default function AnalyticsView() {
   const [days, setDays] = useState(30);
   const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pricing, setPricing] = useState({ input_per_mtok: 0.80, output_per_mtok: 4 });
+
+  useEffect(() => {
+    adminApi.getSettings(token).then((res) => {
+      if (res.success && res.data?.settings?.ai_pricing) {
+        const p = res.data.settings.ai_pricing as { input_per_mtok?: number; output_per_mtok?: number };
+        if (p.input_per_mtok != null && p.output_per_mtok != null) {
+          setPricing({ input_per_mtok: p.input_per_mtok, output_per_mtok: p.output_per_mtok });
+        }
+      }
+    });
+  }, [token]);
 
   useEffect(() => {
     setLoading(true);
@@ -31,7 +40,7 @@ export default function AnalyticsView() {
   }, [token, days]);
 
   const cost = (tokens: { input_tokens: number; output_tokens: number }) =>
-    ((tokens.input_tokens / 1_000_000) * INPUT_PRICE + (tokens.output_tokens / 1_000_000) * OUTPUT_PRICE).toFixed(2);
+    ((tokens.input_tokens / 1_000_000) * pricing.input_per_mtok + (tokens.output_tokens / 1_000_000) * pricing.output_per_mtok).toFixed(2);
 
   return (
     <div>

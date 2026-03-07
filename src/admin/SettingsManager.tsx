@@ -39,9 +39,24 @@ export default function SettingsManager() {
     return <div className="text-center py-12 text-gray-400">載入中...</div>;
   }
 
-  const aiPricing = (settings.ai_pricing || { model: 'claude-sonnet-4-5-20250929', input_per_mtok: 3, output_per_mtok: 15, currency: 'USD' }) as {
+  const MODEL_OPTIONS = [
+    { label: 'Claude Haiku 3.5（日常）', model: 'claude-haiku-4-5-20241022', input_per_mtok: 0.80, output_per_mtok: 4 },
+    { label: 'Claude Sonnet 4.5（高品質）', model: 'claude-sonnet-4-5-20250929', input_per_mtok: 3, output_per_mtok: 15 },
+  ];
+
+  const aiPricing = (settings.ai_pricing || { model: 'claude-haiku-4-5-20241022', input_per_mtok: 0.80, output_per_mtok: 4, currency: 'USD' }) as {
     model: string; input_per_mtok: number; output_per_mtok: number; currency: string;
   };
+
+  const handleModelChange = (modelId: string) => {
+    const opt = MODEL_OPTIONS.find(o => o.model === modelId);
+    if (opt) {
+      setSettings({ ...settings, ai_pricing: { ...aiPricing, model: opt.model, input_per_mtok: opt.input_per_mtok, output_per_mtok: opt.output_per_mtok } });
+    }
+  };
+
+  const selectedOpt = MODEL_OPTIONS.find(o => o.model === aiPricing.model);
+  const estCostPerCall = selectedOpt ? ((5000 / 1_000_000) * selectedOpt.input_per_mtok + (1500 / 1_000_000) * selectedOpt.output_per_mtok).toFixed(4) : '—';
 
   return (
     <div>
@@ -71,30 +86,25 @@ export default function SettingsManager() {
           />
         </Section>
 
-        {/* AI Pricing */}
-        <Section title="AI 定價" desc="用於成本計算（Sonnet 4.5 預設）">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* AI Model */}
+        <Section title="AI 模型" desc="選擇分析用的 Claude 模型">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-gray-500 block mb-1">Model</label>
-              <input value={aiPricing.model} onChange={(e) => setSettings({ ...settings, ai_pricing: { ...aiPricing, model: e.target.value } })}
-                className="w-full px-3 py-2 border rounded-lg text-sm font-mono" />
+              <label className="text-xs text-gray-500 block mb-1">模型</label>
+              <select value={aiPricing.model} onChange={(e) => handleModelChange(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+                {MODEL_OPTIONS.map(o => (
+                  <option key={o.model} value={o.model}>{o.label}</option>
+                ))}
+              </select>
             </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Input $/MTok</label>
-              <input type="number" step="0.1" value={aiPricing.input_per_mtok}
-                onChange={(e) => setSettings({ ...settings, ai_pricing: { ...aiPricing, input_per_mtok: Number(e.target.value) } })}
-                className="w-full px-3 py-2 border rounded-lg text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Output $/MTok</label>
-              <input type="number" step="0.1" value={aiPricing.output_per_mtok}
-                onChange={(e) => setSettings({ ...settings, ai_pricing: { ...aiPricing, output_per_mtok: Number(e.target.value) } })}
-                className="w-full px-3 py-2 border rounded-lg text-sm" />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Currency</label>
-              <input value={aiPricing.currency} onChange={(e) => setSettings({ ...settings, ai_pricing: { ...aiPricing, currency: e.target.value } })}
-                className="w-full px-3 py-2 border rounded-lg text-sm" />
+            <div className="flex items-end">
+              <div className="text-sm text-gray-500">
+                <span>Input: ${aiPricing.input_per_mtok}/MTok</span>
+                <span className="mx-2">·</span>
+                <span>Output: ${aiPricing.output_per_mtok}/MTok</span>
+                <p className="text-xs text-gray-400 mt-1">預估每次分析成本 ≈ ${estCostPerCall} USD</p>
+              </div>
             </div>
           </div>
         </Section>

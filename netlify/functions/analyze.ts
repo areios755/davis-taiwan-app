@@ -140,6 +140,14 @@ ${langRule}
 只輸出JSON，格式：
 {"breed":"品種","pet_type":"狗或貓","coat_analysis":"毛質(20字)","personality_note":"個性(20字)","tiers":{"basic":{"label":"基礎推薦","tagline":"核心價值(15字)","steps":[{"phase":"第一洗・深層清潔","products":["產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘","tip":"要點(10字)"}],"highlight":"亮點(15字)"},"advanced":{"label":"進階推薦","tagline":"","steps":[],"highlight":""},"signature":{"label":"完美推薦","tagline":"","steps":[],"highlight":""}},"note":"叮嚀(25字)"}`;
 
+    // Read model from settings
+    let aiModel = 'claude-haiku-4-5-20241022';
+    const sb2 = getSupa();
+    if (sb2) {
+      const { data: modelSetting } = await sb2.from('davis_settings').select('value').eq('key', 'ai_pricing').single();
+      if (modelSetting?.value?.model) aiModel = modelSetting.value.model;
+    }
+
     // Call Claude API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -149,7 +157,7 @@ ${langRule}
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: aiModel,
         max_tokens: 1500,
         system: systemPrompt,
         messages: [{
@@ -227,7 +235,7 @@ ${langRule}
         breed: (parsed.breed as string) || '',
         tokens_in: tokensIn,
         tokens_out: tokensOut,
-        model: 'claude-sonnet-4-5-20250929',
+        model: aiModel,
         ip_address: clientIp,
         user_agent: (event.headers['user-agent'] || '').slice(0, 300),
       }).then(() => {}, () => {});
