@@ -1,15 +1,15 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEmbed } from '@/hooks/useEmbed';
-import { analyzePhoto, logEvent } from '@/lib/api';
+import { analyzePhoto, logEvent, createShare } from '@/lib/api';
 import { processImage } from '@/lib/image-processor';
 import { searchBreeds, parseBreedInput } from '@/lib/breed-matcher';
 import { buildThreeTiers } from '@/lib/tier-builder';
 import { postEmbedResult, postEmbedReady } from '@/lib/embed-messaging';
 import { getCurrentSeason } from '@/data/seasons';
-import type { AnalysisResult, TierLevel, AppLocale } from '@/types';
-import { Camera, Upload, Search } from 'lucide-react';
-import { useEffect } from 'react';
+import { fetchBreeds } from '@/data/breeds';
+import type { AnalysisResult, TierLevel, AppLocale, DavisBreed } from '@/types';
+import { Camera, Search, Share2 } from 'lucide-react';
 
 type Phase = 'upload' | 'analyzing' | 'result' | 'error';
 
@@ -24,13 +24,22 @@ export default function AnalyzePage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [breedQuery, setBreedQuery] = useState(embed.breed ?? '');
   const [analyzingStep, setAnalyzingStep] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [breeds, setBreeds] = useState<DavisBreed[]>([]);
+  const [breedTab, setBreedTab] = useState<'dog' | 'cat'>('dog');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load breeds dynamically
+  useEffect(() => {
+    fetchBreeds().then(setBreeds);
+  }, []);
 
   // Notify parent that embed is ready
   useEffect(() => {
     if (embed.isEmbed) {
       postEmbedReady();
-      // Auto-set language from embed param
       if (embed.lang) i18n.changeLanguage(embed.lang);
     }
   }, [embed.isEmbed, embed.lang, i18n]);
@@ -106,10 +115,38 @@ export default function AnalyzePage() {
   // Handle embed confirm
   const handleEmbedConfirm = useCallback(() => {
     if (!result || !embed.hotel) return;
-    postEmbedResult(result, selectedTier, embed.hotel, embed.weight ?? null);
+    postEmbedResult(result, selectedTier, embed.hotel, embed.weight ?? null, embed.breed_group_id);
   }, [result, selectedTier, embed]);
 
+  // Share result
+  const handleShare = useCallback(async () => {
+    if (!result) return;
+    setSharing(true);
+    const res = await createShare({ result, breed: result.breed, tier: selectedTier });
+    if (res.success && res.data) {
+      const url = `${window.location.origin}/r/${res.data.id}`;
+      setShareUrl(url);
+      if (navigator.share) {
+        navigator.share({ title: `Davis AI - ${result.breed}`, url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).catch(() => {});
+      }
+    }
+    setSharing(false);
+  }, [result, selectedTier]);
+
+  // Drag & drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragOver(true); }, []);
+  const handleDragLeave = useCallback(() => setDragOver(false), []);
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) handleFileSelect(file);
+  }, [handleFileSelect]);
+
   const breedResults = breedQuery ? searchBreeds(breedQuery) : [];
+  const commonBreeds = breeds.filter((b) => b.pet_type === (breedTab === 'dog' ? '狗' : '貓'));
 
   return (
     <div className={`max-w-lg mx-auto ${embed.isEmbed ? 'p-2' : 'p-4 py-8'}`}>
@@ -129,8 +166,13 @@ export default function AnalyzePage() {
         <div className="space-y-6">
           {/* Photo upload area */}
           <div
-            className="border-2 border-dashed border-davis-blue/30 rounded-2xl p-8 text-center cursor-pointer hover:border-davis-blue/60 transition-colors"
+            className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${
+              dragOver ? 'border-davis-blue bg-davis-light/50' : 'border-davis-blue/30 hover:border-davis-blue/60'
+            }`}
             onClick={() => fileInputRef.current?.click()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
           >
             <Camera className="mx-auto text-davis-blue mb-3" size={48} />
             <p className="font-medium text-davis-navy">{t('analyze.upload_title')}</p>
@@ -181,15 +223,28 @@ export default function AnalyzePage() {
             {/* Common breed chips */}
             <div className="mt-4">
               <p className="text-xs text-gray-400 mb-2">{t('analyze.common_breeds')}</p>
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => setBreedTab('dog')}
+                  className={`text-xs px-3 py-1 rounded-full ${breedTab === 'dog' ? 'bg-davis-blue text-white' : 'bg-gray-100 text-gray-600'}`}
+                >
+                  {t('common.dog')}
+                </button>
+                <button
+                  onClick={() => setBreedTab('cat')}
+                  className={`text-xs px-3 py-1 rounded-full ${breedTab === 'cat' ? 'bg-davis-blue text-white' : 'bg-gray-100 text-gray-600'}`}
+                >
+                  {t('common.cat')}
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
-                {/* 🔴 MIGRATION: Populate from BREEDS data */}
-                {['貴賓犬', '比熊犬', '柴犬', '柯基', '布偶貓', '英國短毛貓', '金吉拉'].map((breed) => (
+                {commonBreeds.map((breed) => (
                   <button
-                    key={breed}
-                    onClick={() => handleBreedSelect(breed)}
+                    key={breed.id}
+                    onClick={() => handleBreedSelect(breed.name_zh)}
                     className="px-3 py-1.5 bg-gray-100 rounded-full text-sm hover:bg-davis-light transition-colors"
                   >
-                    {breed}
+                    {breed.emoji && `${breed.emoji} `}{breed.name_zh}
                   </button>
                 ))}
               </div>
@@ -282,16 +337,23 @@ export default function AnalyzePage() {
               </button>
             ) : (
               <>
-                <button onClick={() => { setPhase('upload'); setResult(null); }} className="btn-davis-outline flex-1">
+                <button onClick={() => { setPhase('upload'); setResult(null); setShareUrl(null); }} className="btn-davis-outline flex-1">
                   {t('analyze.retry')}
                 </button>
-                <button className="btn-davis flex-1">
-                  <Upload className="mr-2" size={16} />
-                  {t('analyze.share')}
+                <button onClick={handleShare} disabled={sharing} className="btn-davis flex-1 disabled:opacity-50">
+                  <Share2 className="mr-2" size={16} />
+                  {sharing ? '...' : t('analyze.share')}
                 </button>
               </>
             )}
           </div>
+
+          {shareUrl && (
+            <div className="bg-davis-light rounded-xl p-3 text-center text-sm">
+              <p className="text-davis-navy font-medium mb-1">分享連結已複製</p>
+              <p className="text-davis-blue break-all text-xs">{shareUrl}</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import type { AnalysisResult, AnalysisTier, AnalysisStep } from '@/types';
-import { BREEDS, findBreedByName } from '@/data/breeds';
+import { findBreedByName } from '@/data/breeds';
 import { getProduct } from '@/data/products';
 import { getCurrentSeason } from '@/data/seasons';
 

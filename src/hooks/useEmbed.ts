@@ -7,7 +7,10 @@ import type { EmbedParams, AppLocale } from '@/types';
  * Embed mode is activated by ?embed=true in the URL.
  *
  * Full embed URL example:
- * ?embed=true&breed=貴賓&weight=5&hotel=maoanzu&store_name=毛安住&pet_name=Lucky&lang=zh-TW
+ * ?embed=true&breed=貴賓&breed_group_id=xxx&weight=5&hotel=maoanzu&store_name=毛安住&pet_name=Lucky&lang=zh-TW
+ *
+ * breed_group_id: UUID from shared breed_groups table — 毛安住 can pass this
+ * for zero-mapping direct lookup.
  */
 export function useEmbed(): EmbedParams & { isEmbed: boolean } {
   const [params] = useSearchParams();
@@ -18,6 +21,7 @@ export function useEmbed(): EmbedParams & { isEmbed: boolean } {
       isEmbed: embed,
       embed,
       breed: params.get('breed') ?? undefined,
+      breed_group_id: params.get('breed_group_id') ?? undefined,
       weight: params.has('weight') ? Number(params.get('weight')) : undefined,
       hotel: params.get('hotel') ?? undefined,
       store_name: params.get('store_name') ?? undefined,

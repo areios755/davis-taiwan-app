@@ -98,12 +98,13 @@ export interface AnalysisResult {
 export interface EmbedParams {
   embed: boolean;
   breed?: string;
+  breed_group_id?: string;  // UUID from breed_groups table (毛安住 direct lookup)
   weight?: number;
   hotel?: string;
   store_name?: string;
   pet_name?: string;
   lang?: AppLocale;
-  photo_url?: string;      // Pre-existing photo from parent system
+  photo_url?: string;       // Pre-existing photo from parent system
 }
 
 export interface EmbedPostMessage {
@@ -111,7 +112,10 @@ export interface EmbedPostMessage {
   source: 'davis-grooming-ai';
   hotel: string;
   breed: string;
+  breed_group_id: string | null;  // UUID for 毛安住 direct use
   weight: number | null;
+  coat_analysis: string;
+  season_hint: string | null;
   result: {
     recommended: TierLevel;
     reason: string;

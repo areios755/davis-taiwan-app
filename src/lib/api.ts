@@ -83,43 +83,119 @@ function adminHeaders(token: string): HeadersInit {
   };
 }
 
+function adminFetch<T>(path: string, token: string, options?: RequestInit): Promise<ApiResponse<T>> {
+  return apiFetch<T>(`/admin${path}`, { ...options, headers: { ...adminHeaders(token), ...(options?.headers || {}) } });
+}
+
 export const adminApi = {
-  async login(username: string, password: string): Promise<ApiResponse<{ token: string; role: string }>> {
-    return apiFetch('/admin', {
+  login(username: string, password: string) {
+    return apiFetch<{ ok: boolean; token: string; role: string; displayName: string }>('/admin/login', {
       method: 'POST',
-      body: JSON.stringify({ action: 'login', username, password }),
+      body: JSON.stringify({ username, password }),
     });
   },
 
-  async getProducts(token: string): Promise<ApiResponse<unknown[]>> {
-    return apiFetch('/admin?action=products', { headers: adminHeaders(token) });
+  me(token: string) {
+    return adminFetch<{ username: string; role: string }>('/me', token);
   },
 
-  async getBreeds(token: string): Promise<ApiResponse<unknown[]>> {
-    return apiFetch('/admin?action=breeds', { headers: adminHeaders(token) });
-  },
-
-  async getAnalytics(token: string): Promise<ApiResponse<unknown[]>> {
-    return apiFetch('/admin?action=analytics', { headers: adminHeaders(token) });
-  },
-
-  async getCertifications(token: string): Promise<ApiResponse<unknown[]>> {
-    return apiFetch('/admin?action=certifications', { headers: adminHeaders(token) });
-  },
-
-  async updateProduct(token: string, product: Record<string, unknown>): Promise<ApiResponse<unknown>> {
-    return apiFetch('/admin', {
-      method: 'POST',
-      headers: adminHeaders(token),
-      body: JSON.stringify({ action: 'update_product', ...product }),
+  changePassword(token: string, old_password: string, new_password: string) {
+    return adminFetch<{ ok: boolean }>('/change-password', token, {
+      method: 'POST', body: JSON.stringify({ old_password, new_password }),
     });
   },
 
-  async approveCertification(token: string, id: string): Promise<ApiResponse<unknown>> {
-    return apiFetch('/admin', {
+  // Settings
+  getSettings(token: string) {
+    return adminFetch<{ settings: Record<string, unknown> }>('/settings', token);
+  },
+  updateSettings(token: string, settings: Record<string, unknown>) {
+    return adminFetch<{ ok: boolean }>('/settings', token, {
+      method: 'PUT', body: JSON.stringify(settings),
+    });
+  },
+
+  // Products
+  getProducts(token: string) {
+    return adminFetch<{ products: Record<string, unknown>[] }>('/products', token);
+  },
+  saveProduct(token: string, product: Record<string, unknown>) {
+    return adminFetch<{ ok: boolean }>('/products', token, {
+      method: 'POST', body: JSON.stringify(product),
+    });
+  },
+  deleteProduct(token: string, productKey: string) {
+    return adminFetch<{ ok: boolean }>(`/products/${encodeURIComponent(productKey)}`, token, { method: 'DELETE' });
+  },
+  importProducts(token: string, rows: Record<string, unknown>[]) {
+    return adminFetch<{ ok: number; fail: number; total: number }>('/products/import', token, {
+      method: 'POST', body: JSON.stringify({ rows }),
+    });
+  },
+
+  // Breeds
+  getBreeds(token: string) {
+    return adminFetch<{ breeds: Record<string, unknown>[] }>('/breeds', token);
+  },
+  saveBreed(token: string, breed: Record<string, unknown>) {
+    return adminFetch<{ ok: boolean }>('/breeds', token, {
+      method: 'POST', body: JSON.stringify(breed),
+    });
+  },
+  deleteBreed(token: string, breedId: string) {
+    return adminFetch<{ ok: boolean }>(`/breeds/${encodeURIComponent(breedId)}`, token, { method: 'DELETE' });
+  },
+
+  // Analytics
+  getAnalyticsSummary(token: string, days = 30) {
+    return adminFetch<{
+      days: number; periodTotal: number;
+      daily: { date: string; count: number }[];
+      topBreeds: { breed: string; count: number }[];
+      monthTokens: { input_tokens: number; output_tokens: number; ai_calls: number };
+      yearTokens: { input_tokens: number; output_tokens: number; ai_calls: number };
+      currentMonth: string; currentYear: string;
+    }>(`/analytics/summary?days=${days}`, token);
+  },
+
+  // Users
+  getUsers(token: string) {
+    return adminFetch<{ users: { username: string; role: string; display_name: string; created_at: string }[] }>('/users', token);
+  },
+  createUser(token: string, user: { username: string; password: string; role: string; display_name?: string }) {
+    return adminFetch<{ ok: boolean }>('/users', token, {
+      method: 'POST', body: JSON.stringify(user),
+    });
+  },
+  deleteUser(token: string, username: string) {
+    return adminFetch<{ ok: boolean }>(`/users/${encodeURIComponent(username)}`, token, { method: 'DELETE' });
+  },
+  resetPassword(token: string, username: string, new_password: string) {
+    return adminFetch<{ ok: boolean }>('/users/reset-password', token, {
+      method: 'POST', body: JSON.stringify({ username, new_password }),
+    });
+  },
+
+  // Certifications (via certify function)
+  getCertifications(token: string) {
+    return apiFetch<{ ok: boolean; certs: Record<string, unknown>[] }>('/certify/list', {
+      headers: adminHeaders(token),
+    });
+  },
+  updateCertStatus(token: string, id: string, status: string) {
+    return apiFetch<{ ok: boolean }>(`/certify/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: adminHeaders(token),
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  // AI Assist
+  aiAssist(token: string, text: string) {
+    return apiFetch<{ breeds: unknown[]; products: unknown[]; summary: string }>('/ai-assist', {
       method: 'POST',
       headers: adminHeaders(token),
-      body: JSON.stringify({ action: 'approve_cert', id }),
+      body: JSON.stringify({ text }),
     });
   },
 };

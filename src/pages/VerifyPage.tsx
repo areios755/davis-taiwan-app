@@ -1,16 +1,129 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Award, MapPin, ExternalLink } from 'lucide-react';
 
-/**
- * 🔴 TODO: Implement VerifyPage
- * Migrate from original index.html / certify.html / badge.html / verify.html
- * See rewrite-spec-v2.md for full UI spec.
- */
+interface CertPublic {
+  id: string;
+  name: string;
+  shop_name: string;
+  city?: string;
+  instagram?: string;
+  facebook?: string;
+  status: string;
+  created_at: string;
+  approved_at?: string;
+}
+
 export default function VerifyPage() {
+  const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const [cert, setCert] = useState<CertPublic | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) { setError('缺少認證編號'); setLoading(false); return; }
+
+    // Sanitize: only allow safe characters (alphanumeric, dash)
+    const safeId = id.replace(/[^a-zA-Z0-9-]/g, '');
+    if (!safeId) { setError('無效的認證編號'); setLoading(false); return; }
+
+    fetch(`/.netlify/functions/certify?id=${encodeURIComponent(safeId)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.ok && data.cert) {
+          setCert(data.cert);
+        } else {
+          setError(data.error || '查無此認證編號');
+        }
+      })
+      .catch(() => setError('查詢失敗'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="max-w-lg mx-auto p-4 py-16 text-center">
+        <div className="animate-spin w-8 h-8 border-2 border-davis-blue border-t-transparent rounded-full mx-auto mb-4" />
+        <p className="text-gray-500">{t('common.loading')}</p>
+      </div>
+    );
+  }
+
+  if (error || !cert) {
+    return (
+      <div className="max-w-lg mx-auto p-4 py-16 text-center">
+        <p className="text-6xl mb-4">🔍</p>
+        <p className="text-gray-600 mb-4">{error || '查無此認證編號'}</p>
+        <Link to="/groomers" className="btn-davis">{t('groomers.find_cta')}</Link>
+      </div>
+    );
+  }
+
+  const isApproved = cert.status === 'approved';
+
   return (
-    <div className="max-w-4xl mx-auto p-4 py-8">
-      <h1 className="text-2xl font-bold text-davis-navy">VerifyPage</h1>
-      <p className="text-gray-500 mt-2">TODO: Implement — see migration plan</p>
+    <div className="max-w-lg mx-auto p-4 py-8">
+      {/* Badge card */}
+      <div className={`rounded-2xl p-8 text-center ${isApproved ? 'bg-gradient-to-b from-davis-navy to-davis-blue text-white' : 'bg-gray-100 text-gray-700'}`}>
+        <Award className={`mx-auto mb-4 ${isApproved ? 'text-davis-gold' : 'text-gray-400'}`} size={64} />
+        <h1 className="text-xl font-bold mb-1">{cert.shop_name}</h1>
+        <p className={`text-sm ${isApproved ? 'text-white/70' : 'text-gray-500'}`}>{cert.name}</p>
+
+        {isApproved ? (
+          <div className="mt-4">
+            <span className="bg-davis-gold text-white px-4 py-1.5 rounded-full text-sm font-bold">
+              Davis 認證美容師
+            </span>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <span className="bg-yellow-100 text-yellow-700 px-4 py-1.5 rounded-full text-sm font-medium">
+              {t('certify.pending')}
+            </span>
+          </div>
+        )}
+
+        <p className={`text-xs mt-4 ${isApproved ? 'text-white/50' : 'text-gray-400'}`}>
+          認證編號: {cert.id}
+        </p>
+      </div>
+
+      {/* Details */}
+      <div className="mt-6 space-y-3">
+        {cert.city && (
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <MapPin size={16} className="text-gray-400" />
+            {cert.city}
+          </div>
+        )}
+        {cert.instagram && (
+          <a
+            href={cert.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-davis-blue hover:underline"
+          >
+            Instagram <ExternalLink size={12} />
+          </a>
+        )}
+        {cert.facebook && (
+          <a
+            href={cert.facebook}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-davis-blue hover:underline"
+          >
+            Facebook <ExternalLink size={12} />
+          </a>
+        )}
+        {cert.approved_at && (
+          <p className="text-xs text-gray-400">
+            認證日期: {new Date(cert.approved_at).toLocaleDateString('zh-TW')}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

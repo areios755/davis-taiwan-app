@@ -23,6 +23,17 @@
     "history": "40年の歴史",
     "formula": "プロ仕様の処方開発"
   },
+  "cert": {
+    "title": "Davis 認定トリマー",
+    "description": "お近くの認定プロトリマーを見つけましょう",
+    "view_groomers": "認定トリマーを見る",
+    "apply": "トリマーです、認定を申請 →"
+  },
+  "product_section": {
+    "title": "製品ガイド",
+    "description": "Davis グルーミング製品の全ラインナップを探索",
+    "browse": "製品を見る →"
+  },
   "analyze": {
     "upload_title": "ペットの写真をアップロード",
     "upload_hint": "撮影またはドラッグ＆ドロップ",
@@ -58,6 +69,42 @@
   "embed": {
     "confirm": "✅ このプランを確認",
     "confirmed": "選択済み、システムに同期しました"
+  },
+  "share": {
+    "title": "グルーミングプランを共有",
+    "copy_link": "リンクをコピー",
+    "download": "画像をダウンロード",
+    "line": "LINEで共有",
+    "ig": "IGで共有"
+  },
+  "certify": {
+    "title": "Davis トリマー認定を申請",
+    "name": "氏名",
+    "shop": "店舗名",
+    "city": "都市",
+    "phone": "電話番号",
+    "email": "メール",
+    "ig": "Instagram",
+    "fb": "Facebook",
+    "photo": "プロフィール写真",
+    "submit": "申請する",
+    "pending": "審査中",
+    "approved": "認定済み ✅"
+  },
+  "groomers": {
+    "title": "Davis 認定トリマー",
+    "list_view": "リスト",
+    "map_view": "地図",
+    "find_cta": "トリマーを探す",
+    "verified": "Davis 認定"
+  },
+  "products": {
+    "title": "Davis 製品ガイド",
+    "all": "すべて",
+    "shampoo": "シャンプー",
+    "conditioner": "コンディショナー",
+    "spa": "SPA",
+    "specialty": "スペシャルケア"
   },
   "common": {
     "loading": "読み込み中...",

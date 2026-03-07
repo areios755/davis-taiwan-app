@@ -501,6 +501,15 @@ const breeds = [
   { species: 'cat', name: '幼貓', name_en: 'Kitten', name_ja: '子猫', name_cn: '幼猫', emoji: '🐣', coat_types: ['混合'], davis_breed_id: 'kitten', scenarios: ['蘇打燕麥溫和清潔'] },
 ];
 
+// Normalize product keys — ensure all objects have the same fields
+const allProductKeys = new Set();
+products.forEach(p => Object.keys(p).forEach(k => allProductKeys.add(k)));
+products.forEach(p => {
+  for (const k of allProductKeys) {
+    if (!(k in p)) p[k] = null;
+  }
+});
+
 // Transform breeds for Supabase insert
 const breedRows = breeds.map(b => ({
   species: b.species,
