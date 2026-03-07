@@ -22,7 +22,7 @@ RULES='保護規則：
 8. Netlify Functions 用 TypeScript
 9. 舊版原始碼在 legacy/ 目錄，可參照但不要直接複製 JS
 10. 安全修復是最高優先級（AUDIT_REPORT.md 7 項全部修）
-11. 【共用DB】Davis 與毛安住共用同一個 Supabase 專案（fur-angel, ref: npardxmvlvbhindvqtrd）
+11. 【共用DB】Davis 與毛安住共用同一個 Supabase 專案（fur-angel, ref: nyoowcdydbqbyrrthprf）
 12. 【共用品種】品種資料從 breed_groups 表讀取（不是靜態 JSON），用 davis_breed_id 欄位關聯
 13. 【Davis專屬表】davis_products / davis_shares / davis_certifications / davis_analytics / davis_settings 不綁 store_id
 14. .env 中的 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY 指向毛安住同一個 Supabase'
@@ -111,7 +111,7 @@ davis_analytics: 只有 service_role 可寫
 davis_settings: 只有 service_role 可讀寫
 
 ### 2. 更新 .env.example
-VITE_SUPABASE_URL=https://npardxmvlvbhindvqtrd.supabase.co
+VITE_SUPABASE_URL=https://nyoowcdydbqbyrrthprf.supabase.co
 VITE_SUPABASE_ANON_KEY=
 DAVIS_TOKEN_SECRET=
 ANTHROPIC_API_KEY=
@@ -363,7 +363,7 @@ echo "============================================"
 echo "時間: $(date)"
 echo "Log: $LOG"
 echo ""
-echo "共用 DB: fur-angel (npardxmvlvbhindvqtrd)"
+echo "共用 DB: fur-angel (nyoowcdydbqbyrrthprf)"
 echo "共用表: breed_groups（零映射）"
 echo "Davis 專屬: davis_products, davis_shares, davis_certifications, davis_analytics, davis_settings"
 echo ""
