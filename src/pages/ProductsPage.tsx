@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PRODUCTS } from '@/data/products';
+import { ExternalLink } from 'lucide-react';
 import type { DavisProduct } from '@/types';
 
 type Category = 'all' | 'shampoo' | 'conditioner' | 'spa' | 'specialty';
@@ -118,30 +119,41 @@ export default function ProductsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((p) => (
-            <Link
-              key={p.id}
-              to={`/products/${p.id}`}
-              className="card-davis hover:shadow-md transition-shadow flex gap-4"
-            >
-              {p.image_url && (
-                <img
-                  src={p.image_url}
-                  alt={getLocaleName(p, lang)}
-                  className="w-20 h-20 object-contain rounded-lg flex-shrink-0"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <span className="inline-block text-xs text-davis-blue font-medium bg-davis-light rounded-full px-2 py-0.5 mb-1">
-                  {t(`products.${p.category}`)}
-                </span>
-                <h3 className="font-bold text-davis-navy">{getLocaleName(p, lang)}</h3>
-                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{getLocaleTag(p, lang)}</p>
-                <div className="flex gap-3 text-xs text-gray-400 mt-2">
-                  <span>{t('step.dilution')} {p.dilution}</span>
-                  <span>{t('step.dwell_time')} {p.dwell_time}</span>
+            <div key={p.id} className="card-davis hover:shadow-md transition-shadow">
+              <Link to={`/products/${p.id}`} className="flex gap-4 p-4">
+                {p.image_url && (
+                  <img
+                    src={p.image_url}
+                    alt={getLocaleName(p, lang)}
+                    className="w-20 h-20 object-contain rounded-lg flex-shrink-0"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <span className="inline-block text-xs text-davis-blue font-medium bg-davis-light rounded-full px-2 py-0.5 mb-1">
+                    {t(`products.${p.category}`)}
+                  </span>
+                  <h3 className="font-bold text-davis-navy">{getLocaleName(p, lang)}</h3>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{getLocaleTag(p, lang)}</p>
+                  <div className="flex gap-3 text-xs text-gray-400 mt-2">
+                    <span>{t('step.dilution')} {p.dilution}</span>
+                    <span>{t('step.dwell_time')} {p.dwell_time}</span>
+                  </div>
                 </div>
+              </Link>
+              <div className="px-4 pb-3">
+                <a
+                  href="https://davistaiwan.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:brightness-110 active:scale-95"
+                  style={{ backgroundColor: '#D4A843' }}
+                >
+                  前往選購
+                  <ExternalLink size={14} />
+                </a>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

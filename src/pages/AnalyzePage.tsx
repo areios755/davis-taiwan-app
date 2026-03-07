@@ -9,7 +9,8 @@ import { postEmbedResult, postEmbedReady } from '@/lib/embed-messaging';
 import { getCurrentSeason } from '@/data/seasons';
 import { fetchBreeds } from '@/data/breeds';
 import type { AnalysisResult, TierLevel, AppLocale, DavisBreed } from '@/types';
-import { Camera, Search, Share2 } from 'lucide-react';
+import { getBreedCombo, getComboProducts } from '@/lib/breed-combos';
+import { Camera, Search, Share2, ExternalLink, MessageCircle } from 'lucide-react';
 
 type Phase = 'upload' | 'analyzing' | 'result' | 'error';
 
@@ -181,7 +182,6 @@ export default function AnalyzePage() {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -325,6 +325,15 @@ export default function AnalyzePage() {
                   <span>⏱ {t('step.dwell_time')} {step.dwell_time}</span>
                 </div>
                 {step.tip && <p className="text-xs text-gray-500 mt-1">💡 {step.tip}</p>}
+                <a
+                  href="https://davistaiwan.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-all hover:brightness-110"
+                  style={{ backgroundColor: '#D4A843' }}
+                >
+                  前往選購 <ExternalLink size={12} />
+                </a>
               </div>
             ))}
           </div>
@@ -352,6 +361,59 @@ export default function AnalyzePage() {
             <div className="bg-davis-light rounded-xl p-3 text-center text-sm">
               <p className="text-davis-navy font-medium mb-1">分享連結已複製</p>
               <p className="text-davis-blue break-all text-xs">{shareUrl}</p>
+            </div>
+          )}
+
+          {/* Breed combo recommendation */}
+          {(() => {
+            const combo = getBreedCombo(result.breed, result.color);
+            const comboProducts = getComboProducts(combo);
+            if (comboProducts.length === 0) return null;
+            return (
+              <div className="mt-8 border-t border-gray-100 pt-6">
+                <h3 className="text-lg font-bold text-davis-navy mb-1">推薦組合：{combo.name}</h3>
+                <p className="text-sm text-gray-500 mb-4">{combo.description}</p>
+                <div className="space-y-3">
+                  {comboProducts.map((p) => (
+                    <div key={p.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+                      {p.image_url && (
+                        <img src={p.image_url} alt={p.name_zh} className="w-14 h-14 object-contain rounded-lg flex-shrink-0" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-davis-navy text-sm">{p.name_zh}</p>
+                        <p className="text-xs text-gray-400 line-clamp-1">{p.tag_zh}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <a
+                  href="https://davistaiwan.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all duration-200 hover:brightness-110 active:scale-95"
+                  style={{ backgroundColor: '#D4A843' }}
+                >
+                  前往 Davis Taiwan 選購
+                  <ExternalLink size={16} />
+                </a>
+              </div>
+            );
+          })()}
+
+          {/* LINE CTA */}
+          {!embed.isEmbed && (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-500 mb-3">想了解更多？加入 Davis Taiwan LINE</p>
+              <a
+                href="https://line.me/R/ti/p/@davistaiwan"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all duration-200 hover:brightness-110 active:scale-95"
+                style={{ backgroundColor: '#06C755' }}
+              >
+                <MessageCircle size={18} />
+                加入 LINE 官方帳號
+              </a>
             </div>
           )}
         </div>
