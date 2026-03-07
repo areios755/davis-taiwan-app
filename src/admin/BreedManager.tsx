@@ -41,7 +41,8 @@ const EMPTY_BREED: Omit<Breed, 'id'> = {
 };
 
 export default function BreedManager() {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
+  const canEdit = role === 'admin' || role === 'editor';
   const [breeds, setBreeds] = useState<Breed[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Breed | null>(null);
@@ -248,12 +249,14 @@ export default function BreedManager() {
               {f === 'all' ? '全部' : f === 'dog' ? '狗' : '貓'}
             </button>
           ))}
-          <button
-            onClick={() => { setCreating({ ...EMPTY_BREED }); setMsg(''); }}
-            className="btn-davis text-sm flex items-center gap-1 ml-2"
-          >
-            <Plus size={16} /> 新增品種
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => { setCreating({ ...EMPTY_BREED }); setMsg(''); }}
+              className="btn-davis text-sm flex items-center gap-1 ml-2"
+            >
+              <Plus size={16} /> 新增品種
+            </button>
+          )}
         </div>
       </div>
 
@@ -295,14 +298,16 @@ export default function BreedManager() {
                   <td className="px-4 py-3 font-mono text-xs text-gray-500">{b.davis_breed_id || '—'}</td>
                   <td className="px-4 py-3 text-xs text-gray-500">{(b.davis_product_keys || []).join(', ') || '—'}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <button onClick={() => setEditing({ ...b })} className="p-1 text-gray-400 hover:text-davis-blue" title="編輯">
-                        <Pencil size={14} />
-                      </button>
-                      <button onClick={() => setDeleting(b)} className="p-1 text-gray-400 hover:text-red-500" title="刪除">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                    {canEdit && (
+                      <div className="flex gap-1">
+                        <button onClick={() => setEditing({ ...b })} className="p-1 text-gray-400 hover:text-davis-blue" title="編輯">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleting(b)} className="p-1 text-gray-400 hover:text-red-500" title="刪除">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

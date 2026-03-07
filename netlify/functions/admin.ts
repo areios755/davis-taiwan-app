@@ -125,6 +125,8 @@ const handler: Handler = async (event) => {
   const currentUser = verifyToken(authHeader);
   if (!currentUser) return json(401, { error: '未授權' }, headers);
   const isAdmin = currentUser.role === 'admin';
+  const isEditor = currentUser.role === 'editor';
+  const canEdit = isAdmin || isEditor; // admin & editor can CRUD products/breeds/certs
 
   // ── Me ──
   if (path === '/me' && method === 'GET') {
@@ -228,7 +230,63 @@ const handler: Handler = async (event) => {
     return json(200, { users: data || [] }, headers);
   }
 
-  // ══ Write endpoints (admin only) ══
+  // ══ Editor + Admin: Products, Breeds, Certs CRUD ══
+
+  // ── Products CRUD ──
+  if (path === '/products' && method === 'POST') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    if (!body.product_key) return json(400, { error: '缺少 product_key' }, headers);
+    const { error } = await sb.from('davis_products').upsert(body, { onConflict: 'product_key' });
+    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
+  }
+
+  if (path.startsWith('/products/') && method === 'DELETE') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const productKey = decodeURIComponent(path.split('/products/')[1]);
+    await sb.from('davis_products').delete().eq('product_key', productKey);
+    return json(200, { ok: true }, headers);
+  }
+
+  if (path === '/products/import' && method === 'POST') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const rows = (body.rows as Array<Record<string, unknown>>) || [];
+    let ok = 0, fail = 0;
+    for (const row of rows) {
+      if (!row.product_key) { fail++; continue; }
+      const { error } = await sb.from('davis_products').upsert(row, { onConflict: 'product_key' });
+      if (error) fail++; else ok++;
+    }
+    return json(200, { ok, fail, total: rows.length }, headers);
+  }
+
+  // ── Breeds CRUD ──
+  if (path === '/breeds' && method === 'POST') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    if (!body.name) return json(400, { error: '缺少 name' }, headers);
+    const { error } = await sb.from('breed_groups').upsert(body, { onConflict: 'davis_breed_id' });
+    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
+  }
+
+  if (path.startsWith('/breeds/') && method === 'DELETE') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const breedId = decodeURIComponent(path.split('/breeds/')[1]);
+    await sb.from('breed_groups').delete().eq('davis_breed_id', breedId);
+    return json(200, { ok: true }, headers);
+  }
+
+  if (path === '/breeds/import' && method === 'POST') {
+    if (!canEdit) return json(403, { error: '權限不足' }, headers);
+    const rows = (body.rows as Array<Record<string, unknown>>) || [];
+    let ok = 0, fail = 0;
+    for (const row of rows) {
+      if (!row.name) { fail++; continue; }
+      const { error } = await sb.from('breed_groups').upsert(row, { onConflict: 'davis_breed_id' });
+      if (error) fail++; else ok++;
+    }
+    return json(200, { ok, fail, total: rows.length }, headers);
+  }
+
+  // ══ Admin only: Settings, Users, Seed ══
   if (!isAdmin) return json(403, { error: '僅管理員可執行此操作' }, headers);
 
   // ── Settings update ──
@@ -247,54 +305,6 @@ const handler: Handler = async (event) => {
       }, { onConflict: 'key' });
     }
     return json(200, { ok: true }, headers);
-  }
-
-  // ── Products CRUD ──
-  if (path === '/products' && method === 'POST') {
-    if (!body.product_key) return json(400, { error: '缺少 product_key' }, headers);
-    const { error } = await sb.from('davis_products').upsert(body, { onConflict: 'product_key' });
-    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
-  }
-
-  if (path.startsWith('/products/') && method === 'DELETE') {
-    const productKey = decodeURIComponent(path.split('/products/')[1]);
-    await sb.from('davis_products').delete().eq('product_key', productKey);
-    return json(200, { ok: true }, headers);
-  }
-
-  if (path === '/products/import' && method === 'POST') {
-    const rows = (body.rows as Array<Record<string, unknown>>) || [];
-    let ok = 0, fail = 0;
-    for (const row of rows) {
-      if (!row.product_key) { fail++; continue; }
-      const { error } = await sb.from('davis_products').upsert(row, { onConflict: 'product_key' });
-      if (error) fail++; else ok++;
-    }
-    return json(200, { ok, fail, total: rows.length }, headers);
-  }
-
-  // ── Breeds CRUD ──
-  if (path === '/breeds' && method === 'POST') {
-    if (!body.name) return json(400, { error: '缺少 name' }, headers);
-    const { error } = await sb.from('breed_groups').upsert(body, { onConflict: 'davis_breed_id' });
-    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
-  }
-
-  if (path.startsWith('/breeds/') && method === 'DELETE') {
-    const breedId = decodeURIComponent(path.split('/breeds/')[1]);
-    await sb.from('breed_groups').delete().eq('davis_breed_id', breedId);
-    return json(200, { ok: true }, headers);
-  }
-
-  if (path === '/breeds/import' && method === 'POST') {
-    const rows = (body.rows as Array<Record<string, unknown>>) || [];
-    let ok = 0, fail = 0;
-    for (const row of rows) {
-      if (!row.name) { fail++; continue; }
-      const { error } = await sb.from('breed_groups').upsert(row, { onConflict: 'davis_breed_id' });
-      if (error) fail++; else ok++;
-    }
-    return json(200, { ok, fail, total: rows.length }, headers);
   }
 
   // ── User CRUD ──

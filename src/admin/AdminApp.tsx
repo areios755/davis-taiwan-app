@@ -24,16 +24,22 @@ export function useAuth() { return useContext(AuthContext); }
 
 type Page = 'dashboard' | 'products' | 'breeds' | 'settings' | 'analytics' | 'users' | 'ai' | 'certs';
 
-const NAV: { id: Page; label: string; icon: typeof LayoutDashboard }[] = [
+const NAV: { id: Page; label: string; icon: typeof LayoutDashboard; minRole?: 'editor' | 'admin' }[] = [
   { id: 'dashboard', label: '儀表板', icon: LayoutDashboard },
   { id: 'products', label: '產品管理', icon: Package },
   { id: 'breeds', label: '品種管理', icon: Dog },
   { id: 'certs', label: '認證審核', icon: Award },
   { id: 'analytics', label: '數據分析', icon: BarChart3 },
-  { id: 'ai', label: 'AI 助手', icon: Bot },
-  { id: 'users', label: '使用者', icon: Users },
-  { id: 'settings', label: '系統設定', icon: Settings },
+  { id: 'ai', label: 'AI 助手', icon: Bot, minRole: 'editor' },
+  { id: 'users', label: '使用者', icon: Users, minRole: 'admin' },
+  { id: 'settings', label: '系統設定', icon: Settings, minRole: 'admin' },
 ];
+
+function hasAccess(userRole: string, minRole?: 'editor' | 'admin'): boolean {
+  if (!minRole) return true;
+  if (minRole === 'editor') return userRole === 'editor' || userRole === 'admin';
+  return userRole === 'admin';
+}
 
 export default function AdminApp() {
   const [token, setToken] = useState<string | null>(() => sessionStorage.getItem('davis_admin_token'));
@@ -147,7 +153,7 @@ export default function AdminApp() {
           </div>
 
           <nav className="flex-1 py-2 overflow-y-auto">
-            {NAV.map((item) => (
+            {NAV.filter((item) => hasAccess(role, item.minRole)).map((item) => (
               <button
                 key={item.id}
                 onClick={() => { setPage(item.id); setSidebarOpen(false); }}

@@ -18,7 +18,8 @@ interface Cert {
 }
 
 export default function CertManager() {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
+  const canEdit = role === 'admin' || role === 'editor';
   const [certs, setCerts] = useState<Cert[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
@@ -105,7 +106,7 @@ export default function CertManager() {
               </div>
 
               {/* Actions */}
-              {c.status === 'pending' && (
+              {canEdit && c.status === 'pending' && (
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={() => handleStatus(c.id, 'approved')}
@@ -123,7 +124,7 @@ export default function CertManager() {
                   </button>
                 </div>
               )}
-              {c.status !== 'pending' && (
+              {canEdit && c.status !== 'pending' && (
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={() => handleStatus(c.id, 'pending')}

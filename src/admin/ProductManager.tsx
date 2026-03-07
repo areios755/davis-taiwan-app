@@ -39,7 +39,8 @@ const CATEGORIES = ['shampoo', 'conditioner', 'spa', 'specialty'];
 const CAT_LABELS: Record<string, string> = { shampoo: '洗劑', conditioner: '護毛素', spa: 'SPA', specialty: '特殊護理' };
 
 export default function ProductManager() {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
+  const canEdit = role === 'admin' || role === 'editor';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -81,9 +82,11 @@ export default function ProductManager() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-davis-navy">產品管理</h1>
-        <button onClick={() => setEditing({ ...EMPTY_PRODUCT })} className="btn-davis flex items-center gap-1 text-sm">
-          <Plus size={16} /> 新增
-        </button>
+        {canEdit && (
+          <button onClick={() => setEditing({ ...EMPTY_PRODUCT })} className="btn-davis flex items-center gap-1 text-sm">
+            <Plus size={16} /> 新增
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -102,16 +105,18 @@ export default function ProductManager() {
             </thead>
             <tbody>
               {products.map((p) => (
-                <tr key={p.product_key} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => setEditing({ ...p })}>
+                <tr key={p.product_key} className={`border-b hover:bg-gray-50 ${canEdit ? 'cursor-pointer' : ''}`} onClick={() => canEdit && setEditing({ ...p })}>
                   <td className="px-4 py-3 font-mono text-xs">{p.product_key}</td>
                   <td className="px-4 py-3">{p.name_zh}</td>
                   <td className="px-4 py-3"><span className="bg-davis-light text-davis-blue text-xs px-2 py-0.5 rounded-full">{CAT_LABELS[p.category] || p.category}</span></td>
                   <td className="px-4 py-3 text-gray-500">{p.dilution}</td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex gap-1">
-                      <button onClick={() => setEditing({ ...p })} className="p-1 text-gray-400 hover:text-davis-blue"><Pencil size={14} /></button>
-                      <button onClick={() => handleDelete(p.product_key)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
-                    </div>
+                    {canEdit && (
+                      <div className="flex gap-1">
+                        <button onClick={() => setEditing({ ...p })} className="p-1 text-gray-400 hover:text-davis-blue"><Pencil size={14} /></button>
+                        <button onClick={() => handleDelete(p.product_key)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

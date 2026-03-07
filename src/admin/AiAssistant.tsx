@@ -18,12 +18,20 @@ interface AiResult {
 }
 
 export default function AiAssistant() {
-  const { token } = useAuth();
+  const { token, role } = useAuth();
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiResult | null>(null);
   const [error, setError] = useState('');
   const [importMsg, setImportMsg] = useState('');
+
+  if (role === 'viewer') {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-400">您沒有權限使用 AI 助手</p>
+      </div>
+    );
+  }
 
   const handleAnalyze = async () => {
     if (text.trim().length < 10) { setError('文字太短（至少 10 字）'); return; }
