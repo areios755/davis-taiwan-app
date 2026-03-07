@@ -172,19 +172,33 @@ ${langRule}
       content: Array<{ type: string; text?: string }>;
       usage?: { input_tokens?: number; output_tokens?: number };
     };
-    const text = aiRes.content?.find(c => c.type === 'text')?.text ?? '';
+    const rawText = aiRes.content?.find(c => c.type === 'text')?.text ?? '';
+    console.log('[analyze] Raw AI response length:', rawText.length, 'first 100:', rawText.substring(0, 100));
 
-    // Parse JSON — strip markdown fences
+    // Parse JSON — robust markdown fence stripping
     let parsed: Record<string, unknown>;
     try {
-      const cleaned = text.replace(/```json?\n?/g, '').replace(/```\n?/g, '').trim();
-      const start = cleaned.indexOf('{');
-      const end = cleaned.lastIndexOf('}');
-      if (start === -1 || end === -1) throw new Error('No JSON');
-      parsed = JSON.parse(cleaned.slice(start, end + 1));
-    } catch {
-      console.error('JSON parse failed:', text.substring(0, 200));
-      return { statusCode: 500, headers, body: JSON.stringify({ error: 'JSON解析失敗: ' + text.slice(0, 200) }) };
+      let text = rawText.trim();
+
+      // Strip markdown code fences (various formats)
+      if (text.startsWith('```json')) {
+        text = text.slice(7);
+      } else if (text.startsWith('```')) {
+        text = text.slice(3);
+      }
+      if (text.endsWith('```')) {
+        text = text.slice(0, -3);
+      }
+      text = text.trim();
+
+      // Extract outermost JSON object
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No JSON object found in response');
+
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error('[analyze] JSON parse failed:', parseErr, 'raw:', rawText.substring(0, 300));
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'AI 回應解析失敗，請重試' }) };
     }
 
     // Normalize product names in tiers
