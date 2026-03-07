@@ -7,12 +7,12 @@ import type { DavisBreed } from '@/types';
  */
 export const BREEDS: Record<string, DavisBreed> = {
   // ── 犬 - 蓬鬆造型類 ──
-  poodle:          { id: 'poodle', name_zh: '貴賓犬', name_en: 'Poodle', name_ja: 'プードル', name_cn: '贵宾犬', pet_type: '狗', coat_type: '捲毛', emoji: '🐩', product_keys: ['fluffy_coarse_styling'] },
-  bichon:          { id: 'bichon', name_zh: '比熊犬', name_en: 'Bichon Frise', name_ja: 'ビション・フリーゼ', name_cn: '比熊犬', pet_type: '狗', coat_type: '捲毛', emoji: '☁️', product_keys: ['fluffy_coarse_styling'] },
-  pomeranian:      { id: 'pomeranian', name_zh: '博美犬', name_en: 'Pomeranian', name_ja: 'ポメラニアン', name_cn: '博美犬', pet_type: '狗', coat_type: '長毛', emoji: '🦊', product_keys: ['fluffy_coarse_styling', 'white_coat_brighten'] },
+  poodle:          { id: 'poodle', name_zh: '貴賓犬', name_en: 'Poodle', name_ja: 'プードル', name_cn: '贵宾犬', pet_type: '狗', coat_type: '捲毛', emoji: '🐩', product_keys: ['fluffy_coarse_styling'], coat_characteristics: '捲毛，需要蓬鬆立體毛根支撐，定期造型修剪', grooming_tips: ['第二洗使用質感洗劑提供毛根支撐力', '吹整時搭配圓梳由內向外梳開，蓬鬆效果更顯著', 'SPA進階選擇竹節花系列適合蓬鬆升級'] },
+  bichon:          { id: 'bichon', name_zh: '比熊犬', name_en: 'Bichon Frise', name_ja: 'ビション・フリーゼ', name_cn: '比熊犬', pet_type: '狗', coat_type: '捲毛', emoji: '☁️', product_keys: ['fluffy_coarse_styling'], coat_characteristics: '白色捲毛，需要蓬鬆造型，容易氧化變黃', grooming_tips: ['白色比熊搭配高級炫彩洗劑抗氧化提亮', '蓬鬆造型選擇竹節花系列或質感洗劑', '面部清潔使用潔面乳去淚痕'] },
+  pomeranian:      { id: 'pomeranian', name_zh: '博美犬', name_en: 'Pomeranian', name_ja: 'ポメラニアン', name_cn: '博美犬', pet_type: '狗', coat_type: '長毛', emoji: '🦊', product_keys: ['fluffy_coarse_styling', 'white_coat_brighten'], coat_characteristics: '長毛雙層毛，蓬鬆感重要，需要造型支撐', grooming_tips: ['蓬鬆造型選擇竹節花系列', '換毛季搭配輕盈洗劑和輕盈乳液'] },
   schnauzer:       { id: 'schnauzer', name_zh: '雪納瑞', name_en: 'Schnauzer', name_ja: 'シュナウザー', name_cn: '雪纳瑞', pet_type: '狗', coat_type: '硬毛', product_keys: ['fluffy_coarse_styling', 'degrease_deep_clean'] },
   // ── 犬 - 長毛柔順類 ──
-  maltese:         { id: 'maltese', name_zh: '馬爾濟斯', name_en: 'Maltese', name_ja: 'マルチーズ', name_cn: '马尔济斯', pet_type: '狗', coat_type: '長毛', emoji: '🤍', product_keys: ['detangling'] },
+  maltese:         { id: 'maltese', name_zh: '馬爾濟斯', name_en: 'Maltese', name_ja: 'マルチーズ', name_cn: '马尔济斯', pet_type: '狗', coat_type: '長毛', emoji: '🤍', product_keys: ['detangling'], coat_characteristics: '絲質長毛，容易打結纏繞，需要柔順護理', grooming_tips: ['SPA進階選擇魔力薰衣草系列柔順升級', '嚴重打結先手動輕柔解開再下水', '波斯系、馬爾濟斯等類似毛質適合薰衣草系列'] },
   maltipoo:        { id: 'maltipoo', name_zh: '瑪爾泰迪', name_en: 'Maltipoo', name_ja: 'マルプー', name_cn: '玛尔泰迪', pet_type: '狗', coat_type: '捲毛', emoji: '🧸', product_keys: ['white_coat_brighten', 'detangling'] },
   yorkie:          { id: 'yorkie', name_zh: '約克夏㹴', name_en: 'Yorkshire Terrier', name_ja: 'ヨークシャー・テリア', name_cn: '约克夏梗', pet_type: '狗', coat_type: '長毛', product_keys: ['detangling'] },
   shih_tzu:        { id: 'shih_tzu', name_zh: '西施犬', name_en: 'Shih Tzu', name_ja: 'シー・ズー', name_cn: '西施犬', pet_type: '狗', coat_type: '長毛', product_keys: ['detangling', 'flat_face_eye_clean'] },
@@ -24,14 +24,14 @@ export const BREEDS: Record<string, DavisBreed> = {
   min_pin:         { id: 'min_pin', name_zh: '迷你品犬', name_en: 'Miniature Pinscher', name_ja: 'ミニチュア・ピンシャー', name_cn: '迷你品犬', pet_type: '狗', coat_type: '短毛', product_keys: ['degrease_deep_clean'] },
   jack_russell:    { id: 'jack_russell', name_zh: '傑克羅素㹴', name_en: 'Jack Russell Terrier', name_ja: 'ジャック・ラッセル・テリア', name_cn: '杰克罗素梗', pet_type: '狗', coat_type: '短毛', product_keys: ['degrease_deep_clean'] },
   // ── 犬 - 扁臉類 ──
-  french_bulldog:  { id: 'french_bulldog', name_zh: '法國鬥牛犬', name_en: 'French Bulldog', name_ja: 'フレンチ・ブルドッグ', name_cn: '法国斗牛犬', pet_type: '狗', coat_type: '短毛', product_keys: ['degrease_deep_clean', 'flat_face_eye_clean'] },
+  french_bulldog:  { id: 'french_bulldog', name_zh: '法國鬥牛犬', name_en: 'French Bulldog', name_ja: 'フレンチ・ブルドッグ', name_cn: '法国斗牛犬', pet_type: '狗', coat_type: '短毛', product_keys: ['degrease_deep_clean', 'flat_face_eye_clean'], coat_characteristics: '短毛，扁臉，皮膚容易出油和敏感', grooming_tips: ['扁臉犬使用潔面乳清潔面部', '皮膚摺皺處需要特別清潔', '體味重可用奢華洗劑分解體味'] },
   english_bulldog: { id: 'english_bulldog', name_zh: '英國鬥牛犬', name_en: 'English Bulldog', name_ja: 'イングリッシュ・ブルドッグ', name_cn: '英国斗牛犬', pet_type: '狗', coat_type: '短毛', product_keys: ['degrease_deep_clean', 'flat_face_eye_clean'] },
   pug:             { id: 'pug', name_zh: '巴哥犬', name_en: 'Pug', name_ja: 'パグ', name_cn: '巴哥犬', pet_type: '狗', coat_type: '短毛', emoji: '🐶', product_keys: ['degrease_deep_clean', 'flat_face_eye_clean'] },
   // ── 犬 - 中型犬 ──
   cocker:          { id: 'cocker', name_zh: '可卡犬', name_en: 'Cocker Spaniel', name_ja: 'コッカー・スパニエル', name_cn: '可卡犬', pet_type: '狗', coat_type: '長毛', product_keys: ['detangling', 'degrease_deep_clean'] },
   pitbull:         { id: 'pitbull', name_zh: '比特犬', name_en: 'Pit Bull', name_ja: 'ピットブル', name_cn: '比特犬', pet_type: '狗', coat_type: '短毛', product_keys: ['degrease_deep_clean'] },
   // ── 犬 - 掉毛類 ──
-  corgi:           { id: 'corgi', name_zh: '柯基', name_en: 'Corgi', name_ja: 'コーギー', name_cn: '柯基', pet_type: '狗', coat_type: '雙層毛', emoji: '🦮', product_keys: ['deshed_dog'] },
+  corgi:           { id: 'corgi', name_zh: '柯基', name_en: 'Corgi', name_ja: 'コーギー', name_cn: '柯基', pet_type: '狗', coat_type: '雙層毛', emoji: '🦮', product_keys: ['deshed_dog'], coat_characteristics: '雙層毛，換毛季掉毛嚴重', grooming_tips: ['換毛季使用輕盈洗劑搭配輕盈乳液效果加倍', '非常髒可前置強效洗劑做底層預清潔', '富含泛醇、氨基酸強化健康毛囊'] },
   shiba:           { id: 'shiba', name_zh: '柴犬', name_en: 'Shiba Inu', name_ja: '柴犬', name_cn: '柴犬', pet_type: '狗', coat_type: '雙層毛', emoji: '🦊', product_keys: ['deshed_dog'] },
   labrador:        { id: 'labrador', name_zh: '拉布拉多', name_en: 'Labrador Retriever', name_ja: 'ラブラドール・レトリバー', name_cn: '拉布拉多', pet_type: '狗', coat_type: '雙層毛', product_keys: ['deshed_dog', 'heavy_duty_clean'] },
   golden:          { id: 'golden', name_zh: '黃金獵犬', name_en: 'Golden Retriever', name_ja: 'ゴールデン・レトリバー', name_cn: '金毛猎犬', pet_type: '狗', coat_type: '長毛', product_keys: ['deshed_dog', 'detangling'] },
@@ -47,14 +47,14 @@ export const BREEDS: Record<string, DavisBreed> = {
   mixed_dog:       { id: 'mixed_dog', name_zh: '米克斯犬', name_en: 'Mixed Breed', name_ja: 'ミックス犬', name_cn: '混种犬', pet_type: '狗', coat_type: '混合', emoji: '🐕', product_keys: ['degrease_deep_clean'] },
   puppy:           { id: 'puppy', name_zh: '幼犬', name_en: 'Puppy', name_ja: '子犬', name_cn: '幼犬', pet_type: '狗', coat_type: '混合', emoji: '🐣', product_keys: ['oatmeal_gentle_clean'] },
   // ── 貓 - 短毛類 ──
-  british_sh:      { id: 'british_sh', name_zh: '英國短毛貓', name_en: 'British Shorthair', name_ja: 'ブリティッシュ・ショートヘア', name_cn: '英国短毛猫', pet_type: '貓', coat_type: '短毛', emoji: '🐈', product_keys: ['deshed_cat', 'hypoallergenic_daily'] },
+  british_sh:      { id: 'british_sh', name_zh: '英國短毛貓', name_en: 'British Shorthair', name_ja: 'ブリティッシュ・ショートヘア', name_cn: '英国短毛猫', pet_type: '貓', coat_type: '短毛', emoji: '🐈', product_keys: ['deshed_cat', 'hypoallergenic_daily'], coat_characteristics: '短毛雙層毛，藍貓類型毛質，換毛季掉毛明顯', grooming_tips: ['藍貓類型毛質適合輕盈洗劑（貓）搭配櫻桃漿果洗劑', 'PH值和香味更偏向貓，更低敏', '短毛品種首選燕麥護毛素'] },
   american_sh:     { id: 'american_sh', name_zh: '美國短毛貓', name_en: 'American Shorthair', name_ja: 'アメリカン・ショートヘア', name_cn: '美国短毛猫', pet_type: '貓', coat_type: '短毛', product_keys: ['deshed_cat'] },
   russian_blue:    { id: 'russian_blue', name_zh: '俄羅斯藍貓', name_en: 'Russian Blue', name_ja: 'ロシアンブルー', name_cn: '俄罗斯蓝猫', pet_type: '貓', coat_type: '短毛', product_keys: ['deshed_cat', 'dark_coat_brighten'] },
   scottish_fold:   { id: 'scottish_fold', name_zh: '蘇格蘭折耳', name_en: 'Scottish Fold', name_ja: 'スコティッシュ・フォールド', name_cn: '苏格兰折耳', pet_type: '貓', coat_type: '短毛', product_keys: ['hypoallergenic_daily'] },
   // ── 貓 - 長毛類 ──
   ragdoll:         { id: 'ragdoll', name_zh: '布偶貓', name_en: 'Ragdoll', name_ja: 'ラグドール', name_cn: '布偶猫', pet_type: '貓', coat_type: '長毛', emoji: '💜', product_keys: ['detangling', 'deshed_cat'] },
   maine_coon:      { id: 'maine_coon', name_zh: '緬因貓', name_en: 'Maine Coon', name_ja: 'メインクーン', name_cn: '缅因猫', pet_type: '貓', coat_type: '長毛', product_keys: ['detangling', 'deshed_cat'] },
-  persian:         { id: 'persian', name_zh: '波斯貓', name_en: 'Persian', name_ja: 'ペルシャ', name_cn: '波斯猫', pet_type: '貓', coat_type: '長毛', product_keys: ['detangling', 'flat_face_eye_clean'] },
+  persian:         { id: 'persian', name_zh: '波斯貓', name_en: 'Persian', name_ja: 'ペルシャ', name_cn: '波斯猫', pet_type: '貓', coat_type: '長毛', product_keys: ['detangling', 'flat_face_eye_clean'], coat_characteristics: '長毛，容易打結，扁臉容易有淚痕', grooming_tips: ['扁臉貓使用潔面乳清除淚痕', '波斯系毛質適合薰衣草系列柔順升級', '貓使用滋潤護毛素不稀釋'] },
   chinchilla:      { id: 'chinchilla', name_zh: '金吉拉', name_en: 'Chinchilla', name_ja: 'チンチラ', name_cn: '金吉拉', pet_type: '貓', coat_type: '長毛', product_keys: ['detangling', 'white_coat_brighten'] },
   // ── 貓 - 扁臉 ──
   exotic_sh:       { id: 'exotic_sh', name_zh: '異國短毛貓', name_en: 'Exotic Shorthair', name_ja: 'エキゾチック・ショートヘア', name_cn: '异国短毛猫', pet_type: '貓', coat_type: '短毛', product_keys: ['flat_face_eye_clean', 'hypoallergenic_daily'] },
