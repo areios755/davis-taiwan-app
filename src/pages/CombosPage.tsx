@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BREEDS } from '@/data/breeds';
 import { PRODUCTS } from '@/data/products';
+import { getProductImageSrc } from '@/lib/product-image';
 import { getAllCombos, getCombosForBreed } from '@/lib/breed-combos';
 import type { ProductCombo } from '@/lib/breed-combos';
 import { ExternalLink, MessageCircle, Search } from 'lucide-react';
@@ -21,8 +22,8 @@ function ComboCard({ combo }: { combo: ProductCombo }) {
               <div className="w-8 h-8 rounded-full bg-davis-blue text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
                 {step.step}
               </div>
-              {product?.image_url && (
-                <img src={product.image_url} alt={product.name_zh} className="w-12 h-12 object-contain rounded-lg flex-shrink-0" />
+              {product && getProductImageSrc(product) && (
+                <img src={getProductImageSrc(product)!} alt={product.name_zh} className="w-12 h-12 object-contain rounded-lg flex-shrink-0" />
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getShare } from '@/lib/api';
 import { getBreedCombo, getComboProducts } from '@/lib/breed-combos';
+import { getProductImageSrc } from '@/lib/product-image';
 import { ExternalLink, MessageCircle } from 'lucide-react';
 import type { AnalysisResult, TierLevel } from '@/types';
 
@@ -134,8 +135,8 @@ export default function ShareViewPage() {
                   <div className="w-7 h-7 rounded-full text-white flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#D4A843' }}>
                     {step.step}
                   </div>
-                  {p?.image_url && (
-                    <img src={p.image_url} alt={p.name_zh} className="w-12 h-12 object-contain rounded-lg flex-shrink-0" />
+                  {p && getProductImageSrc(p) && (
+                    <img src={getProductImageSrc(p)!} alt={p.name_zh} className="w-12 h-12 object-contain rounded-lg flex-shrink-0" />
                   )}
                   <div className="min-w-0 flex-1">
                     <span className="text-xs text-davis-blue font-medium">{step.role}</span>

@@ -1,5 +1,6 @@
 import type { ProductCombo } from '@/lib/breed-combos';
 import { PRODUCTS } from '@/data/products';
+import { getProductImageSrc } from '@/lib/product-image';
 
 const FONT_ZH = "'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif";
 const FONT_EN = "-apple-system, 'Helvetica Neue', Arial, sans-serif";
@@ -106,7 +107,8 @@ export async function generateShareCard(
     data.photoDataUrl ? tryLoadImage(data.photoDataUrl) : Promise.resolve(null),
     ...data.combo.steps.map((step) => {
       const p = PRODUCTS[step.product_key];
-      return p?.image_url ? tryLoadImage(p.image_url) : Promise.resolve(null);
+      const src = p ? getProductImageSrc(p) : null;
+      return src ? tryLoadImage(src) : Promise.resolve(null);
     }),
   ]);
 

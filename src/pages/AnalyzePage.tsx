@@ -11,6 +11,7 @@ import { fetchBreeds } from '@/data/breeds';
 import type { AnalysisResult, TierLevel, AppLocale, DavisBreed } from '@/types';
 import { getBreedCombo, getComboProducts } from '@/lib/breed-combos';
 import { PRODUCTS, PRODUCT_NAME_MAP } from '@/data/products';
+import { getProductImageSrc } from '@/lib/product-image';
 import { generateShareCard, shareOrDownload, compressPhotoForShare } from '@/lib/share-card-generator';
 import { Camera, Search, ExternalLink, MessageCircle, Image, Link2, Download, X } from 'lucide-react';
 
@@ -383,9 +384,9 @@ export default function AnalyzePage() {
                     <span className="text-xs font-medium text-davis-blue">Step {i + 1} · {step.phase}</span>
                   </div>
                   <div className="flex items-start gap-3">
-                    {product?.image_url && (
+                    {product && getProductImageSrc(product) && (
                       <img
-                        src={product.image_url}
+                        src={getProductImageSrc(product)!}
                         alt={step.product_name}
                         className="w-[72px] h-[72px] object-contain rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -536,8 +537,8 @@ export default function AnalyzePage() {
                           <div className="w-8 h-8 rounded-full bg-davis-navy text-[#D4A843] flex items-center justify-center text-sm font-bold">
                             {step.step}
                           </div>
-                          {p?.image_url && (
-                            <img src={p.image_url} alt={p.name_zh} className="w-[72px] h-[72px] object-contain rounded-lg bg-white border border-gray-100" />
+                          {p && getProductImageSrc(p) && (
+                            <img src={getProductImageSrc(p)!} alt={p.name_zh} className="w-[72px] h-[72px] object-contain rounded-lg bg-white border border-gray-100" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1">

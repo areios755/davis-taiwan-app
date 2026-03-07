@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PRODUCTS } from '@/data/products';
+import { getProductImageSrc } from '@/lib/product-image';
 import { ExternalLink } from 'lucide-react';
 import type { DavisProduct } from '@/types';
 
@@ -121,9 +122,9 @@ export default function ProductsPage() {
           {filtered.map((p) => (
             <div key={p.id} className="card-davis hover:shadow-md transition-shadow">
               <Link to={`/products/${p.id}`} className="flex gap-4 p-4">
-                {p.image_url && (
+                {getProductImageSrc(p) && (
                   <img
-                    src={p.image_url}
+                    src={getProductImageSrc(p)!}
                     alt={getLocaleName(p, lang)}
                     className="w-20 h-20 object-contain rounded-lg flex-shrink-0"
                   />

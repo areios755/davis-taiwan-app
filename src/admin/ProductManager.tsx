@@ -4,6 +4,7 @@ import { adminApi } from '@/lib/api';
 import { Plus, Pencil, Trash2, X, Download, Upload, FileSpreadsheet, Camera } from 'lucide-react';
 import { exportExcel, downloadTemplate, parseExcel } from '@/lib/excel';
 import { compressProductImage, formatFileSize } from '@/lib/image-compressor';
+import { getProductImageSrc } from '@/lib/product-image';
 
 interface Product {
   product_key: string;
@@ -47,13 +48,6 @@ const EXPORT_COLUMNS = [
   'category', 'dilution', 'dwell_time',
   'tag_zh', 'reason_zh', 'note_zh',
 ];
-
-/** Get the best available image src for a product */
-function getProductImageSrc(p: Product): string | null {
-  if (p.image_data) return `data:image/jpeg;base64,${p.image_data}`;
-  if (p.image_url) return p.image_url;
-  return null;
-}
 
 export default function ProductManager() {
   const { token, role } = useAuth();

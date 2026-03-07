@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PRODUCTS } from '@/data/products';
 import { PRODUCT_REVIEWS } from '@/data/reviews';
 import { getPairedProducts } from '@/lib/breed-combos';
+import { getProductImageSrc } from '@/lib/product-image';
 import { ArrowLeft, ExternalLink, Star, MessageCircle } from 'lucide-react';
 import type { DavisProduct } from '@/types';
 
@@ -37,10 +38,10 @@ export default function ProductDetailPage() {
         {t('common.back')}
       </Link>
 
-      {product.image_url && (
+      {getProductImageSrc(product) && (
         <div className="flex justify-center mb-6">
           <img
-            src={product.image_url}
+            src={getProductImageSrc(product)!}
             alt={l(product, 'name', lang)}
             className="h-48 object-contain rounded-xl"
           />
@@ -130,8 +131,8 @@ export default function ProductDetailPage() {
                 to={`/products/${p.id}`}
                 className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow"
               >
-                {p.image_url && (
-                  <img src={p.image_url} alt={l(p, 'name', lang)} className="w-14 h-14 object-contain rounded-lg flex-shrink-0" />
+                {getProductImageSrc(p) && (
+                  <img src={getProductImageSrc(p)!} alt={l(p, 'name', lang)} className="w-14 h-14 object-contain rounded-lg flex-shrink-0" />
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-davis-navy text-sm">{l(p, 'name', lang)}</p>
