@@ -270,8 +270,12 @@ const handler: Handler = async (event) => {
   if (path.startsWith('/breeds/') && method === 'DELETE') {
     if (!canEdit) return json(403, { error: '權限不足' }, headers);
     const breedId = decodeURIComponent(path.split('/breeds/')[1]);
-    await sb.from('breed_groups').delete().eq('davis_breed_id', breedId);
-    return json(200, { ok: true }, headers);
+    // Support both numeric id and davis_breed_id
+    const isNumeric = /^\d+$/.test(breedId);
+    const { error } = isNumeric
+      ? await sb.from('breed_groups').delete().eq('id', Number(breedId))
+      : await sb.from('breed_groups').delete().eq('davis_breed_id', breedId);
+    return json(error ? 500 : 200, error ? { error: error.message } : { ok: true }, headers);
   }
 
   if (path === '/breeds/import' && method === 'POST') {

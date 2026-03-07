@@ -111,8 +111,7 @@ export default function BreedManager() {
 
   const handleDelete = async () => {
     if (!deleting) return;
-    const id = deleting.davis_breed_id;
-    if (!id) { setMsg('此品種沒有 davis_breed_id，無法刪除'); setDeleting(null); return; }
+    const id = deleting.davis_breed_id || String(deleting.id);
     const res = await adminApi.deleteBreed(token, id);
     setDeleting(null);
     if (res.success) {
@@ -252,7 +251,8 @@ export default function BreedManager() {
           {canEdit && (
             <button
               onClick={() => { setCreating({ ...EMPTY_BREED }); setMsg(''); }}
-              className="btn-davis text-sm flex items-center gap-1 ml-2"
+              className="text-sm flex items-center gap-1 ml-2 px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: '#D4A843' }}
             >
               <Plus size={16} /> 新增品種
             </button>
