@@ -10,6 +10,7 @@ import { getCurrentSeason } from '@/data/seasons';
 import { fetchBreeds } from '@/data/breeds';
 import type { AnalysisResult, TierLevel, AppLocale, DavisBreed } from '@/types';
 import { getBreedCombo, getComboProducts } from '@/lib/breed-combos';
+import { PRODUCTS, PRODUCT_NAME_MAP } from '@/data/products';
 import { generateShareCard, shareOrDownload, compressPhotoForShare } from '@/lib/share-card-generator';
 import { Camera, Search, ExternalLink, MessageCircle, Image, Link2, Download, X } from 'lucide-react';
 
@@ -373,28 +374,47 @@ export default function AnalyzePage() {
 
           {/* Selected tier steps */}
           <div className="space-y-3">
-            {result.tiers[selectedTier].steps.map((step, i) => (
-              <div key={i} className="step-card">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-davis-blue">Step {i + 1} · {step.phase}</span>
+            {result.tiers[selectedTier].steps.map((step, i) => {
+              const productKey = PRODUCT_NAME_MAP[step.product_name] ?? step.product_name;
+              const product = PRODUCTS[productKey];
+              return (
+                <div key={i} className="step-card">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-davis-blue">Step {i + 1} · {step.phase}</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    {product?.image_url && (
+                      <img
+                        src={product.image_url}
+                        alt={step.product_name}
+                        className="w-[72px] h-[72px] object-contain rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-davis-navy">{step.product_name}</p>
+                      {product?.name_en && (
+                        <p className="text-xs text-gray-400">{product.name_en}</p>
+                      )}
+                      <div className="flex gap-4 text-sm text-gray-600 mt-1">
+                        <span>💧 {t('step.dilution')} {step.dilution}</span>
+                        <span>⏱ {t('step.dwell_time')} {step.dwell_time}</span>
+                      </div>
+                      {step.tip && <p className="text-xs text-gray-500 mt-1">💡 {step.tip}</p>}
+                    </div>
+                  </div>
+                  <a
+                    href="https://davistaiwan.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-all hover:brightness-110"
+                    style={{ backgroundColor: '#D4A843' }}
+                  >
+                    前往選購 <ExternalLink size={12} />
+                  </a>
                 </div>
-                <p className="font-bold text-davis-navy">{step.product_name}</p>
-                <div className="flex gap-4 text-sm text-gray-600 mt-1">
-                  <span>💧 {t('step.dilution')} {step.dilution}</span>
-                  <span>⏱ {t('step.dwell_time')} {step.dwell_time}</span>
-                </div>
-                {step.tip && <p className="text-xs text-gray-500 mt-1">💡 {step.tip}</p>}
-                <a
-                  href="https://davistaiwan.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg text-white transition-all hover:brightness-110"
-                  style={{ backgroundColor: '#D4A843' }}
-                >
-                  前往選購 <ExternalLink size={12} />
-                </a>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Actions */}

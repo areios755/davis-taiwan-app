@@ -110,19 +110,38 @@ export async function generateShareCard(
     }),
   ]);
 
+  // ── Adaptive sizing ──
+  // Scale fonts and spacing based on card size
+  const s = isStory ? 1.0 : 0.85; // scale factor for post (smaller to fit)
+  const headerH = 100;
+  const footerH = 160;
+  const stepH = Math.round(80 * s);
+  const stepGap = Math.round(8 * s);
+  const prodImgSize = Math.round(56 * s);
+
+  // Calculate non-photo content height
+  const breedInfoH = 80; // breed + coat analysis
+  const dividerH = 50;   // divider + combo name
+  const stepsH = data.combo.steps.length * (stepH + stepGap);
+  const tipsH = data.combo.tips ? 60 : 0;
+  const contentH = headerH + 20 + breedInfoH + dividerH + stepsH + tipsH + 20 + footerH;
+
+  // Photo gets remaining space (adaptive)
+  const availableForPhoto = h - contentH;
+  const hasPhoto = !!petPhoto;
+  const photoH = hasPhoto ? Math.max(200, Math.min(availableForPhoto, isStory ? h * 0.4 : h * 0.35)) : 0;
+
   // ── White background ──
   ctx.fillStyle = WHITE;
   ctx.fillRect(0, 0, w, h);
 
-  // ── Header (gradient bar, 100px) ──
-  const headerH = 100;
+  // ── Header (gradient bar) ──
   const headerGrad = ctx.createLinearGradient(0, 0, w, 0);
   headerGrad.addColorStop(0, NAVY);
   headerGrad.addColorStop(1, BLUE);
   ctx.fillStyle = headerGrad;
   ctx.fillRect(0, 0, w, headerH);
 
-  // Logo left
   if (logoImg) {
     const logoH = 40;
     const logoW = (logoImg.width / logoImg.height) * logoH;
@@ -134,164 +153,141 @@ export async function generateShareCard(
     ctx.fillText('DAVIS', 40, headerH / 2 + 10);
   }
 
-  // Title right
   ctx.fillStyle = WHITE;
   ctx.font = `20px ${FONT_ZH}`;
   ctx.textAlign = 'right';
   ctx.fillText('AI 寵物洗護分析', w - 40, headerH / 2 + 7);
   ctx.textAlign = 'left';
 
-  let y = headerH + 30;
+  let y = headerH + 20;
 
   // ── Pet photo ──
-  if (petPhoto) {
-    const photoW = Math.round(w * 0.75);
-    const photoH = isStory ? Math.round(h * 0.35) : photoW;
+  if (petPhoto && photoH > 0) {
+    const photoW = Math.round(w * (isStory ? 0.80 : 0.65));
     const photoX = (w - photoW) / 2;
 
     // Gold border
     ctx.save();
-    roundRect(ctx, photoX - 4, y - 4, photoW + 8, photoH + 8, 24);
+    roundRect(ctx, photoX - 3, y - 3, photoW + 6, photoH + 6, 20);
     ctx.fillStyle = GOLD;
     ctx.fill();
     ctx.restore();
 
     // Photo clipped
     ctx.save();
-    roundRect(ctx, photoX, y, photoW, photoH, 20);
+    roundRect(ctx, photoX, y, photoW, photoH, 16);
     ctx.clip();
     drawCenterCrop(ctx, petPhoto, photoX, y, photoW, photoH);
     ctx.restore();
 
-    // Bottom gradient shadow
-    ctx.save();
-    const shadowGrad = ctx.createLinearGradient(0, y + photoH - 40, 0, y + photoH);
-    shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    shadowGrad.addColorStop(1, 'rgba(0,0,0,0.08)');
-    ctx.fillStyle = shadowGrad;
-    roundRect(ctx, photoX, y + photoH - 40, photoW, 40, 0);
-    ctx.fill();
-    ctx.restore();
-
-    y += photoH + 30;
+    y += photoH + 20;
   }
 
   // ── Breed info ──
   ctx.textAlign = 'center';
   ctx.fillStyle = NAVY;
-  ctx.font = `bold 36px ${FONT_ZH}`;
+  ctx.font = `bold ${Math.round(32 * s)}px ${FONT_ZH}`;
   const breedParts = [data.breed, data.petType, data.color].filter(Boolean);
   ctx.fillText(breedParts.join(' · '), w / 2, y + 10);
-  y += 20;
+  y += 16;
 
-  // Coat analysis
-  ctx.font = `18px ${FONT_ZH}`;
+  ctx.font = `${Math.round(16 * s)}px ${FONT_ZH}`;
   ctx.fillStyle = '#666666';
   const analysisLines = wrapText(ctx, data.coatAnalysis, w - 160);
   for (const line of analysisLines.slice(0, 2)) {
-    y += 28;
+    y += Math.round(24 * s);
     ctx.fillText(line, w / 2, y);
   }
-  y += 30;
+  y += Math.round(24 * s);
 
   // ── Decorated divider ──
   const divY = y;
   ctx.strokeStyle = GOLD;
   ctx.lineWidth = 1.5;
   const divPad = 80;
-  const divTextWidth = ctx.measureText('推薦洗護方案').width;
+
+  ctx.font = `bold ${Math.round(22 * s)}px ${FONT_ZH}`;
+  const divTextW = ctx.measureText('推薦洗護方案').width;
 
   ctx.fillStyle = GOLD;
-  ctx.font = `bold 14px ${FONT_EN}`;
-  ctx.fillText('◆', divPad + 10, divY + 5);
-  ctx.fillText('◆', w - divPad - 10, divY + 5);
+  ctx.font = `bold 12px ${FONT_EN}`;
+  ctx.fillText('◆', divPad + 10, divY + 4);
+  ctx.fillText('◆', w - divPad - 10, divY + 4);
 
   ctx.beginPath();
   ctx.moveTo(divPad + 24, divY);
-  ctx.lineTo(w / 2 - divTextWidth / 2 - 16, divY);
+  ctx.lineTo(w / 2 - divTextW / 2 - 14, divY);
   ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(w / 2 + divTextWidth / 2 + 16, divY);
+  ctx.moveTo(w / 2 + divTextW / 2 + 14, divY);
   ctx.lineTo(w - divPad - 24, divY);
   ctx.stroke();
 
   ctx.fillStyle = NAVY;
-  ctx.font = `bold 24px ${FONT_ZH}`;
-  ctx.fillText('推薦洗護方案', w / 2, divY + 8);
-  y = divY + 20;
+  ctx.font = `bold ${Math.round(22 * s)}px ${FONT_ZH}`;
+  ctx.fillText('推薦洗護方案', w / 2, divY + 7);
+  y = divY + 18;
 
-  // Combo name
   ctx.fillStyle = GOLD;
-  ctx.font = `bold 20px ${FONT_ZH}`;
-  ctx.fillText(data.combo.name, w / 2, y + 10);
-  y += 30;
+  ctx.font = `bold ${Math.round(18 * s)}px ${FONT_ZH}`;
+  ctx.fillText(data.combo.name, w / 2, y + 8);
+  y += 24;
 
   ctx.textAlign = 'left';
 
   // ── Steps ──
-  const stepPadX = 60;
+  const stepPadX = 50;
   const stepW = w - stepPadX * 2;
-  const productImgSize = 64;
+  const zhSize = Math.round(20 * s);
+  const enSize = Math.round(13 * s);
+  const infoSize = Math.round(14 * s);
 
   for (let i = 0; i < data.combo.steps.length; i++) {
     const step = data.combo.steps[i];
     const product = PRODUCTS[step.product_key];
     const prodImg = productImgs[i];
     const hasImg = !!prodImg;
-
-    // Step height calculation
-    const stepH = 90;
     const bgColor = i % 2 === 0 ? LIGHT_BG : WHITE;
 
-    // Step background
     ctx.save();
-    roundRect(ctx, stepPadX, y, stepW, stepH, 12);
+    roundRect(ctx, stepPadX, y, stepW, stepH, 10);
     ctx.fillStyle = bgColor;
     ctx.fill();
-    // Subtle border
     ctx.strokeStyle = '#E8E8E8';
     ctx.lineWidth = 1;
     ctx.stroke();
     ctx.restore();
 
-    // Step number circle (deep navy bg, gold text)
-    const circleR = 18;
-    const circleX = stepPadX + 28;
+    // Step number circle
+    const circleR = Math.round(16 * s);
+    const circleX = stepPadX + 24;
     const circleY = y + stepH / 2;
     ctx.beginPath();
     ctx.arc(circleX, circleY, circleR, 0, Math.PI * 2);
     ctx.fillStyle = NAVY;
     ctx.fill();
     ctx.fillStyle = GOLD;
-    ctx.font = `bold 20px ${FONT_EN}`;
+    ctx.font = `bold ${Math.round(18 * s)}px ${FONT_EN}`;
     ctx.textAlign = 'center';
-    ctx.fillText(String(step.step), circleX, circleY + 7);
+    ctx.fillText(String(step.step), circleX, circleY + 6);
     ctx.textAlign = 'left';
 
-    // Text area (after circle, before product image)
-    const textX = stepPadX + 60;
-    const textMaxW = stepW - 70 - (hasImg ? productImgSize + 20 : 0);
+    const textX = stepPadX + 52;
 
     // Product Chinese name
     ctx.fillStyle = NAVY;
-    ctx.font = `bold 22px ${FONT_ZH}`;
-    const nameZh = product?.name_zh ?? step.product_key;
-    ctx.fillText(nameZh, textX, y + 30);
+    ctx.font = `bold ${zhSize}px ${FONT_ZH}`;
+    ctx.fillText(product?.name_zh ?? step.product_key, textX, y + Math.round(24 * s));
 
     // Product English name
-    ctx.fillStyle = '#999999';
-    ctx.font = `14px ${FONT_EN}`;
     const nameEn = product?.name_en ?? '';
     if (nameEn) {
-      const truncEn = ctx.measureText(nameEn).width > textMaxW
-        ? nameEn.substring(0, 30) + '...'
-        : nameEn;
-      ctx.fillText(truncEn, textX, y + 48);
+      ctx.fillStyle = '#999999';
+      ctx.font = `${enSize}px ${FONT_EN}`;
+      ctx.fillText(nameEn, textX, y + Math.round(42 * s));
     }
 
     // Dilution + dwell time
-    ctx.fillStyle = GOLD;
-    ctx.font = `bold 16px ${FONT_ZH}`;
     const dilution = product?.dilution ?? '';
     const dwell = product?.dwell_time ?? '';
     const infoLine = [
@@ -299,79 +295,91 @@ export async function generateShareCard(
       dwell ? `停留 ${dwell}` : '',
     ].filter(Boolean).join(' · ');
     if (infoLine) {
-      ctx.fillText(infoLine, textX, y + 72);
+      ctx.fillStyle = GOLD;
+      ctx.font = `bold ${infoSize}px ${FONT_ZH}`;
+      ctx.fillText(infoLine, textX, y + Math.round(62 * s));
     }
 
     // Product photo (right side)
-    if (prodImg) {
-      const imgX = stepPadX + stepW - productImgSize - 16;
-      const imgY = y + (stepH - productImgSize) / 2;
+    if (hasImg && prodImg) {
+      const imgX = stepPadX + stepW - prodImgSize - 12;
+      const imgY = y + (stepH - prodImgSize) / 2;
       ctx.save();
-      roundRect(ctx, imgX, imgY, productImgSize, productImgSize, 8);
+      roundRect(ctx, imgX, imgY, prodImgSize, prodImgSize, 6);
       ctx.clip();
-      drawCenterCrop(ctx, prodImg, imgX, imgY, productImgSize, productImgSize);
+      drawCenterCrop(ctx, prodImg, imgX, imgY, prodImgSize, prodImgSize);
       ctx.restore();
     }
 
-    y += stepH + 10;
+    y += stepH + stepGap;
   }
 
   // ── Tips ──
   if (data.combo.tips) {
     y += 4;
-    const tipPad = 60;
+    const tipPad = 50;
     const tipW = w - tipPad * 2;
+    const tipFontSize = Math.round(14 * s);
 
-    ctx.font = `16px ${FONT_ZH}`;
-    const tipTextContent = data.combo.tips;
-    const tipLines = wrapText(ctx, tipTextContent, tipW - 50);
-    const tipH = Math.max(50, tipLines.length * 24 + 26);
+    ctx.font = `${tipFontSize}px ${FONT_ZH}`;
+    const tipLines = wrapText(ctx, data.combo.tips, tipW - 44);
+    const tipBoxH = Math.max(40, tipLines.length * (tipFontSize + 6) + 20);
 
     ctx.save();
-    roundRect(ctx, tipPad, y, tipW, tipH, 12);
+    roundRect(ctx, tipPad, y, tipW, tipBoxH, 10);
     ctx.fillStyle = TIP_BG;
     ctx.fill();
     ctx.restore();
 
     ctx.fillStyle = TIP_COLOR;
-    ctx.font = `16px ${FONT_ZH}`;
-    let tipTextY = y + 24;
-    // Lightbulb icon
-    ctx.fillText('💡', tipPad + 14, tipTextY);
+    ctx.font = `${tipFontSize}px ${FONT_ZH}`;
+    let tipTextY = y + tipFontSize + 8;
+    ctx.fillText('💡', tipPad + 12, tipTextY);
     for (const tl of tipLines) {
-      ctx.fillText(tl, tipPad + 40, tipTextY);
-      tipTextY += 24;
+      ctx.fillText(tl, tipPad + 36, tipTextY);
+      tipTextY += tipFontSize + 6;
     }
-    y += tipH + 10;
+    y += tipBoxH + 8;
   }
 
-  // ── Footer ──
-  const footerH = isStory ? Math.max(h - y - 10, 220) : Math.max(h - y - 10, 160);
+  // ── Fill gap + Footer ──
+  // Footer is always at the bottom, fixed height
   const footerY = h - footerH;
 
-  // Fill any gap between content and footer with white
-  if (footerY > y) {
+  // Fill gap between content and footer
+  if (y < footerY) {
+    // Add brand slogan in the gap area
+    const gapH = footerY - y;
     ctx.fillStyle = WHITE;
-    ctx.fillRect(0, y, w, footerY - y);
+    ctx.fillRect(0, y, w, gapH);
+
+    if (gapH > 60) {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#CCCCCC';
+      ctx.font = `italic 16px ${FONT_EN}`;
+      ctx.fillText('Helping pets stay clean since 1982', w / 2, y + gapH / 2 + 6);
+      ctx.textAlign = 'left';
+    }
   }
 
+  // Footer background
   ctx.fillStyle = NAVY;
   ctx.fillRect(0, footerY, w, footerH);
 
   ctx.textAlign = 'center';
-  let fy = footerY + 36;
+  let fy = footerY + 30;
 
   ctx.fillStyle = WHITE;
-  ctx.font = `22px ${FONT_ZH}`;
+  ctx.font = `20px ${FONT_ZH}`;
   ctx.fillText('🌐  davistaiwan.com', w / 2, fy);
-  fy += 36;
+  fy += 32;
   ctx.fillText('💬  LINE @davistaiwan', w / 2, fy);
-  fy += 50;
+  fy += 42;
 
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = `16px ${FONT_ZH}`;
   ctx.fillText('自己也想試試？', w / 2, fy);
-  fy += 32;
+  fy += 28;
 
   ctx.fillStyle = GOLD;
   ctx.font = `bold 20px ${FONT_ZH}`;
@@ -388,9 +396,6 @@ export async function generateShareCard(
   });
 }
 
-/**
- * Compress a photo data URL to a smaller base64 for sharing storage.
- */
 export function compressPhotoForShare(dataUrl: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
