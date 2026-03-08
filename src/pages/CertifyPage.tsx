@@ -108,9 +108,41 @@ export default function CertifyPage() {
               <ol className="list-decimal list-inside space-y-1 text-gray-600">
                 <li>認證有效期為<strong>一年</strong>，到期需重新續約</li>
                 <li>認證期間須持續使用 Davis 產品進行洗護服務</li>
-                <li>不得以 Davis 認證美容師身分代言或推廣其他品牌洗護產品</li>
-                <li>違反上述規定將導致認證<strong>停權</strong>或<strong>撤銷</strong></li>
               </ol>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-red-600 mb-1">禁止事項（違反將停權或撤銷）</h4>
+              <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                <li>透過非 Davis Taiwan 台灣總代理之管道購入 Davis 產品（水貨、海外代購、非授權經銷商）</li>
+                <li>以 Davis 認證美容師身分代言、推廣或使用其他品牌洗護產品進行服務</li>
+                <li>在社群媒體散布不實 Davis 產品資訊或惡意詆毀品牌</li>
+                <li>冒用其他認證美容師之編號或資格</li>
+                <li>申請資料造假（學經歷、店名、照片不實）</li>
+                <li>因不當使用 Davis 產品導致寵物受到傷害（未遵守官方稀釋比例與使用方式）</li>
+                <li>經查證屬實之重大客訴且拒絕改善</li>
+                <li>認證期間未持續向 Davis Taiwan 採購產品（連續 6 個月無任何採購紀錄）</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-davis-navy mb-1">認證美容師權益</h4>
+              <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                <li>列名於 Davis Taiwan 官網認證美容師列表</li>
+                <li>獲得 Davis 認證美容師專屬徽章與驗證頁面</li>
+                <li>優先獲得 Davis 新品試用與教育訓練資訊</li>
+                <li>可合法使用 Davis 品牌素材進行門店宣傳</li>
+                <li>可分裝 Davis 產品於自有門店販售（須標示原廠資訊）</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-davis-navy mb-1">處分等級</h4>
+              <ul className="list-disc list-inside space-y-1 text-gray-600">
+                <li><strong>輕微違規（首次）：</strong>書面警告</li>
+                <li><strong>一般違規：</strong>停權 1-6 個月，改善後可申請恢復</li>
+                <li><strong>嚴重違規（水貨、代言競品、造假）：</strong>永久撤銷，不得重新申請</li>
+              </ul>
             </div>
 
             <div>
