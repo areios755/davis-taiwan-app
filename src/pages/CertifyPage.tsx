@@ -132,7 +132,6 @@ export default function CertifyPage() {
                 <li>獲得 Davis 認證美容師專屬徽章與驗證頁面</li>
                 <li>優先獲得 Davis 新品試用與教育訓練資訊</li>
                 <li>可合法使用 Davis 品牌素材進行門店宣傳</li>
-                <li>可分裝 Davis 產品於自有門店販售（須標示原廠資訊）</li>
               </ol>
             </div>
 
