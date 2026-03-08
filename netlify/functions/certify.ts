@@ -105,11 +105,18 @@ const handler: Handler = async (event) => {
       email: String(body.email || '').slice(0, 100),
       instagram: String(body.ig_url || body.instagram || '').slice(0, 200),
       facebook: String(body.fb_url || body.facebook || '').slice(0, 200),
+      note: note || null,
       status: 'pending',
     };
 
+    console.log('Certify request body:', JSON.stringify(body));
+    console.log('Certify insert row:', JSON.stringify(row));
+
     const { error } = await sb.from('davis_certifications').insert(row);
-    if (error) return { statusCode: 500, headers, body: JSON.stringify({ error: '申請失敗，請稍後再試' }) };
+    if (error) {
+      console.log('Supabase insert error:', JSON.stringify(error));
+      return { statusCode: 500, headers, body: JSON.stringify({ error: '申請失敗，請稍後再試', detail: error.message }) };
+    }
 
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true, id, message: '申請已送出，審核後會通知您' }) };
   }
