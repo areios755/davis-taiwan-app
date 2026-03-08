@@ -9,6 +9,7 @@ interface CertPublic {
   name: string;
   shop_name: string;
   city?: string;
+  district?: string;
   instagram?: string;
   facebook?: string;
   status: string;
@@ -126,10 +127,10 @@ export default function VerifyPage() {
 
       {/* Details */}
       <div className="mt-6 space-y-3">
-        {cert.city && (
+        {(cert.city || cert.district) && (
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <MapPin size={16} className="text-gray-400" />
-            {cert.city}
+            {[cert.city, cert.district].filter(Boolean).join('')}
           </div>
         )}
         {isApproved && cert.instagram && (

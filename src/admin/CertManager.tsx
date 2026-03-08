@@ -12,6 +12,8 @@ interface Cert {
   name: string;
   shop_name: string;
   city: string;
+  district?: string;
+  address?: string;
   phone?: string;
   email?: string;
   instagram?: string;
@@ -152,7 +154,7 @@ export default function CertManager() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-bold text-davis-navy">{c.shop_name}</h3>
-                    <p className="text-sm text-gray-600">{c.name} · {c.city || '—'}</p>
+                    <p className="text-sm text-gray-600">{c.name} · {[c.city, c.district, c.address].filter(Boolean).join('') || '—'}</p>
                     <p className="text-xs text-gray-400 mt-1">認證編號: {c.cert_id || '—'}</p>
                   </div>
                   <StatusBadge cert={c} />

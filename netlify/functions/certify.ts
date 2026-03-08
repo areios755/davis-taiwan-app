@@ -164,6 +164,8 @@ const handler: Handler = async (event) => {
       shop_name: shopName,
       phone: String(body.phone || '').slice(0, 20),
       city: String(body.city || '').slice(0, 20),
+      district: String(body.district || '').slice(0, 20),
+      address: String(body.address || '').slice(0, 100),
       email: String(body.email || '').slice(0, 100),
       instagram: String(body.ig_url || body.instagram || '').slice(0, 200),
       facebook: String(body.fb_url || body.facebook || '').slice(0, 200),

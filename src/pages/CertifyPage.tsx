@@ -3,10 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { submitCertification } from '@/lib/api';
 import { CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
+const CITIES = [
+  '台北市', '新北市', '基隆市', '桃園市', '新竹市', '新竹縣', '苗栗縣',
+  '台中市', '彰化縣', '南投縣', '雲林縣', '嘉義市', '嘉義縣',
+  '台南市', '高雄市', '屏東縣',
+  '宜蘭縣', '花蓮縣', '台東縣',
+  '澎湖縣', '金門縣', '連江縣',
+];
+
 interface FormData {
   name: string;
   shop_name: string;
   city: string;
+  district: string;
+  address: string;
   phone: string;
   email: string;
   instagram: string;
@@ -17,6 +27,8 @@ const INITIAL: FormData = {
   name: '',
   shop_name: '',
   city: '',
+  district: '',
+  address: '',
   phone: '',
   email: '',
   instagram: '',
@@ -51,7 +63,9 @@ export default function CertifyPage() {
     const res = await submitCertification({
       name: form.name.trim(),
       shop_name: form.shop_name.trim(),
-      city: form.city.trim(),
+      city: form.city,
+      district: form.district.trim(),
+      address: form.address.trim(),
       phone: form.phone.trim(),
       email: form.email.trim(),
       ig_url: form.instagram.trim(),
@@ -175,7 +189,36 @@ export default function CertifyPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label={t('certify.name')} required value={form.name} onChange={set('name')} maxLength={20} />
         <Field label={t('certify.shop')} required value={form.shop_name} onChange={set('shop_name')} maxLength={50} />
-        <Field label={t('certify.city')} value={form.city} onChange={set('city')} maxLength={20} />
+
+        {/* Address group */}
+        <div>
+          <label className="block text-sm font-medium text-davis-navy mb-1">店家地址</label>
+          <div className="space-y-2">
+            <select
+              value={form.city}
+              onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-davis-blue/30 text-sm bg-white"
+            >
+              <option value="">選擇城市</option>
+              {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <input
+              value={form.district}
+              onChange={set('district')}
+              placeholder="區域（如：大安區、竹北市）"
+              maxLength={20}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-davis-blue/30 text-sm"
+            />
+            <input
+              value={form.address}
+              onChange={set('address')}
+              placeholder="詳細地址（如：忠孝東路四段 100 號 2 樓）"
+              maxLength={100}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-davis-blue/30 text-sm"
+            />
+          </div>
+        </div>
+
         <Field label={t('certify.phone')} value={form.phone} onChange={set('phone')} type="tel" maxLength={20} />
         <Field label={t('certify.email')} value={form.email} onChange={set('email')} type="email" maxLength={100} />
         <Field label={t('certify.ig')} value={form.instagram} onChange={set('instagram')} placeholder="https://instagram.com/..." maxLength={200} />

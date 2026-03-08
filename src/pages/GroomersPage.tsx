@@ -7,6 +7,7 @@ interface Groomer {
   name: string;
   shop_name: string;
   city: string;
+  district?: string;
   instagram?: string;
   facebook?: string;
   status: string;
@@ -26,7 +27,7 @@ export default function GroomersPage() {
 
     const now = new Date().toISOString();
     fetch(
-      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,instagram,facebook,status,created_at&status=eq.approved&expires_at=gt.${now}&order=created_at.desc`,
+      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,district,instagram,facebook,status,created_at&status=eq.approved&expires_at=gt.${now}&order=created_at.desc`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     )
       .then((r) => r.json())
@@ -83,10 +84,10 @@ export default function GroomersPage() {
                     <div>
                       <h3 className="font-bold text-davis-navy">{g.shop_name}</h3>
                       <p className="text-sm text-gray-600">{g.name}</p>
-                      {g.city && (
+                      {(g.city || g.district) && (
                         <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
                           <MapPin size={12} />
-                          {g.city}
+                          {[g.city, g.district].filter(Boolean).join('')}
                         </p>
                       )}
                     </div>
