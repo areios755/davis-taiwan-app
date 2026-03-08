@@ -22,6 +22,7 @@ interface Groomer {
   photo_url?: string;
   instagram?: string;
   facebook?: string;
+  line_id?: string;
   lat?: number;
   lng?: number;
   tier?: Tier;
@@ -57,7 +58,7 @@ export default function GroomersPage() {
 
     const now = new Date().toISOString();
     fetch(
-      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,district,photo_url,instagram,facebook,lat,lng,tier,expires_at,status,created_at&status=eq.approved&expires_at=gt.${now}&order=created_at.desc`,
+      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,district,photo_url,instagram,facebook,line_id,lat,lng,tier,expires_at,status,created_at&status=eq.approved&expires_at=gt.${now}&order=created_at.desc`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     )
       .then((r) => r.json())
@@ -275,7 +276,17 @@ export default function GroomersPage() {
                     </div>
 
                     {/* Social + verify link */}
-                    <div className="flex flex-wrap items-center gap-3 mt-2">
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      {g.line_id && (
+                        <a
+                          href={`https://line.me/R/ti/p/${g.line_id.startsWith('@') ? g.line_id : '@' + g.line_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium text-white bg-[#06C755] hover:brightness-110 transition-all"
+                        >
+                          加入 LINE 諮詢
+                        </a>
+                      )}
                       {g.instagram && (
                         <a href={g.instagram} target="_blank" rel="noopener noreferrer"
                           className="text-xs text-davis-blue flex items-center gap-0.5 hover:underline">

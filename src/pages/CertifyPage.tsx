@@ -21,6 +21,7 @@ interface FormData {
   email: string;
   instagram: string;
   facebook: string;
+  line_id: string;
 }
 
 const INITIAL: FormData = {
@@ -33,6 +34,7 @@ const INITIAL: FormData = {
   email: '',
   instagram: '',
   facebook: '',
+  line_id: '',
 };
 
 export default function CertifyPage() {
@@ -70,6 +72,7 @@ export default function CertifyPage() {
       email: form.email.trim(),
       ig_url: form.instagram.trim(),
       fb_url: form.facebook.trim(),
+      line_id: form.line_id.trim(),
     });
 
     setSubmitting(false);
@@ -242,6 +245,17 @@ export default function CertifyPage() {
         <Field label={t('certify.email')} value={form.email} onChange={set('email')} type="email" maxLength={100} />
         <Field label={t('certify.ig')} value={form.instagram} onChange={set('instagram')} placeholder="https://instagram.com/..." maxLength={200} />
         <Field label={t('certify.fb')} value={form.facebook} onChange={set('facebook')} placeholder="https://facebook.com/..." maxLength={200} />
+        <div>
+          <label className="block text-sm font-medium text-davis-navy mb-1">LINE 官方帳號</label>
+          <input
+            value={form.line_id}
+            onChange={set('line_id')}
+            placeholder="@yourshop"
+            maxLength={100}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-davis-blue/30 text-sm"
+          />
+          <p className="text-xs text-gray-400 mt-1">填入美容院的 LINE 官方帳號 ID（含 @ 符號）</p>
+        </div>
 
         {/* Agreement checkbox */}
         <label className="flex items-start gap-2 cursor-pointer">

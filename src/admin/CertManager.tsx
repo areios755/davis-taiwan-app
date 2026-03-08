@@ -27,6 +27,7 @@ interface Cert {
   email?: string;
   instagram?: string;
   facebook?: string;
+  line_id?: string;
   note?: string;
   status: string;
   tier?: Tier;
@@ -119,6 +120,10 @@ export default function CertManager() {
 
   const handleNotesBlur = async (id: string, notes: string) => {
     await adminApi.updateCertAction(token, id, 'update_notes', { admin_notes: notes });
+  };
+
+  const handleLineIdBlur = async (id: string, lineId: string) => {
+    await adminApi.updateCertAction(token, id, 'update_line_id', { line_id: lineId.trim() });
   };
 
   const toggleExpand = (id: string) => {
@@ -233,6 +238,9 @@ export default function CertManager() {
                       FB <ExternalLink size={10} />
                     </a>
                   )}
+                  {c.line_id && (
+                    <span className="text-green-600">LINE {c.line_id}</span>
+                  )}
                 </div>
 
                 {/* Dates */}
@@ -331,12 +339,23 @@ export default function CertManager() {
                       </div>
                     )}
                     {canEdit && (
-                      <textarea
-                        defaultValue={c.admin_notes || ''}
-                        placeholder="管理員備註..."
-                        onBlur={(e) => handleNotesBlur(c.id, e.target.value)}
-                        className="w-full text-xs border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-davis-blue/30 min-h-[60px]"
-                      />
+                      <>
+                        <div>
+                          <label className="text-xs text-gray-400">LINE ID</label>
+                          <input
+                            defaultValue={c.line_id || ''}
+                            placeholder="@yourshop"
+                            onBlur={(e) => handleLineIdBlur(c.id, e.target.value)}
+                            className="w-full text-xs border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-davis-blue/30"
+                          />
+                        </div>
+                        <textarea
+                          defaultValue={c.admin_notes || ''}
+                          placeholder="管理員備註..."
+                          onBlur={(e) => handleNotesBlur(c.id, e.target.value)}
+                          className="w-full text-xs border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-davis-blue/30 min-h-[60px]"
+                        />
+                      </>
                     )}
                   </div>
                 )}

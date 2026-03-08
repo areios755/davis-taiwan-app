@@ -20,6 +20,7 @@ interface CertPublic {
   district?: string;
   instagram?: string;
   facebook?: string;
+  line_id?: string;
   tier?: Tier;
   status: string;
   created_at: string;
@@ -147,6 +148,16 @@ export default function VerifyPage() {
             <MapPin size={16} className="text-gray-400" />
             {[cert.city, cert.district].filter(Boolean).join('')}
           </div>
+        )}
+        {isApproved && cert.line_id && (
+          <a
+            href={`https://line.me/R/ti/p/${cert.line_id.startsWith('@') ? cert.line_id : '@' + cert.line_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-[#06C755] hover:brightness-110 transition-all"
+          >
+            加入 LINE 諮詢
+          </a>
         )}
         {isApproved && cert.instagram && (
           <a href={cert.instagram} target="_blank" rel="noopener noreferrer"

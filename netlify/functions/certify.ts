@@ -169,6 +169,7 @@ const handler: Handler = async (event) => {
       email: String(body.email || '').slice(0, 100),
       instagram: String(body.ig_url || body.instagram || '').slice(0, 200),
       facebook: String(body.fb_url || body.facebook || '').slice(0, 200),
+      line_id: String(body.line_id || '').slice(0, 100),
       note: note || null,
       status: 'pending',
       tier: 'bronze',
@@ -297,6 +298,11 @@ const handler: Handler = async (event) => {
 
       case 'update_notes': {
         updates.admin_notes = String(body.admin_notes ?? '');
+        break;
+      }
+
+      case 'update_line_id': {
+        updates.line_id = String(body.line_id ?? '').slice(0, 100);
         break;
       }
 
