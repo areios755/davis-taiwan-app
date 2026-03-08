@@ -13,7 +13,8 @@ import { fetchCombos, getBreedCombo, getComboProducts } from '@/lib/breed-combos
 import { PRODUCTS, PRODUCT_NAME_MAP } from '@/data/products';
 import { getProductImageSrc } from '@/lib/product-image';
 import { generateShareCard, shareOrDownload, compressPhotoForShare } from '@/lib/share-card-generator';
-import { Camera, Search, ExternalLink, MessageCircle, Image, Link2, Download, X } from 'lucide-react';
+import { Camera, Search, ExternalLink, MessageCircle, Image, Link2, Download, X, Phone } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 type Phase = 'upload' | 'analyzing' | 'result' | 'error';
 type CardSize = 'post' | 'story';
@@ -41,11 +42,102 @@ export default function AnalyzePage() {
   const [generatingCard, setGeneratingCard] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // --- Certified groomers CTA state ---
+  interface NearbyGroomer {
+    id: string;
+    cert_id?: string;
+    name: string;
+    shop_name: string;
+    city: string;
+    district?: string;
+    line_id?: string;
+    phone?: string;
+    lat?: number;
+    lng?: number;
+    tier?: 'bronze' | 'silver' | 'gold';
+    distance?: number;
+  }
+  const [nearbyGroomers, setNearbyGroomers] = useState<NearbyGroomer[]>([]);
+  const [groomersLoading, setGroomersLoading] = useState(false);
+  const [groomersTotalCount, setGroomersTotalCount] = useState(0);
+
   // Load breeds + combos dynamically
   useEffect(() => {
     fetchBreeds().then(setBreeds);
     fetchCombos();
   }, []);
+
+  // Fetch certified groomers when result is ready
+  useEffect(() => {
+    if (phase !== 'result') return;
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+
+    setGroomersLoading(true);
+    const now = new Date().toISOString();
+
+    const TIER_ORDER: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
+
+    function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    fetch(
+      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,district,line_id,phone,lat,lng,tier&status=eq.approved&expires_at=gt.${now}`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    )
+      .then((r) => r.json())
+      .then((rows: NearbyGroomer[]) => {
+        if (!Array.isArray(rows)) return;
+        setGroomersTotalCount(rows.length);
+
+        // Try geolocation
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const sorted = rows
+                .map((g) => ({
+                  ...g,
+                  distance: g.lat && g.lng
+                    ? haversine(pos.coords.latitude, pos.coords.longitude, g.lat, g.lng)
+                    : undefined,
+                }))
+                .sort((a, b) => {
+                  if (a.distance != null && b.distance != null) return a.distance - b.distance;
+                  if (a.distance != null) return -1;
+                  if (b.distance != null) return 1;
+                  return (TIER_ORDER[a.tier ?? 'bronze'] ?? 2) - (TIER_ORDER[b.tier ?? 'bronze'] ?? 2);
+                });
+              setNearbyGroomers(sorted.slice(0, 5));
+              setGroomersLoading(false);
+            },
+            () => {
+              // No location — sort by tier
+              const sorted = [...rows].sort(
+                (a, b) => (TIER_ORDER[a.tier ?? 'bronze'] ?? 2) - (TIER_ORDER[b.tier ?? 'bronze'] ?? 2),
+              );
+              setNearbyGroomers(sorted.slice(0, 5));
+              setGroomersLoading(false);
+            },
+            { timeout: 5000 },
+          );
+        } else {
+          const sorted = [...rows].sort(
+            (a, b) => (TIER_ORDER[a.tier ?? 'bronze'] ?? 2) - (TIER_ORDER[b.tier ?? 'bronze'] ?? 2),
+          );
+          setNearbyGroomers(sorted.slice(0, 5));
+          setGroomersLoading(false);
+        }
+      })
+      .catch(() => setGroomersLoading(false));
+  }, [phase]);
 
   // Notify parent that embed is ready
   useEffect(() => {
@@ -580,6 +672,118 @@ export default function AnalyzePage() {
               </div>
             );
           })()}
+
+          {/* Certified Groomers CTA */}
+          {!embed.isEmbed && phase === 'result' && (
+            <div className="mt-8 border-t border-gray-100 pt-6">
+              <h3 className="text-lg font-bold text-davis-navy mb-1">🏆 立刻聯絡您附近的 Davis 認證美容師</h3>
+              <p className="text-sm text-gray-500 mb-4">經實體考核通過，使用 Davis 專業產品為您的毛孩服務</p>
+
+              {groomersLoading && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-davis-gold border-t-transparent rounded-full" />
+                </div>
+              )}
+
+              {!groomersLoading && nearbyGroomers.length === 0 && (
+                <div className="text-center py-6 bg-gray-50 rounded-xl">
+                  <p className="text-gray-500 mb-3">目前尚無認證美容師，成為第一位！</p>
+                  <Link
+                    to="/certify"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-white transition-all hover:brightness-110"
+                    style={{ backgroundColor: '#D4A843' }}
+                  >
+                    立即申請
+                  </Link>
+                </div>
+              )}
+
+              {!groomersLoading && nearbyGroomers.length > 0 && (
+                <div className="space-y-3">
+                  {nearbyGroomers.map((g) => {
+                    const tier = g.tier ?? 'bronze';
+                    const isGold = tier === 'gold';
+                    const tierEmoji = tier === 'gold' ? '🥇' : tier === 'silver' ? '🥈' : '🥉';
+                    const tierBorderColor = tier === 'gold' ? '#FFD700' : tier === 'silver' ? '#C0C0C0' : '#CD7F32';
+
+                    return (
+                      <div
+                        key={g.id}
+                        className={`flex items-center gap-3 rounded-xl p-4 shadow-sm relative ${
+                          isGold ? 'bg-[#FFFDF5]' : 'bg-gray-50'
+                        }`}
+                        style={{ border: `2px solid ${tierBorderColor}` }}
+                      >
+                        {/* Gold badge */}
+                        {isGold && (
+                          <span className="absolute -top-2.5 right-3 text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: '#FFD700' }}>
+                            推薦
+                          </span>
+                        )}
+
+                        {/* Left: tier badge */}
+                        <div className="flex-shrink-0 text-3xl">{tierEmoji}</div>
+
+                        {/* Middle: info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-davis-navy text-sm leading-tight">
+                            {g.name}
+                            {g.shop_name && <span className="text-gray-500 font-normal"> · {g.shop_name}</span>}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {g.city}{g.district ? ` ${g.district}` : ''}
+                          </p>
+                          {g.distance != null && (
+                            <p className="text-xs text-davis-blue mt-0.5">距離您約 {g.distance.toFixed(1)} 公里</p>
+                          )}
+                        </div>
+
+                        {/* Right: action button */}
+                        <div className="flex-shrink-0">
+                          {g.line_id ? (
+                            <a
+                              href={`https://line.me/R/ti/p/${g.line_id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-white text-xs font-medium transition-all hover:brightness-110"
+                              style={{ backgroundColor: '#06C755' }}
+                            >
+                              <MessageCircle size={14} />
+                              LINE 諮詢
+                            </a>
+                          ) : g.phone ? (
+                            <a
+                              href={`tel:${g.phone}`}
+                              className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-white text-xs font-medium transition-all hover:brightness-110 bg-davis-blue"
+                            >
+                              <Phone size={14} />
+                              撥打電話
+                            </a>
+                          ) : (
+                            <Link
+                              to={`/verify/${g.cert_id}`}
+                              className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-davis-blue text-xs font-medium border border-davis-blue/20 hover:bg-davis-light transition-colors"
+                            >
+                              查看詳情
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {!groomersLoading && groomersTotalCount > 5 && (
+                <Link
+                  to="/groomers"
+                  className="mt-4 w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium text-davis-blue border border-davis-blue/20 hover:bg-davis-light transition-colors"
+                >
+                  查看更多認證美容師 →
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* LINE CTA */}
           {!embed.isEmbed && (
