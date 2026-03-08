@@ -180,8 +180,20 @@ ${langRule}
       content: Array<{ type: string; text?: string }>;
       usage?: { input_tokens?: number; output_tokens?: number };
     };
+
+    // === DEBUG: Full Claude response structure ===
+    console.log('=== CLAUDE RAW RESPONSE START ===');
+    console.log(JSON.stringify(aiRes.content));
+    console.log('=== CLAUDE RAW RESPONSE END ===');
+
     const rawText = aiRes.content?.find(c => c.type === 'text')?.text ?? '';
-    console.log('[analyze] Raw AI response length:', rawText.length, 'first 100:', rawText.substring(0, 100));
+
+    console.log('=== RAW TEXT START ===');
+    console.log(rawText.substring(0, 500));
+    console.log('=== RAW TEXT END ===');
+    console.log('First 3 chars:', JSON.stringify(rawText.substring(0, 3)));
+    console.log('Last 3 chars:', JSON.stringify(rawText.substring(rawText.length - 3)));
+    console.log('Raw text length:', rawText.length);
 
     // Parse JSON — robust markdown fence stripping
     let parsed: Record<string, unknown>;
@@ -199,13 +211,21 @@ ${langRule}
       }
       text = text.trim();
 
+      console.log('After fence strip, first 3 chars:', JSON.stringify(text.substring(0, 3)));
+      console.log('After fence strip, last 3 chars:', JSON.stringify(text.substring(text.length - 3)));
+
       // Extract outermost JSON object
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error('No JSON object found in response');
 
+      console.log('JSON match length:', jsonMatch[0].length);
       parsed = JSON.parse(jsonMatch[0]);
+      console.log('=== PARSE SUCCESS === keys:', Object.keys(parsed).join(', '));
     } catch (parseErr) {
-      console.error('[analyze] JSON parse failed:', parseErr, 'raw:', rawText.substring(0, 300));
+      console.log('=== PARSE ERROR ===');
+      console.log('Error:', parseErr instanceof Error ? parseErr.message : String(parseErr));
+      console.log('Attempted to parse:', rawText.substring(0, 300));
+      console.log('Full raw text:', rawText);
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'AI 回應解析失敗，請重試' }) };
     }
 

@@ -18,10 +18,14 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<ApiResp
 
     if (!res.ok) {
       const body = await res.json().catch(() => null);
+      console.log(`[apiFetch] ${path} error ${res.status}:`, JSON.stringify(body)?.substring(0, 300));
       return { success: false, error: body?.error ?? `HTTP ${res.status}` };
     }
 
     const data = await res.json();
+    if (path === '/analyze') {
+      console.log('[apiFetch] /analyze response:', JSON.stringify(data).substring(0, 500));
+    }
     return { success: true, data };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Network error' };
