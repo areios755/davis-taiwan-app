@@ -24,8 +24,9 @@ export default function GroomersPage() {
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!url || !key) { setLoading(false); return; }
 
+    const now = new Date().toISOString();
     fetch(
-      `${url}/rest/v1/davis_certifications?select=id,name,shop_name,city,instagram,facebook,status,created_at&status=eq.approved&order=created_at.desc`,
+      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,instagram,facebook,status,created_at&status=eq.approved&expires_at=gt.${now}&order=created_at.desc`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     )
       .then((r) => r.json())

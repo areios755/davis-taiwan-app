@@ -63,7 +63,7 @@ export async function getShare(id: string): Promise<ApiResponse<Record<string, u
 }
 
 /** Submit certification application */
-export async function submitCertification(data: Record<string, unknown>): Promise<ApiResponse<{ id: string }>> {
+export async function submitCertification(data: Record<string, unknown>): Promise<ApiResponse<{ id: string; cert_id?: string }>> {
   return apiFetch('/certify', { method: 'POST', body: JSON.stringify(data) });
 }
 
@@ -187,11 +187,18 @@ export const adminApi = {
       headers: adminHeaders(token),
     });
   },
+  updateCertAction(token: string, id: string, action: string, extra?: Record<string, unknown>) {
+    return apiFetch<{ ok: boolean }>(`/certify/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: adminHeaders(token),
+      body: JSON.stringify({ action, ...extra }),
+    });
+  },
   updateCertStatus(token: string, id: string, status: string) {
     return apiFetch<{ ok: boolean }>(`/certify/${encodeURIComponent(id)}`, {
       method: 'PATCH',
       headers: adminHeaders(token),
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ action: status }),
     });
   },
 

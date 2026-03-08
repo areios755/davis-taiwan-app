@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Award, MapPin, ExternalLink } from 'lucide-react';
+import { Award, MapPin, ExternalLink, ShieldOff } from 'lucide-react';
 
 interface CertPublic {
   id: string;
@@ -14,6 +14,7 @@ interface CertPublic {
   status: string;
   created_at: string;
   approved_at?: string;
+  expires_at?: string;
 }
 
 export default function VerifyPage() {
@@ -63,33 +64,65 @@ export default function VerifyPage() {
   }
 
   const isApproved = cert.status === 'approved';
+  const isExpired = cert.status === 'expired';
+  const isInvalid = cert.status === 'suspended' || cert.status === 'revoked';
 
   return (
     <div className="max-w-lg mx-auto p-4 py-8">
       {/* Badge card */}
-      <div className={`rounded-2xl p-8 text-center ${isApproved ? 'bg-gradient-to-b from-davis-navy to-davis-blue text-white' : 'bg-gray-100 text-gray-700'}`}>
-        <Award className={`mx-auto mb-4 ${isApproved ? 'text-davis-gold' : 'text-gray-400'}`} size={64} />
-        <h1 className="text-xl font-bold mb-1">{cert.shop_name}</h1>
-        <p className={`text-sm ${isApproved ? 'text-white/70' : 'text-gray-500'}`}>{cert.name}</p>
-
-        {isApproved ? (
+      {isInvalid ? (
+        <div className="rounded-2xl p-8 text-center bg-gray-100 text-gray-700">
+          <ShieldOff className="mx-auto mb-4 text-gray-400" size={64} />
+          <h1 className="text-xl font-bold mb-1">{cert.shop_name}</h1>
+          <p className="text-sm text-gray-500">{cert.name}</p>
           <div className="mt-4">
-            <span className="bg-davis-gold text-white px-4 py-1.5 rounded-full text-sm font-bold">
-              Davis 認證美容師
+            <span className="bg-red-100 text-red-700 px-4 py-1.5 rounded-full text-sm font-medium">
+              此認證已失效
             </span>
           </div>
-        ) : (
-          <div className="mt-4">
-            <span className="bg-yellow-100 text-yellow-700 px-4 py-1.5 rounded-full text-sm font-medium">
-              {t('certify.pending')}
-            </span>
-          </div>
-        )}
+          <p className="text-xs mt-4 text-gray-400">
+            認證編號: {cert.cert_id || cert.id}
+          </p>
+        </div>
+      ) : (
+        <div className={`rounded-2xl p-8 text-center ${
+          isApproved
+            ? 'bg-gradient-to-b from-davis-navy to-davis-blue text-white'
+            : isExpired
+              ? 'bg-gray-200 text-gray-700'
+              : 'bg-gray-100 text-gray-700'
+        }`}>
+          <Award className={`mx-auto mb-4 ${isApproved ? 'text-davis-gold' : 'text-gray-400'}`} size={64} />
+          <h1 className="text-xl font-bold mb-1">{cert.shop_name}</h1>
+          <p className={`text-sm ${isApproved ? 'text-white/70' : 'text-gray-500'}`}>{cert.name}</p>
 
-        <p className={`text-xs mt-4 ${isApproved ? 'text-white/50' : 'text-gray-400'}`}>
-          認證編號: {cert.cert_id || cert.id}
-        </p>
-      </div>
+          {isApproved && (
+            <div className="mt-4">
+              <span className="bg-davis-gold text-white px-4 py-1.5 rounded-full text-sm font-bold">
+                Davis 認證美容師
+              </span>
+            </div>
+          )}
+          {isExpired && (
+            <div className="mt-4">
+              <span className="bg-gray-300 text-gray-600 px-4 py-1.5 rounded-full text-sm font-medium">
+                認證已過期
+              </span>
+            </div>
+          )}
+          {cert.status === 'pending' && (
+            <div className="mt-4">
+              <span className="bg-yellow-100 text-yellow-700 px-4 py-1.5 rounded-full text-sm font-medium">
+                {t('certify.pending')}
+              </span>
+            </div>
+          )}
+
+          <p className={`text-xs mt-4 ${isApproved ? 'text-white/50' : 'text-gray-400'}`}>
+            認證編號: {cert.cert_id || cert.id}
+          </p>
+        </div>
+      )}
 
       {/* Details */}
       <div className="mt-6 space-y-3">
@@ -99,7 +132,7 @@ export default function VerifyPage() {
             {cert.city}
           </div>
         )}
-        {cert.instagram && (
+        {isApproved && cert.instagram && (
           <a
             href={cert.instagram}
             target="_blank"
@@ -109,7 +142,7 @@ export default function VerifyPage() {
             Instagram <ExternalLink size={12} />
           </a>
         )}
-        {cert.facebook && (
+        {isApproved && cert.facebook && (
           <a
             href={cert.facebook}
             target="_blank"
@@ -122,6 +155,16 @@ export default function VerifyPage() {
         {cert.approved_at && (
           <p className="text-xs text-gray-400">
             認證日期: {new Date(cert.approved_at).toLocaleDateString('zh-TW')}
+          </p>
+        )}
+        {isApproved && cert.expires_at && (
+          <p className="text-xs text-gray-400">
+            有效至: {new Date(cert.expires_at).toLocaleDateString('zh-TW')}
+          </p>
+        )}
+        {isExpired && cert.expires_at && (
+          <p className="text-xs text-gray-400">
+            已於 {new Date(cert.expires_at).toLocaleDateString('zh-TW')} 到期
           </p>
         )}
       </div>

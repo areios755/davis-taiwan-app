@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { submitCertification } from '@/lib/api';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface FormData {
   name: string;
@@ -29,6 +29,8 @@ export default function CertifyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [certId, setCertId] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -37,6 +39,10 @@ export default function CertifyPage() {
     e.preventDefault();
     if (!form.name.trim() || !form.shop_name.trim()) {
       setError('姓名和店名必填');
+      return;
+    }
+    if (!agreed) {
+      setError('請先閱讀並同意認證規則');
       return;
     }
     setSubmitting(true);
@@ -54,7 +60,7 @@ export default function CertifyPage() {
 
     setSubmitting(false);
     if (res.success && res.data) {
-      setCertId(res.data.id);
+      setCertId(res.data.cert_id || res.data.id);
     } else {
       setError(res.error || '提交失敗');
     }
@@ -65,7 +71,7 @@ export default function CertifyPage() {
       <div className="max-w-lg mx-auto p-4 py-16 text-center">
         <CheckCircle className="mx-auto text-green-500 mb-4" size={64} />
         <h1 className="text-2xl font-bold text-davis-navy mb-2">申請已送出</h1>
-        <p className="text-gray-600 mb-2">審核後會通知您</p>
+        <p className="text-gray-600 mb-2">Davis Taiwan 將安排實體考核，審核後會通知您</p>
         <p className="text-sm text-gray-400">認證編號: {certId}</p>
       </div>
     );
@@ -76,6 +82,65 @@ export default function CertifyPage() {
       <h1 className="text-2xl font-bold text-davis-navy mb-2">{t('certify.title')}</h1>
       <p className="text-gray-500 text-sm mb-6">填寫以下資料，我們將盡快審核您的認證申請</p>
 
+      {/* Rules section */}
+      <div className="bg-davis-light border border-davis-blue/10 rounded-xl mb-6">
+        <button
+          onClick={() => setRulesOpen(!rulesOpen)}
+          className="w-full flex items-center justify-between p-4 text-left"
+        >
+          <span className="font-bold text-davis-navy text-sm">Davis 認證美容師申請須知</span>
+          {rulesOpen ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+        </button>
+
+        {rulesOpen && (
+          <div className="px-4 pb-4 text-sm text-gray-700 space-y-4">
+            <div>
+              <h4 className="font-bold text-davis-navy mb-1">申請資格</h4>
+              <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                <li>須為台灣地區寵物美容從業人員</li>
+                <li>須經 Davis Taiwan 台灣總代理實體考核通過</li>
+                <li>須具備基本寵物美容技術能力</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-davis-navy mb-1">認證規則</h4>
+              <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                <li>認證有效期為<strong>一年</strong>，到期需重新續約</li>
+                <li>認證期間須持續使用 Davis 產品進行洗護服務</li>
+                <li>不得以 Davis 認證美容師身分代言或推廣其他品牌洗護產品</li>
+                <li>違反上述規定將導致認證<strong>停權</strong>或<strong>撤銷</strong></li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-davis-navy mb-1">申請流程</h4>
+              <ol className="list-decimal list-inside space-y-1 text-gray-600">
+                <li>填寫下方申請表單</li>
+                <li>Davis Taiwan 台灣總代理安排實體考核</li>
+                <li>考核通過後頒發認證編號</li>
+                <li>認證資訊將顯示在 Davis Taiwan 官網認證美容師列表</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-davis-navy mb-1">考核內容</h4>
+              <ul className="list-disc list-inside space-y-1 text-gray-600">
+                <li>基本洗護操作流程</li>
+                <li>Davis 產品知識（稀釋比例、適用場景）</li>
+                <li>品種毛質判斷能力</li>
+                <li>客戶溝通與服務態度</li>
+              </ul>
+            </div>
+
+            <div className="text-xs text-gray-500 border-t pt-3">
+              如有疑問請聯繫 Davis Taiwan：
+              <br />🌐 davistaiwan.com ・ 💬 LINE @davistaiwan
+            </div>
+          </div>
+        )}
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label={t('certify.name')} required value={form.name} onChange={set('name')} maxLength={20} />
         <Field label={t('certify.shop')} required value={form.shop_name} onChange={set('shop_name')} maxLength={50} />
@@ -85,9 +150,22 @@ export default function CertifyPage() {
         <Field label={t('certify.ig')} value={form.instagram} onChange={set('instagram')} placeholder="https://instagram.com/..." maxLength={200} />
         <Field label={t('certify.fb')} value={form.facebook} onChange={set('facebook')} placeholder="https://facebook.com/..." maxLength={200} />
 
+        {/* Agreement checkbox */}
+        <label className="flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-1 rounded border-gray-300"
+          />
+          <span className="text-sm text-gray-600">
+            我已閱讀並同意上述認證規則，理解違規將導致認證停權或撤銷
+          </span>
+        </label>
+
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        <button type="submit" disabled={submitting} className="btn-davis w-full text-lg disabled:opacity-50">
+        <button type="submit" disabled={submitting || !agreed} className="btn-davis w-full text-lg disabled:opacity-50">
           {submitting ? t('common.loading') : t('certify.submit')}
         </button>
       </form>
