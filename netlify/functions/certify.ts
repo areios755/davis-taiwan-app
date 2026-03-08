@@ -317,6 +317,22 @@ const handler: Handler = async (event) => {
         break;
       }
 
+      case 'delete_cert': {
+        if (cert.status !== 'rejected') {
+          return json(400, { error: '只能刪除已拒絕的認證' }, headers);
+        }
+        const { error: delError } = await sb.from('davis_certifications')
+          .delete().eq('id', id).eq('status', 'rejected');
+        if (delError) return json(500, { error: '刪除失敗', detail: delError.message }, headers);
+
+        auditLog(sb, user.username, 'cert_delete', 'certification', id,
+          `${cert.shop_name} (${cert.cert_id || ''})`,
+          { before: { status: cert.status, shop_name: cert.shop_name, name: cert.name }, after: null },
+          clientIp,
+        );
+        return json(200, { ok: true }, headers);
+      }
+
       case 'upgrade_tier':
       case 'downgrade_tier': {
         const newTier = String(body.tier || '');

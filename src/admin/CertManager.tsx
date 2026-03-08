@@ -316,8 +316,16 @@ export default function CertManager() {
                       </>
                     )}
                     {c.status === 'rejected' && (
-                      <ActionBtn icon={<Clock size={12} />} label="回復待審" color="gray"
-                        disabled={updating === c.id} onClick={() => handleAction(c.id, 'pending')} small />
+                      <>
+                        <ActionBtn icon={<Clock size={12} />} label="回復待審" color="gray"
+                          disabled={updating === c.id} onClick={() => handleAction(c.id, 'pending')} small />
+                        <ActionBtn icon={<XCircle size={12} />} label="🗑 刪除" color="red"
+                          disabled={updating === c.id} onClick={() => {
+                            if (window.confirm(`確定永久刪除 ${c.shop_name} 的認證申請？此操作無法復原。`)) {
+                              handleAction(c.id, 'delete_cert');
+                            }
+                          }} small />
+                      </>
                     )}
                   </div>
                 )}
