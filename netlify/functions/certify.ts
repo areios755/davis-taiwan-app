@@ -61,12 +61,12 @@ const handler: Handler = async (event) => {
   const method = event.httpMethod;
   const rawPath = event.path.replace('/.netlify/functions/certify', '').replace('/api/certify', '') || '/';
 
-  // Public: lookup single certification
+  // Public: lookup single certification by cert_id (DV-XXXXXXXX)
   if (method === 'GET' && rawPath === '/') {
-    const id = event.queryStringParameters?.id;
-    if (!id) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing id' }) };
+    const certId = event.queryStringParameters?.id;
+    if (!certId) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing id' }) };
 
-    const { data, error } = await sb.from('davis_certifications').select('*').eq('id', id).single();
+    const { data, error } = await sb.from('davis_certifications').select('*').eq('cert_id', certId).single();
     if (error || !data) return { statusCode: 404, headers, body: JSON.stringify({ error: '查無此認證編號' }) };
 
     // Hide sensitive fields
@@ -88,16 +88,16 @@ const handler: Handler = async (event) => {
     const note = String(body.note || '');
     if (note.length > 500) return { statusCode: 400, headers, body: JSON.stringify({ error: '說明過長（上限500字）' }) };
 
-    // Generate unique cert ID
-    let id = '';
+    // Generate unique cert_id (DV-XXXXXXXX)
+    let certId = '';
     for (let tries = 0; tries < 5; tries++) {
-      id = genCertId();
-      const { data: existing } = await sb.from('davis_certifications').select('id').eq('id', id);
+      certId = genCertId();
+      const { data: existing } = await sb.from('davis_certifications').select('cert_id').eq('cert_id', certId);
       if (!existing?.length) break;
     }
 
     const row = {
-      id,
+      cert_id: certId,
       name,
       shop_name: shopName,
       phone: String(body.phone || '').slice(0, 20),
@@ -112,13 +112,13 @@ const handler: Handler = async (event) => {
     console.log('Certify request body:', JSON.stringify(body));
     console.log('Certify insert row:', JSON.stringify(row));
 
-    const { error } = await sb.from('davis_certifications').insert(row);
+    const { data: inserted, error } = await sb.from('davis_certifications').insert(row).select().single();
     if (error) {
       console.log('Supabase insert error:', JSON.stringify(error));
       return { statusCode: 500, headers, body: JSON.stringify({ error: '申請失敗，請稍後再試', detail: error.message }) };
     }
 
-    return { statusCode: 200, headers, body: JSON.stringify({ ok: true, id, message: '申請已送出，審核後會通知您' }) };
+    return { statusCode: 200, headers, body: JSON.stringify({ ok: true, id: certId, cert_id: certId, message: '申請已送出，審核後會通知您' }) };
   }
 
   // Admin: require token
@@ -130,7 +130,7 @@ const handler: Handler = async (event) => {
     const isAdmin = user.role === 'admin';
     const status = event.queryStringParameters?.status || '';
     let query = sb.from('davis_certifications')
-      .select(isAdmin ? '*' : 'id,name,shop_name,city,instagram,facebook,status,created_at')
+      .select(isAdmin ? '*' : 'id,cert_id,name,shop_name,city,instagram,facebook,status,created_at')
       .order('created_at', { ascending: false });
     if (status) query = query.eq('status', status);
     const { data } = await query;

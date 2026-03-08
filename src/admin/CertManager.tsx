@@ -5,6 +5,7 @@ import { CheckCircle, XCircle, Clock, ExternalLink } from 'lucide-react';
 
 interface Cert {
   id: string;
+  cert_id?: string;
   name: string;
   shop_name: string;
   city: string;
@@ -79,7 +80,7 @@ export default function CertManager() {
                 <div>
                   <h3 className="font-bold text-davis-navy">{c.shop_name}</h3>
                   <p className="text-sm text-gray-600">{c.name} · {c.city || '—'}</p>
-                  <p className="text-xs text-gray-400 mt-1">ID: {c.id}</p>
+                  <p className="text-xs text-gray-400 mt-1">認證編號: {c.cert_id || '—'}</p>
                 </div>
                 <StatusBadge status={c.status} />
               </div>

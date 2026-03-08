@@ -5,6 +5,7 @@ import { Award, MapPin, ExternalLink } from 'lucide-react';
 
 interface CertPublic {
   id: string;
+  cert_id?: string;
   name: string;
   shop_name: string;
   city?: string;
@@ -86,7 +87,7 @@ export default function VerifyPage() {
         )}
 
         <p className={`text-xs mt-4 ${isApproved ? 'text-white/50' : 'text-gray-400'}`}>
-          認證編號: {cert.id}
+          認證編號: {cert.cert_id || cert.id}
         </p>
       </div>
 
