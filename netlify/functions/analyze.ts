@@ -22,10 +22,10 @@ function checkRate(ip: string): boolean {
 // Language rules (from legacy)
 // ============================================================
 const LANG_RULES: Record<string, string> = {
-  'zh-TW': '所有文字欄位（coat_analysis/personality_note/note/tagline/highlight/tip/mix_note）輸出繁體中文。',
-  'zh-CN': '所有文字欄位（coat_analysis/personality_note/note/tagline/highlight/tip/mix_note）輸出簡體中文。',
-  'en': 'Output all text fields (coat_analysis/personality_note/note/tagline/highlight/tip/mix_note) in concise professional English suitable for groomers. Keep breed/pet_type in Chinese.',
-  'ja': 'すべてのテキストフィールド（coat_analysis/personality_note/note/tagline/highlight/tip/mix_note）を日本語で出力。breed/pet_typeは中国語のまま。',
+  'zh-TW': '所有文字欄位（coat_analysis/note/tagline/highlight/tip/mix_note）輸出繁體中文。',
+  'zh-CN': '所有文字欄位（coat_analysis/note/tagline/highlight/tip/mix_note）輸出簡體中文。',
+  'en': 'Output all text fields (coat_analysis/note/tagline/highlight/tip/mix_note) in concise professional English suitable for groomers. Keep breed/pet_type in Chinese.',
+  'ja': 'すべてのテキストフィールド（coat_analysis/note/tagline/highlight/tip/mix_note）を日本語で出力。breed/pet_typeは中国語のまま。',
 };
 
 // ============================================================
@@ -138,7 +138,8 @@ Signature:第一洗+第二洗+SPA+護毛素x2(3洗2護)
 ${langRule}
 
 只輸出JSON，格式：
-{"breed":"品種","pet_type":"狗或貓","coat_analysis":"毛質(20字)","personality_note":"個性(20字)","tiers":{"basic":{"label":"基礎推薦","tagline":"核心價值(15字)","steps":[{"phase":"第一洗・深層清潔","products":["產品名"],"mix_note":"","dilution":"稀釋X:1","dwell_time":"停留X分鐘","tip":"要點(10字)"}],"highlight":"亮點(15字)"},"advanced":{"label":"進階推薦","tagline":"","steps":[],"highlight":""},"signature":{"label":"完美推薦","tagline":"","steps":[],"highlight":""}},"note":"叮嚀(25字)"}`;
+{"breed":"品種","pet_type":"狗或貓","coat_analysis":"毛質(20字內)","tiers":{"basic":{"label":"基礎推薦","tagline":"(25字內)","steps":[{"phase":"第一洗・深層清潔","products":["產品名"],"mix_note":"(15字內)","dilution":"稀釋X:1","dwell_time":"停留X分鐘","tip":"(20字內)"}],"highlight":"(30字內)"},"advanced":{"label":"進階推薦","tagline":"","steps":[],"highlight":""},"signature":{"label":"完美推薦","tagline":"","steps":[],"highlight":""}},"note":"叮嚀(25字內)"}
+步驟數不限，三洗二護就是5步。每欄位嚴守字數上限以節省token。`;
 
     // Read model from settings
     let aiModel = 'claude-haiku-4-5-20251001';
@@ -158,7 +159,7 @@ ${langRule}
       },
       body: JSON.stringify({
         model: aiModel,
-        max_tokens: 1500,
+        max_tokens: 4096,
         system: systemPrompt,
         messages: [{
           role: 'user',
@@ -178,6 +179,7 @@ ${langRule}
 
     const aiRes = await response.json() as {
       content: Array<{ type: string; text?: string }>;
+      stop_reason?: string;
       usage?: { input_tokens?: number; output_tokens?: number };
     };
 
@@ -185,6 +187,7 @@ ${langRule}
     console.log('=== CLAUDE RAW RESPONSE START ===');
     console.log(JSON.stringify(aiRes.content));
     console.log('=== CLAUDE RAW RESPONSE END ===');
+    console.log('Stop reason:', aiRes.stop_reason);
 
     const rawText = aiRes.content?.find(c => c.type === 'text')?.text ?? '';
 
@@ -214,13 +217,44 @@ ${langRule}
       console.log('After fence strip, first 3 chars:', JSON.stringify(text.substring(0, 3)));
       console.log('After fence strip, last 3 chars:', JSON.stringify(text.substring(text.length - 3)));
 
-      // Extract outermost JSON object
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON object found in response');
+      // Handle truncated response from max_tokens
+      if (aiRes.stop_reason === 'max_tokens') {
+        console.log('WARNING: Response truncated by max_tokens!');
+        // Try to recover: extract what we can from truncated JSON
+        const breedMatch = text.match(/"breed"\s*:\s*"([^"]*)"/);
+        const petTypeMatch = text.match(/"pet_type"\s*:\s*"([^"]*)"/);
+        const coatMatch = text.match(/"coat_analysis"\s*:\s*"([^"]*)"/);
 
-      console.log('JSON match length:', jsonMatch[0].length);
-      parsed = JSON.parse(jsonMatch[0]);
-      console.log('=== PARSE SUCCESS === keys:', Object.keys(parsed).join(', '));
+        // Try to extract complete tiers using greedy match for each
+        const basicMatch = text.match(/"basic"\s*:\s*(\{[\s\S]*?"highlight"\s*:\s*"[^"]*"\s*\})/);
+        const advancedMatch = text.match(/"advanced"\s*:\s*(\{[\s\S]*?"highlight"\s*:\s*"[^"]*"\s*\})/);
+
+        if (basicMatch && advancedMatch) {
+          console.log('Truncation recovery: using basic + advanced, duplicating for signature');
+          const advancedObj = JSON.parse(advancedMatch[1]);
+          parsed = {
+            breed: breedMatch?.[1] || '未知',
+            pet_type: petTypeMatch?.[1] || '狗',
+            coat_analysis: coatMatch?.[1] || '',
+            tiers: {
+              basic: JSON.parse(basicMatch[1]),
+              advanced: advancedObj,
+              signature: { ...advancedObj, label: '完美推薦', tagline: '（分析結果過長，顯示進階方案替代）' },
+            },
+            note: '建議諮詢專業美容師',
+          };
+        } else {
+          throw new Error('Response truncated and unable to recover partial tiers');
+        }
+      } else {
+        // Normal parse path
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('No JSON object found in response');
+
+        console.log('JSON match length:', jsonMatch[0].length);
+        parsed = JSON.parse(jsonMatch[0]);
+        console.log('=== PARSE SUCCESS === keys:', Object.keys(parsed).join(', '));
+      }
     } catch (parseErr) {
       console.log('=== PARSE ERROR ===');
       console.log('Error:', parseErr instanceof Error ? parseErr.message : String(parseErr));
