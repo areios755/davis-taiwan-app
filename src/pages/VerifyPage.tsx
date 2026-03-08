@@ -3,6 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Award, MapPin, ExternalLink, ShieldOff } from 'lucide-react';
 
+type Tier = 'bronze' | 'silver' | 'gold';
+
+const TIER_DISPLAY: Record<Tier, { title: string; color: string; iconColor: string }> = {
+  bronze: { title: 'Davis 認證美容師', color: '#CD7F32', iconColor: 'text-[#CD7F32]' },
+  silver: { title: 'Davis 專業美容師', color: '#C0C0C0', iconColor: 'text-[#C0C0C0]' },
+  gold:   { title: 'Davis 大師美容師', color: '#FFD700', iconColor: 'text-[#FFD700]' },
+};
+
 interface CertPublic {
   id: string;
   cert_id?: string;
@@ -12,6 +20,7 @@ interface CertPublic {
   district?: string;
   instagram?: string;
   facebook?: string;
+  tier?: Tier;
   status: string;
   created_at: string;
   approved_at?: string;
@@ -28,7 +37,6 @@ export default function VerifyPage() {
   useEffect(() => {
     if (!id) { setError('缺少認證編號'); setLoading(false); return; }
 
-    // Sanitize: only allow safe characters (alphanumeric, dash)
     const safeId = id.replace(/[^a-zA-Z0-9-]/g, '');
     if (!safeId) { setError('無效的認證編號'); setLoading(false); return; }
 
@@ -67,6 +75,8 @@ export default function VerifyPage() {
   const isApproved = cert.status === 'approved';
   const isExpired = cert.status === 'expired';
   const isInvalid = cert.status === 'suspended' || cert.status === 'revoked';
+  const tier = (cert.tier || 'bronze') as Tier;
+  const td = TIER_DISPLAY[tier];
 
   return (
     <div className="max-w-lg mx-auto p-4 py-8">
@@ -81,9 +91,7 @@ export default function VerifyPage() {
               此認證已失效
             </span>
           </div>
-          <p className="text-xs mt-4 text-gray-400">
-            認證編號: {cert.cert_id || cert.id}
-          </p>
+          <p className="text-xs mt-4 text-gray-400">認證編號: {cert.cert_id || cert.id}</p>
         </div>
       ) : (
         <div className={`rounded-2xl p-8 text-center ${
@@ -93,14 +101,21 @@ export default function VerifyPage() {
               ? 'bg-gray-200 text-gray-700'
               : 'bg-gray-100 text-gray-700'
         }`}>
-          <Award className={`mx-auto mb-4 ${isApproved ? 'text-davis-gold' : 'text-gray-400'}`} size={64} />
+          <Award
+            className="mx-auto mb-4"
+            size={72}
+            style={{ color: isApproved ? td.color : '#9ca3af' }}
+          />
           <h1 className="text-xl font-bold mb-1">{cert.shop_name}</h1>
           <p className={`text-sm ${isApproved ? 'text-white/70' : 'text-gray-500'}`}>{cert.name}</p>
 
           {isApproved && (
             <div className="mt-4">
-              <span className="bg-davis-gold text-white px-4 py-1.5 rounded-full text-sm font-bold">
-                Davis 認證美容師
+              <span
+                className="px-4 py-1.5 rounded-full text-sm font-bold text-white"
+                style={{ backgroundColor: td.color }}
+              >
+                {td.title}
               </span>
             </div>
           )}
@@ -134,22 +149,14 @@ export default function VerifyPage() {
           </div>
         )}
         {isApproved && cert.instagram && (
-          <a
-            href={cert.instagram}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-davis-blue hover:underline"
-          >
+          <a href={cert.instagram} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-davis-blue hover:underline">
             Instagram <ExternalLink size={12} />
           </a>
         )}
         {isApproved && cert.facebook && (
-          <a
-            href={cert.facebook}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-davis-blue hover:underline"
-          >
+          <a href={cert.facebook} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-davis-blue hover:underline">
             Facebook <ExternalLink size={12} />
           </a>
         )}

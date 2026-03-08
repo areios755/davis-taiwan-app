@@ -3,6 +3,15 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapPin, ExternalLink, Award, Navigation, User } from 'lucide-react';
 
+type Tier = 'bronze' | 'silver' | 'gold';
+
+const TIER_ORDER: Record<Tier, number> = { gold: 0, silver: 1, bronze: 2 };
+const TIER_INFO: Record<Tier, { label: string; emoji: string; color: string; border: string }> = {
+  bronze: { label: '認證美容師', emoji: '🥉', color: '#CD7F32', border: 'border-gray-100' },
+  silver: { label: '專業美容師', emoji: '🥈', color: '#C0C0C0', border: 'border-gray-300' },
+  gold:   { label: '大師美容師', emoji: '🥇', color: '#FFD700', border: 'border-yellow-400' },
+};
+
 interface Groomer {
   id: string;
   cert_id?: string;
@@ -15,6 +24,7 @@ interface Groomer {
   facebook?: string;
   lat?: number;
   lng?: number;
+  tier?: Tier;
   expires_at?: string;
   status: string;
   created_at: string;
@@ -35,6 +45,7 @@ export default function GroomersPage() {
   const [groomers, setGroomers] = useState<Groomer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedTier, setSelectedTier] = useState<Tier | 'all'>('all');
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState('');
@@ -46,7 +57,7 @@ export default function GroomersPage() {
 
     const now = new Date().toISOString();
     fetch(
-      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,district,photo_url,instagram,facebook,lat,lng,expires_at,status,created_at&status=eq.approved&expires_at=gt.${now}&order=created_at.desc`,
+      `${url}/rest/v1/davis_certifications?select=id,cert_id,name,shop_name,city,district,photo_url,instagram,facebook,lat,lng,tier,expires_at,status,created_at&status=eq.approved&expires_at=gt.${now}&order=created_at.desc`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } },
     )
       .then((r) => r.json())
@@ -78,28 +89,31 @@ export default function GroomersPage() {
     );
   };
 
-  // Cities that have groomers
   const availableCities = useMemo(() => {
     const cities = new Set(groomers.map((g) => g.city).filter(Boolean));
     return Array.from(cities).sort();
   }, [groomers]);
 
-  // Filter and sort
   const displayGroomers = useMemo(() => {
-    let list = selectedCity
-      ? groomers.filter((g) => g.city === selectedCity)
-      : groomers;
+    let list = selectedCity ? groomers.filter((g) => g.city === selectedCity) : groomers;
+    if (selectedTier !== 'all') list = list.filter((g) => (g.tier || 'bronze') === selectedTier);
 
-    if (userPos) {
-      list = [...list].sort((a, b) => {
+    // Sort: tier first (gold > silver > bronze), then distance or name
+    list = [...list].sort((a, b) => {
+      const tierA = TIER_ORDER[(a.tier || 'bronze') as Tier];
+      const tierB = TIER_ORDER[(b.tier || 'bronze') as Tier];
+      if (tierA !== tierB) return tierA - tierB;
+
+      if (userPos) {
         const distA = (a.lat && a.lng) ? haversine(userPos.lat, userPos.lng, a.lat, a.lng) : Infinity;
         const distB = (b.lat && b.lng) ? haversine(userPos.lat, userPos.lng, b.lat, b.lng) : Infinity;
         return distA - distB;
-      });
-    }
+      }
+      return a.shop_name.localeCompare(b.shop_name, 'zh-TW');
+    });
 
     return list;
-  }, [groomers, selectedCity, userPos]);
+  }, [groomers, selectedCity, selectedTier, userPos]);
 
   const getDistance = (g: Groomer): number | null => {
     if (!userPos || !g.lat || !g.lng) return null;
@@ -115,32 +129,46 @@ export default function GroomersPage() {
         <p className="text-gray-500 text-sm">經 Davis Taiwan 實體考核通過，專業洗護品質保證</p>
       </div>
 
-      {/* Location + City filter */}
+      {/* Filters */}
       <div className="mb-6 space-y-3">
-        {/* GPS button */}
-        <button
-          onClick={handleLocate}
-          disabled={locating}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-davis-blue text-white hover:brightness-110 transition-all disabled:opacity-50"
-        >
-          <Navigation size={14} />
-          {locating ? '定位中...' : userPos ? '已定位' : '使用目前位置'}
-        </button>
+        {/* GPS + tier filter row */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleLocate}
+            disabled={locating}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-davis-blue text-white hover:brightness-110 transition-all disabled:opacity-50"
+          >
+            <Navigation size={14} />
+            {locating ? '定位中...' : userPos ? '已定位' : '使用目前位置'}
+          </button>
+
+          {/* Tier filter pills */}
+          {(['all', 'gold', 'silver', 'bronze'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setSelectedTier(t)}
+              className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                selectedTier === t ? 'bg-davis-navy text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {t === 'all' ? '全部等級' : `${TIER_INFO[t].emoji} ${TIER_INFO[t].label}`}
+            </button>
+          ))}
+        </div>
+
         {locError && <p className="text-xs text-red-500">{locError}</p>}
-        {userPos && (
-          <p className="text-xs text-green-600">已取得您的位置，依距離排序中</p>
-        )}
+        {userPos && <p className="text-xs text-green-600">已取得您的位置，依距離排序中</p>}
 
         {/* City pills */}
         {availableCities.length > 0 && (
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => { setSelectedCity(null); }}
+              onClick={() => setSelectedCity(null)}
               className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                 !selectedCity ? 'bg-davis-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
-              全部
+              全部城市
             </button>
             {availableCities.map((city) => (
               <button
@@ -177,11 +205,19 @@ export default function GroomersPage() {
         <div className="space-y-3">
           {displayGroomers.map((g) => {
             const dist = getDistance(g);
+            const tier = (g.tier || 'bronze') as Tier;
+            const ti = TIER_INFO[tier];
+            const isGold = tier === 'gold';
+            const isSilver = tier === 'silver';
+
             return (
-              <div key={g.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow">
+              <div
+                key={g.id}
+                className={`bg-white rounded-xl border shadow-sm p-4 hover:shadow-md transition-shadow ${ti.border} ${isGold ? 'border-2 ring-1 ring-yellow-200' : isSilver ? 'border-2' : ''}`}
+              >
                 <div className="flex gap-4">
-                  {/* Photo */}
-                  <div className="flex-shrink-0">
+                  {/* Photo + tier badge */}
+                  <div className="flex-shrink-0 relative">
                     {g.photo_url ? (
                       <img src={g.photo_url} alt={g.shop_name} className="w-16 h-16 rounded-xl object-cover" />
                     ) : (
@@ -189,6 +225,16 @@ export default function GroomersPage() {
                         <User size={28} className="text-davis-blue/40" />
                       </div>
                     )}
+                    {/* Tier badge overlay */}
+                    <div
+                      className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full flex items-center justify-center text-xs border-2 border-white shadow-sm"
+                      style={{ backgroundColor: ti.color }}
+                      title={`${ti.emoji} ${ti.label}`}
+                    >
+                      <span className="text-white text-[10px] font-bold">
+                        {tier === 'gold' ? 'G' : tier === 'silver' ? 'S' : 'B'}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Info */}
@@ -198,9 +244,12 @@ export default function GroomersPage() {
                         <h3 className="font-bold text-davis-navy">{g.shop_name}</h3>
                         <p className="text-sm text-gray-600">{g.name}</p>
                       </div>
-                      <div className="flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2 py-1 rounded-full font-medium flex-shrink-0">
+                      <div
+                        className="flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium flex-shrink-0"
+                        style={{ backgroundColor: ti.color + '18', color: ti.color }}
+                      >
                         <Award size={12} />
-                        認證
+                        {ti.label}
                       </div>
                     </div>
 

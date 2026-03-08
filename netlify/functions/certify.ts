@@ -171,6 +171,7 @@ const handler: Handler = async (event) => {
       facebook: String(body.fb_url || body.facebook || '').slice(0, 200),
       note: note || null,
       status: 'pending',
+      tier: 'bronze',
     };
 
     console.log('Certify request body:', JSON.stringify(body));
@@ -230,6 +231,7 @@ const handler: Handler = async (event) => {
         updates.expires_at = oneYearFromNow();
         updates.suspended_at = null;
         updates.suspend_reason = null;
+        if (!cert.tier) updates.tier = 'bronze';
 
         const expiresFormatted = formatDate(updates.expires_at as string);
         emailSubject = '恭喜！您的 Davis 認證美容師申請已通過';
@@ -306,6 +308,33 @@ const handler: Handler = async (event) => {
         updates.suspend_reason = null;
         updates.revoked_at = null;
         updates.revoke_reason = null;
+        break;
+      }
+
+      case 'upgrade_tier':
+      case 'downgrade_tier': {
+        const newTier = String(body.tier || '');
+        if (!['bronze', 'silver', 'gold'].includes(newTier)) {
+          return json(400, { error: '無效的等級' }, headers);
+        }
+        const tierReason = String(body.reason || '').trim();
+        if (!tierReason) return json(400, { error: '等級變更原因必填' }, headers);
+
+        updates.tier = newTier;
+        updates.tier_changed_at = new Date().toISOString();
+        updates.tier_change_reason = tierReason;
+
+        const tierNames: Record<string, string> = { bronze: '銅級 — Davis 認證美容師', silver: '銀級 — Davis 專業美容師', gold: '金級 — Davis 大師美容師' };
+        const oldTierName = tierNames[cert.tier || 'bronze'] || '銅級';
+        const newTierName = tierNames[newTier];
+
+        if (action === 'upgrade_tier') {
+          emailSubject = `恭喜！您已升級為 Davis ${newTierName.split('—')[0].trim()}`;
+          emailBody = `${cert.name} 您好，\n感謝您對 Davis 品牌的持續支持！\n您的認證等級已從 ${oldTierName} 升級為 ${newTierName}。\n新的認證徽章已更新至您的驗證頁面。`;
+        } else {
+          emailSubject = 'Davis 認證等級異動通知';
+          emailBody = `${cert.name} 您好，\n您的認證等級已調整為 ${newTierName}。\n原因：${tierReason}\n如有疑問請聯繫 Davis Taiwan。`;
+        }
         break;
       }
 

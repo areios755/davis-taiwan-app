@@ -150,6 +150,25 @@ export default function CertifyPage() {
             </div>
 
             <div>
+              <h4 className="font-bold text-davis-navy mb-1">認證等級制度</h4>
+              <div className="space-y-2 text-gray-600">
+                <div className="bg-orange-50 rounded-lg p-2">
+                  <strong>🥉 銅級 — Davis 認證美容師</strong>
+                  <p className="text-xs mt-0.5">通過基礎考核後獲得。列名官網認證列表、專屬認證編號與驗證頁面、Davis 品牌素材使用權。</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-2">
+                  <strong>🥈 銀級 — Davis 專業美容師</strong>
+                  <p className="text-xs mt-0.5">持續使用 Davis 產品並達成年度採購目標後升級。銀級專屬徽章、官網優先排序、優先參加新品試用活動、進階產品教育訓練。</p>
+                </div>
+                <div className="bg-yellow-50 rounded-lg p-2">
+                  <strong>🥇 金級 — Davis 大師美容師</strong>
+                  <p className="text-xs mt-0.5">最高榮譽認證，需達成高年度採購目標並提供服務案例。金級專屬徽章、官網置頂顯示、新品首批試用資格、Davis Taiwan 社群推薦曝光、教育訓練講師資格。</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">所有新申請均從銅級開始，由 Davis Taiwan 根據合作情況評估升級。</p>
+            </div>
+
+            <div>
               <h4 className="font-bold text-davis-navy mb-1">處分等級</h4>
               <ul className="list-disc list-inside space-y-1 text-gray-600">
                 <li><strong>輕微違規（首次）：</strong>書面警告</li>
