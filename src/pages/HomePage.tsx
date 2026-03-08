@@ -71,14 +71,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Certification */}
+      {/* Find Groomers */}
       <section className="bg-davis-light py-16 px-4 text-center">
         <Award className="mx-auto text-davis-gold mb-4" size={48} />
-        <h2 className="text-2xl font-bold text-davis-navy mb-3">{t('cert.title')}</h2>
-        <p className="text-gray-600 mb-6">{t('cert.description')}</p>
+        <h2 className="text-2xl font-bold text-davis-navy mb-3">尋找你附近的 Davis 認證美容師</h2>
+        <p className="text-gray-600 mb-6">經實體考核，專業洗護技術認證</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/groomers" className="btn-davis">{t('cert.view_groomers')}</Link>
-          <Link to="/certify" className="btn-davis-outline">{t('cert.apply')}</Link>
+          <Link to="/groomers" className="btn-davis">查看認證美容師</Link>
+          <Link to="/certify" className="btn-davis-outline">我要申請認證</Link>
         </div>
       </section>
 
